@@ -13,7 +13,8 @@ const TrendingSection = () => {
       creator: "FutureVision",
       price: "4.2",
       likes: 234,
-      views: 3421
+      views: 3421,
+      priceChange: "+ 2.6%"
     },
     {
       image: nftTrending2,
@@ -21,7 +22,8 @@ const TrendingSection = () => {
       creator: "SpaceArt",
       price: "2.8",
       likes: 187,
-      views: 2156
+      views: 2156,
+      priceChange: "+ 1.3%"
     },
     {
       image: nftTrending3,
@@ -29,7 +31,8 @@ const TrendingSection = () => {
       creator: "TechnoArt",
       price: "3.5",
       likes: 298,
-      views: 4032
+      views: 4032,
+      priceChange: "+ 5.1%"
     },
     {
       image: nftTrending1,
@@ -37,7 +40,8 @@ const TrendingSection = () => {
       creator: "VirtualMind",
       price: "1.9",
       likes: 145,
-      views: 1876
+      views: 1876,
+      priceChange: "- 0.8%"
     },
     {
       image: nftTrending2,
@@ -45,7 +49,8 @@ const TrendingSection = () => {
       creator: "DreamWeaver",
       price: "2.1",
       likes: 167,
-      views: 2234
+      views: 2234,
+      priceChange: "+ 3.2%"
     },
     {
       image: nftTrending3,
@@ -53,38 +58,36 @@ const TrendingSection = () => {
       creator: "CyberCreator",
       price: "5.7",
       likes: 412,
-      views: 5678
+      views: 5678,
+      priceChange: "+ 7.4%"
     }
   ];
 
   const timeFilters = [
+    { label: "1h", active: false },
+    { label: "6h", active: false },
     { label: "24h", active: true },
-    { label: "7d", active: false },
-    { label: "30d", active: false },
-    { label: "All time", active: false }
+    { label: "7d", active: false }
   ];
 
   return (
-    <section className="py-20 bg-gradient-surface">
+    <section className="py-16 bg-gradient-subtle">
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-12">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
           <div className="mb-6 lg:mb-0">
-            <div className="flex items-center gap-3 mb-4">
-              <TrendingUp className="h-8 w-8 text-neon-purple" />
-              <h2 className="text-4xl font-bold text-foreground">Trending NFTs</h2>
-            </div>
-            <p className="text-lg text-muted-foreground">
-              Discover the hottest digital collectibles right now
+            <h2 className="text-3xl font-bold text-foreground mb-2">Trending</h2>
+            <p className="text-muted-foreground">
+              Top performing collections this week
             </p>
           </div>
 
           {/* Time Filters */}
-          <div className="flex items-center gap-2 bg-surface rounded-lg p-1 border border-border">
+          <div className="flex items-center gap-1 bg-surface rounded-lg p-1 border border-border">
             {timeFilters.map((filter, index) => (
               <Button
                 key={index}
-                variant={filter.active ? "gradient" : "ghost"}
+                variant={filter.active ? "default" : "ghost"}
                 size="sm"
                 className={filter.active ? "" : "text-muted-foreground"}
               >
@@ -97,13 +100,18 @@ const TrendingSection = () => {
         {/* Category Tabs */}
         <div className="flex flex-wrap gap-3 mb-8">
           {[
-            { icon: TrendingUp, label: "Trending", active: true },
-            { icon: DollarSign, label: "Top Sales", active: false },
-            { icon: Clock, label: "New", active: false }
+            { icon: TrendingUp, label: "Crypto", active: true },
+            { icon: DollarSign, label: "Top Offer", active: false },
+            { icon: Clock, label: "Sales 24h", active: false },
+            { icon: TrendingUp, label: "Owners", active: false },
+            { icon: Clock, label: "Listed", active: false },
+            { icon: DollarSign, label: "Volume 24h", active: false },
+            { icon: DollarSign, label: "Floor 24h", active: false }
           ].map((tab, index) => (
             <Button
               key={index}
-              variant={tab.active ? "neon" : "outline"}
+              variant={tab.active ? "default" : "outline"}
+              size="sm"
               className="gap-2"
             >
               <tab.icon className="h-4 w-4" />
@@ -115,7 +123,7 @@ const TrendingSection = () => {
         {/* NFT Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {trendingNFTs.map((nft, index) => (
-            <div key={index} className="transform hover:scale-105 transition-bounce">
+            <div key={index} className="transform hover:scale-105 transition-smooth">
               <NFTCard {...nft} />
             </div>
           ))}
@@ -123,8 +131,8 @@ const TrendingSection = () => {
 
         {/* Load More */}
         <div className="text-center mt-12">
-          <Button variant="neon" size="lg">
-            Load More NFTs
+          <Button variant="outline" size="lg">
+            Load More Collections
           </Button>
         </div>
       </div>

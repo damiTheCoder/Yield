@@ -47,27 +47,25 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        /* NFT Marketplace Custom Colors */
-        neon: {
-          purple: "hsl(var(--neon-purple))",
-          cyan: "hsl(var(--neon-cyan))",
-          pink: "hsl(var(--neon-pink))",
-        },
+        /* Black and White Marketplace Colors */
         surface: {
-          DEFAULT: "hsl(var(--dark-surface))",
-          darker: "hsl(var(--darker-surface))",
+          DEFAULT: "hsl(var(--surface))",
+          hover: "hsl(var(--surface-hover))",
+        },
+        yellow: {
+          accent: "hsl(var(--accent-yellow))",
+        },
+        green: {
+          success: "hsl(var(--success-green))",
         },
       },
       backgroundImage: {
-        "gradient-primary": "var(--gradient-primary)",
-        "gradient-secondary": "var(--gradient-secondary)",
-        "gradient-surface": "var(--gradient-surface)",
-        "gradient-hero": "var(--gradient-hero)",
+        "gradient-subtle": "var(--gradient-subtle)",
+        "gradient-card": "var(--gradient-card)",
       },
       boxShadow: {
-        neon: "var(--shadow-neon)",
         card: "var(--shadow-card)",
-        glow: "var(--shadow-glow)",
+        hover: "var(--shadow-hover)",
       },
       borderRadius: {
         lg: "var(--radius)",

@@ -2,65 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
-/* NFT Marketplace Design System */
+/* Black and White NFT Marketplace Design System */
 
 @layer base {
   :root {
-    /* Dark theme base colors */
-    --background: 240 10% 3.9%;
+    /* Black and white theme */
+    --background: 0 0% 4%;
     --foreground: 0 0% 98%;
 
-    --card: 240 10% 6%;
+    --card: 0 0% 7%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 240 10% 6%;
+    --popover: 0 0% 7%;
     --popover-foreground: 0 0% 98%;
 
-    /* Vibrant primary - Electric Purple */
-    --primary: 270 95% 75%;
-    --primary-foreground: 240 10% 3.9%;
+    /* Primary - White */
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 4%;
 
-    /* Secondary - Deep Purple */
-    --secondary: 240 15% 12%;
+    /* Secondary - Dark Gray */
+    --secondary: 0 0% 12%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 240 10% 15%;
-    --muted-foreground: 240 5% 65%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
 
-    /* Accent - Cyan */
-    --accent: 180 100% 70%;
-    --accent-foreground: 240 10% 3.9%;
+    /* Accent - Light Gray */
+    --accent: 0 0% 20%;
+    --accent-foreground: 0 0% 98%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 10% 15%;
-    --input: 240 10% 15%;
-    --ring: 270 95% 75%;
+    --border: 0 0% 15%;
+    --input: 0 0% 12%;
+    --ring: 0 0% 50%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    /* Custom NFT marketplace colors */
-    --neon-purple: 270 95% 75%;
-    --neon-cyan: 180 100% 70%;
-    --neon-pink: 320 100% 75%;
-    --dark-surface: 240 10% 6%;
-    --darker-surface: 240 15% 4%;
+    /* Custom marketplace colors */
+    --surface: 0 0% 7%;
+    --surface-hover: 0 0% 10%;
+    --accent-yellow: 51 100% 50%;
+    --success-green: 142 76% 36%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(270 95% 75%), hsl(320 100% 75%));
-    --gradient-secondary: linear-gradient(135deg, hsl(180 100% 70%), hsl(270 95% 75%));
-    --gradient-surface: linear-gradient(135deg, hsl(240 10% 6%), hsl(240 15% 8%));
-    --gradient-hero: linear-gradient(135deg, hsl(240 10% 3.9%), hsl(270 50% 8%), hsl(240 10% 3.9%));
+    /* Gradients - minimal for black/white theme */
+    --gradient-subtle: linear-gradient(135deg, hsl(0 0% 7%), hsl(0 0% 10%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 7%), hsl(0 0% 9%));
 
-    /* Shadows and effects */
-    --shadow-neon: 0 0 20px hsl(270 95% 75% / 0.3);
-    --shadow-card: 0 8px 32px hsl(240 10% 3.9% / 0.5);
-    --shadow-glow: 0 0 40px hsl(270 95% 75% / 0.2);
+    /* Shadows */
+    --shadow-card: 0 4px 16px hsl(0 0% 0% / 0.4);
+    --shadow-hover: 0 8px 24px hsl(0 0% 0% / 0.3);
 
     /* Animations */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
@@ -72,7 +67,7 @@
 
   body {
     @apply bg-background text-foreground;
-    background: var(--gradient-hero);
+    background: hsl(var(--background));
     min-height: 100vh;
   }
 
@@ -86,67 +81,50 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: var(--gradient-primary);
+    @apply bg-accent;
     border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--gradient-secondary);
+    @apply bg-accent/80;
   }
 }
 
 /* Utility classes */
 @layer utilities {
-  .gradient-primary {
-    background: var(--gradient-primary);
+  .gradient-subtle {
+    background: var(--gradient-subtle);
   }
 
-  .gradient-secondary {
-    background: var(--gradient-secondary);
-  }
-
-  .gradient-surface {
-    background: var(--gradient-surface);
-  }
-
-  .shadow-neon {
-    box-shadow: var(--shadow-neon);
+  .gradient-card {
+    background: var(--gradient-card);
   }
 
   .shadow-card {
     box-shadow: var(--shadow-card);
   }
 
-  .shadow-glow {
-    box-shadow: var(--shadow-glow);
+  .shadow-hover {
+    box-shadow: var(--shadow-hover);
   }
 
   .transition-smooth {
     transition: var(--transition-smooth);
   }
 
-  .transition-bounce {
-    transition: var(--transition-bounce);
+  .text-success {
+    color: hsl(var(--success-green));
   }
 
-  .glow-effect {
-    filter: drop-shadow(0 0 8px hsl(270 95% 75% / 0.5));
+  .text-accent-yellow {
+    color: hsl(var(--accent-yellow));
   }
 
-  .text-gradient {
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
+  .bg-accent-yellow {
+    background-color: hsl(var(--accent-yellow));
   }
 
-  body {
-    @apply bg-background text-foreground;
+  .border-accent-yellow {
+    border-color: hsl(var(--accent-yellow));
   }
 }

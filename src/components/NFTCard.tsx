@@ -8,27 +8,28 @@ interface NFTCardProps {
   price: string;
   likes?: number;
   views?: number;
+  priceChange?: string;
 }
 
-const NFTCard = ({ image, title, creator, price, likes = 0, views = 0 }: NFTCardProps) => {
+const NFTCard = ({ image, title, creator, price, likes = 0, views = 0, priceChange }: NFTCardProps) => {
   return (
     <div className="group cursor-pointer">
-      <div className="relative overflow-hidden rounded-xl bg-surface border border-border shadow-card transition-smooth hover:shadow-glow hover:border-neon-purple/50">
+      <div className="relative overflow-hidden rounded-lg bg-card border border-border shadow-card transition-smooth hover:shadow-hover hover:border-accent/50">
         {/* Image */}
         <div className="aspect-square overflow-hidden">
           <img 
             src={image} 
             alt={title}
-            className="w-full h-full object-cover transition-smooth group-hover:scale-110"
+            className="w-full h-full object-cover transition-smooth group-hover:scale-105"
           />
           
           {/* Overlay on hover */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-smooth flex items-end p-4">
+          <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-smooth flex items-end p-4">
             <div className="flex gap-2 w-full">
-              <Button variant="gradient" size="sm" className="flex-1">
+              <Button variant="default" size="sm" className="flex-1">
                 Buy Now
               </Button>
-              <Button variant="neon" size="sm">
+              <Button variant="outline" size="sm">
                 <Heart className="h-4 w-4" />
               </Button>
             </div>
@@ -38,7 +39,7 @@ const NFTCard = ({ image, title, creator, price, likes = 0, views = 0 }: NFTCard
         {/* Content */}
         <div className="p-4 space-y-3">
           <div>
-            <h3 className="font-semibold text-lg text-foreground group-hover:text-neon-purple transition-smooth">
+            <h3 className="font-semibold text-base text-foreground group-hover:text-foreground/80 transition-smooth">
               {title}
             </h3>
             <p className="text-sm text-muted-foreground">by {creator}</p>
@@ -46,17 +47,21 @@ const NFTCard = ({ image, title, creator, price, likes = 0, views = 0 }: NFTCard
 
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground">Current Price</p>
-              <p className="font-bold text-neon-purple text-lg">{price} ETH</p>
+              <p className="font-bold text-foreground text-base">{price} ETH</p>
+              {priceChange && (
+                <p className={`text-xs ${priceChange.startsWith('+') ? 'text-success' : 'text-destructive'}`}>
+                  {priceChange}
+                </p>
+              )}
             </div>
             
             <div className="flex items-center gap-3 text-muted-foreground text-sm">
               <div className="flex items-center gap-1">
-                <Heart className="h-4 w-4" />
+                <Heart className="h-3 w-3" />
                 <span>{likes}</span>
               </div>
               <div className="flex items-center gap-1">
-                <Eye className="h-4 w-4" />
+                <Eye className="h-3 w-3" />
                 <span>{views}</span>
               </div>
             </div>
