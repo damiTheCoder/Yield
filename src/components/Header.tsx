@@ -1,22 +1,25 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, User, ShoppingCart, Menu, Gift } from "lucide-react";
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Search, Menu, Gift } from "lucide-react";
 
 const Header = () => {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Logo */}
-        <div className="flex items-center space-x-4">
-          <h1 className="text-2xl font-bold text-foreground">RARIBLE</h1>
+        {/* Brand */}
+        <div className="flex items-center">
+          <h1 className="text-2xl font-bold text-foreground">YIELD</h1>
         </div>
 
-        {/* Navigation */}
-        <nav className="hidden lg:flex items-center space-x-8">
-          <a href="#" className="text-foreground hover:text-foreground/80 transition-smooth font-medium">Explore</a>
-          <a href="#" className="text-foreground hover:text-foreground/80 transition-smooth font-medium">Mint</a>
-          <a href="#" className="text-foreground hover:text-foreground/80 transition-smooth font-medium">Create</a>
-          <a href="#" className="text-foreground hover:text-foreground/80 transition-smooth font-medium">Swap</a>
+        {/* Navigation (desktop/tablet) */}
+        <nav className="hidden md:flex flex-1 mx-4 items-center space-x-6 text-sm md:text-base">
+          <a href="/assets" className="text-foreground hover:text-foreground/80 transition-smooth font-medium">Assets</a>
+          <a href="/coin-tags" className="text-foreground hover:text-foreground/80 transition-smooth font-medium">CoinTags</a>
+          <a href="/discover" className="text-foreground hover:text-foreground/80 transition-smooth font-medium">Discover</a>
+          <a href="/portfolio" className="text-foreground hover:text-foreground/80 transition-smooth font-medium">Portfolio</a>
+          <a href="/market" className="text-foreground hover:text-foreground/80 transition-smooth font-medium">Market</a>
+          <a href="/lft" className="text-foreground hover:text-foreground/80 transition-smooth font-medium">Simulator</a>
         </nav>
 
         {/* Search Bar */}
@@ -49,9 +52,38 @@ const Header = () => {
             Connect
           </Button>
           
-          <Button variant="ghost" size="icon" className="lg:hidden">
-            <Menu className="h-4 w-4" />
-          </Button>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu className="h-4 w-4" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="top" className="w-full bg-background/95 backdrop-blur border-b border-border/50">
+              <SheetHeader className="mb-8 text-left">
+                <SheetTitle className="text-2xl font-semibold text-foreground">Menu</SheetTitle>
+              </SheetHeader>
+              <nav className="flex flex-col space-y-6 text-3xl font-semibold">
+                <SheetClose asChild>
+                  <a href="/assets" className="transition-smooth hover:text-foreground/80">Assets</a>
+                </SheetClose>
+                <SheetClose asChild>
+                  <a href="/coin-tags" className="transition-smooth hover:text-foreground/80">CoinTags</a>
+                </SheetClose>
+                <SheetClose asChild>
+                  <a href="/discover" className="transition-smooth hover:text-foreground/80">Discover</a>
+                </SheetClose>
+                <SheetClose asChild>
+                  <a href="/portfolio" className="transition-smooth hover:text-foreground/80">Portfolio</a>
+                </SheetClose>
+                <SheetClose asChild>
+                  <a href="/market" className="transition-smooth hover:text-foreground/80">Market</a>
+                </SheetClose>
+                <SheetClose asChild>
+                  <a href="/lft" className="transition-smooth hover:text-foreground/80">Simulator</a>
+                </SheetClose>
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>
