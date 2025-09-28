@@ -2,78 +2,438 @@ import Header from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "@/components/ui/use-toast";
 import { useApp } from "@/lib/app-state";
-import { useState, useMemo } from "react";
+import { formatCurrency } from "@/lib/utils";
+import { useMemo, useState, type ChangeEventHandler } from "react";
+import { applyCoinTagSales, initializeCycle, DEFAULT_SPLIT, type RevenueSplit } from "@/domain/tokenomics";
+import { useNavigate } from "react-router-dom";
+
+type BreakdownRow = {
+  key: keyof RevenueSplit;
+  label: string;
+  amount: number;
+  percent: number;
+};
+
+const splitLabels: Record<keyof RevenueSplit, string> = {
+  creator: "Creator",
+  reserveGrowth: "Reserve Growth",
+  platform: "Platform",
+  liquidityContribution: "Liquidity",
+  holderRewards: "Holder Rewards",
+};
+
+const DEFAULT_IMAGE = "/placeholder.svg";
 
 export default function CoinTags() {
-  const { cycle, params, user, buyCoinTags } = useApp();
-  const [amount, setAmount] = useState(10);
+  const navigate = useNavigate();
+  const { params, launchAsset } = useApp();
+  const baseSplit = params.split ?? DEFAULT_SPLIT;
+
+  const [collectionName, setCollectionName] = useState("New LFT Drop");
+  const [ticker, setTicker] = useState("NEWX");
+  const [summary, setSummary] = useState(
+    "Outline the story behind this artifact and why finders will want to activate your CoinTag campaign.",
+  );
+  const [initialReserve, setInitialReserve] = useState<number>(params.initialReserve);
+  const [initialSupply, setInitialSupply] = useState<number>(params.initialSupply);
+  const [targetRaise, setTargetRaise] = useState<number>(5000);
+  const [pricePerTag, setPricePerTag] = useState<number>(1);
+  const [discoveryRate, setDiscoveryRate] = useState<number>(25);
+  const [imageName, setImageName] = useState<string>("");
+  const [imagePreview, setImagePreview] = useState<string>(DEFAULT_IMAGE);
 
   const preview = useMemo(() => {
-    const s = amount;
+    const safeReserve = Math.max(0, initialReserve);
+    const safeSupply = Math.max(1, initialSupply);
+    const raise = Math.max(0, targetRaise);
+    const safePrice = pricePerTag > 0 ? pricePerTag : 1;
+    const tags = safePrice > 0 ? Math.floor(raise / safePrice) : 0;
+    const effectiveDiscoveryRate = Math.min(Math.max(discoveryRate, 0), 100);
+
+    const baseCycle = initializeCycle(
+      {
+        initialReserve: safeReserve,
+        initialSupply: safeSupply,
+        redemptionThreshold: params.redemptionThreshold,
+        split: baseSplit,
+      },
+      1,
+    );
+    const postCycle = applyCoinTagSales(baseCycle, raise);
+
+    const breakdown = (Object.keys(splitLabels) as Array<keyof RevenueSplit>).map<BreakdownRow>((key) => ({
+      key,
+      label: splitLabels[key],
+      amount: raise * baseSplit[key],
+      percent: baseSplit[key] * 100,
+    }));
+
+    const expectedFinds = Math.round(tags * (effectiveDiscoveryRate / 100));
+    const expectedFinderValue = expectedFinds * postCycle.lpu;
+
     return {
-      creator: (s * (params.split?.creator ?? 0)).toFixed(2),
-      reserveGrowth: (s * (params.split?.reserveGrowth ?? 0)).toFixed(2),
-      platform: (s * (params.split?.platform ?? 0)).toFixed(2),
-      liquidity: (s * (params.split?.liquidityContribution ?? 0)).toFixed(2),
-      rewards: (s * (params.split?.holderRewards ?? 0)).toFixed(2),
+      raise,
+      tags,
+      breakdown,
+      baseLpu: baseCycle.lpu,
+      postLpu: postCycle.lpu,
+      lpuDelta: postCycle.lpu - baseCycle.lpu,
+      postReserve: postCycle.reserve,
+      liquidityAdded: postCycle.reserve - safeReserve,
+      seedNext: postCycle.seedNext,
+      expectedFinds,
+      expectedFinderValue,
+      discoveryRate: effectiveDiscoveryRate,
     };
-  }, [amount, params.split]);
+  }, [baseSplit, discoveryRate, initialReserve, initialSupply, params.redemptionThreshold, pricePerTag, targetRaise]);
+
+  const hasArtwork = imagePreview !== DEFAULT_IMAGE;
+  const canLaunch = preview.raise > 0 && preview.tags > 0;
+
+  const handleImageUpload: ChangeEventHandler<HTMLInputElement> = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setImageName(file.name);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === "string" ? reader.result : DEFAULT_IMAGE;
+      setImagePreview(result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleLaunch = () => {
+    if (preview.raise <= 0 || preview.tags <= 0) {
+      toast({
+        variant: "destructive",
+        title: "Add a launch raise",
+        description: "Set a positive raise target and price per tag before launching.",
+      });
+      return;
+    }
+
+    const nextId = launchAsset({
+      name: collectionName,
+      ticker,
+      summary,
+      image: imagePreview,
+      params: {
+        initialReserve: Math.max(0, initialReserve),
+        initialSupply: Math.max(1, initialSupply),
+        redemptionThreshold: params.redemptionThreshold,
+        split: baseSplit,
+      },
+      raise: preview.raise,
+    });
+
+    toast({
+      title: "Launch staged",
+      description: `Mint ${preview.tags.toLocaleString()} CoinTags for ${collectionName} at ${formatCurrency(pricePerTag)} each.`,
+    });
+    navigate(`/assets/${nextId}`);
+  };
 
   return (
     <div className="min-h-screen">
       <Header />
       <main className="container mx-auto px-4 py-8 space-y-8">
-        <h1 className="text-3xl font-bold">Buy CoinTags</h1>
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold">Launch Pad</h1>
+          <p className="text-muted-foreground">
+            Configure liquidity, supply, and revenue splits to launch a fresh LFT campaign for your community.
+          </p>
+        </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid xl:grid-cols-[2fr_1fr] gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Purchase</CardTitle>
+              <CardTitle>Launch Configuration</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-sm text-muted-foreground">USD Balance: ${user.usd.toFixed(2)}</div>
-              <div>
-                <label className="text-sm text-muted-foreground">Amount (USD)</label>
-                <Input type="number" value={amount} onChange={(e) => setAmount(Number(e.target.value) || 0)} />
+            <CardContent className="space-y-8">
+              <section className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Project Basics</h3>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="collectionName">Collection name</Label>
+                    <Input
+                      id="collectionName"
+                      value={collectionName}
+                      onChange={(event) => setCollectionName(event.target.value)}
+                      placeholder="E.g. Atlas Forge"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="ticker">Ticker</Label>
+                    <Input
+                      id="ticker"
+                      value={ticker}
+                      onChange={(event) => setTicker(event.target.value.toUpperCase())}
+                      placeholder="E.g. ATLAS"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="summary">Launch narrative</Label>
+                  <Textarea
+                    id="summary"
+                    value={summary}
+                    onChange={(event) => setSummary(event.target.value)}
+                    rows={4}
+                    placeholder="Share the utility, unlockable art, and collector story behind this cycle."
+                  />
+                </div>
+                <div className="grid md:grid-cols-[2fr_1fr] gap-4 items-start">
+                  <div className="space-y-2">
+                    <Label htmlFor="artifactImage">Artifact image</Label>
+                    <Input
+                      id="artifactImage"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Upload a square image (PNG, JPG, or GIF). This artwork will show in listings and detail pages.
+                    </p>
+                    {imageName && <p className="text-xs">Selected: {imageName}</p>}
+                  </div>
+                  <div className="rounded-2xl border border-border/40 bg-muted/10 p-3">
+                    <img src={imagePreview} alt="Artifact preview" className="w-full aspect-square object-cover rounded-xl" />
+                  </div>
+                </div>
+              </section>
+
+              <Separator />
+
+              <section className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Liquidity & Pricing</h3>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="initialReserve">Initial reserve (USD)</Label>
+                    <Input
+                      id="initialReserve"
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      value={initialReserve}
+                      onChange={(event) => setInitialReserve(Number(event.target.value) || 0)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="initialSupply">Initial supply (LFTs)</Label>
+                    <Input
+                      id="initialSupply"
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      value={initialSupply}
+                      onChange={(event) => setInitialSupply(Number(event.target.value) || 0)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="targetRaise">Launch raise target (USD)</Label>
+                    <Input
+                      id="targetRaise"
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      value={targetRaise}
+                      onChange={(event) => setTargetRaise(Number(event.target.value) || 0)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="pricePerTag">Price per CoinTag (USD)</Label>
+                    <Input
+                      id="pricePerTag"
+                      type="number"
+                      inputMode="decimal"
+                      min={0.1}
+                      step={0.1}
+                      value={pricePerTag}
+                      onChange={(event) => setPricePerTag(Number(event.target.value) || 0)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="discoveryRate">Expected discovery rate (%)</Label>
+                    <Input
+                      id="discoveryRate"
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      max={100}
+                      value={discoveryRate}
+                      onChange={(event) => setDiscoveryRate(Number(event.target.value) || 0)}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <Separator />
+
+              <section className="space-y-3">
+                <div>
+                  <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Revenue Split</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Launches follow the protocol standard split. Adjustments require governance approval.
+                </p>
+                <ul className="grid md:grid-cols-3 gap-3 text-sm">
+                  {(Object.keys(splitLabels) as Array<keyof RevenueSplit>).map((key) => (
+                    <li key={key} className="rounded-xl border border-border/40 bg-muted/10 p-3 flex items-center justify-between">
+                      <span>{splitLabels[key]}</span>
+                      <span className="font-medium">{(baseSplit[key] * 100).toFixed(1)}%</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </CardContent>
+          </Card>
+
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Campaign Snapshot</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 text-sm">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Target raise</span>
+                    <span className="font-medium">{formatCurrency(preview.raise)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">CoinTags to mint</span>
+                    <span className="font-medium">{preview.tags.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Post-launch LPU</span>
+                    <span className="font-medium">{formatCurrency(preview.postLpu, { decimals: 4 })}</span>
+                  </div>
+                </div>
+                <Separator />
+                <div className="space-y-1">
+                  <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Distribution</div>
+                  <ul className="space-y-1.5">
+                    {preview.breakdown.map((row) => (
+                      <li key={row.key} className="flex items-center justify-between">
+                        <span>{row.label}</span>
+                        <span className="text-muted-foreground">
+                          {formatCurrency(row.amount)} · {row.percent.toFixed(1)}%
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Launch Checklist</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 text-sm">
+                <ul className="space-y-2">
+                  <li className={preview.raise > 0 ? "flex items-center justify-between" : "flex items-center justify-between text-destructive"}>
+                    <span>Raise goal configured</span>
+                    <span>{preview.raise > 0 ? formatCurrency(preview.raise) : "Set a target"}</span>
+                  </li>
+                  <li className={preview.tags > 0 ? "flex items-center justify-between" : "flex items-center justify-between text-destructive"}>
+                    <span>CoinTags supply</span>
+                    <span>{preview.tags > 0 ? preview.tags.toLocaleString() : "Needs pricing"}</span>
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <span>Revenue split</span>
+                    <span>Protocol standard</span>
+                  </li>
+                  <li className={hasArtwork ? "flex items-center justify-between" : "flex items-center justify-between text-destructive"}>
+                    <span>Campaign artwork</span>
+                    <span>{hasArtwork ? "Ready" : "Upload image"}</span>
+                  </li>
+                </ul>
+                <Button className="w-full" size="lg" onClick={handleLaunch} disabled={!canLaunch}>
+                  Launch LFT Campaign
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Liquidity Simulation</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Starting reserve</span>
+                <span className="font-medium">{formatCurrency(initialReserve)}</span>
               </div>
-              <Button onClick={() => buyCoinTags(amount)}>Buy CoinTags</Button>
-              <div className="text-sm">You will receive {Math.floor(amount)} CoinTags (1$ each).</div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Post-launch reserve</span>
+                <span className="font-medium">{formatCurrency(preview.postReserve)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Liquidity added</span>
+                <span className="font-medium">{formatCurrency(preview.liquidityAdded)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Seed next cycle</span>
+                <span className="font-medium">{formatCurrency(preview.seedNext)}</span>
+              </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Allocation Preview</CardTitle>
+              <CardTitle>Finder Economics</CardTitle>
             </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
-                <li className="flex justify-between"><span className="text-muted-foreground">Creator 50%</span><span>${preview.creator}</span></li>
-                <li className="flex justify-between"><span className="text-muted-foreground">Reserve Growth 20%</span><span>${preview.reserveGrowth}</span></li>
-                <li className="flex justify-between"><span className="text-muted-foreground">Platform 15%</span><span>${preview.platform}</span></li>
-                <li className="flex justify-between"><span className="text-muted-foreground">Liquidity 10%</span><span>${preview.liquidity}</span></li>
-                <li className="flex justify-between"><span className="text-muted-foreground">Holder Rewards 5%</span><span>${preview.rewards}</span></li>
-              </ul>
+            <CardContent className="space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Discovery rate</span>
+                <span className="font-medium">{preview.discoveryRate.toFixed(0)}%</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Expected finds</span>
+                <span className="font-medium">{preview.expectedFinds.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Value to finders</span>
+                <span className="font-medium">{formatCurrency(preview.expectedFinderValue)}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>LFT Pricing Delta</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Starting LPU</span>
+                <span className="font-medium">{formatCurrency(preview.baseLpu, { decimals: 4 })}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Post-launch LPU</span>
+                <span className="font-medium">{formatCurrency(preview.postLpu, { decimals: 4 })}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Change</span>
+                <span className={`font-medium ${preview.lpuDelta >= 0 ? "text-emerald-400" : "text-destructive"}`}>
+                  {preview.lpuDelta >= 0 ? "+" : ""}
+                  {formatCurrency(preview.lpuDelta, { decimals: 4 })}
+                </span>
+              </div>
             </CardContent>
           </Card>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Cycle Snapshot</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
-              <div><div className="text-muted-foreground">Cycle</div><div className="font-mono">{cycle.cycle}</div></div>
-              <div><div className="text-muted-foreground">Reserve</div><div className="font-mono">${cycle.reserve.toFixed(2)}</div></div>
-              <div><div className="text-muted-foreground">Supply</div><div className="font-mono">{cycle.supply}</div></div>
-              <div><div className="text-muted-foreground">LPU</div><div className="font-mono">${cycle.lpu.toFixed(4)}</div></div>
-              <div><div className="text-muted-foreground">Seed Next</div><div className="font-mono">${cycle.seedNext.toFixed(2)}</div></div>
-            </div>
-          </CardContent>
-        </Card>
       </main>
     </div>
   );
 }
-

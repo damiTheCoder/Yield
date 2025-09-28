@@ -3,17 +3,43 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useApp } from "@/lib/app-state";
-import { useState } from "react";
+import { formatCurrency } from "@/lib/utils";
+import { useMemo, useState } from "react";
 
 export default function Portfolio() {
-  const { user, cycle, yieldIndex, redeemFinders, convertToYield, claimRewards } = useApp();
+  const {
+    user,
+    cycle,
+    yieldIndex,
+    redeemFinders,
+    convertToYield,
+    claimRewards,
+    assets,
+    userAssets,
+    redeemAssetLFTs,
+  } = useApp();
   const [redeemCount, setRedeemCount] = useState(1);
   const [convertCount, setConvertCount] = useState(1);
+  const [assetRedeemCounts, setAssetRedeemCounts] = useState<Record<string, number>>({});
 
   const onRedeem = () => redeemFinders(redeemCount);
   const onConvert = () => convertToYield(convertCount);
 
   const onClaim = () => claimRewards();
+
+  const ownedAssetLfts = useMemo(
+    () => assets.filter((asset) => (userAssets[asset.id]?.lfts ?? 0) > 0),
+    [assets, userAssets],
+  );
+
+  const setAssetRedeemCount = (assetId: string, value: number) => {
+    setAssetRedeemCounts((prev) => ({ ...prev, [assetId]: value }));
+  };
+
+  const onRedeemAsset = (assetId: string) => {
+    const count = assetRedeemCounts[assetId] ?? 1;
+    redeemAssetLFTs(assetId, count);
+  };
 
   return (
     <div className="min-h-screen">
@@ -68,16 +94,58 @@ export default function Portfolio() {
         </div>
 
         <Card>
-          <CardHeader><CardTitle>Cycle & Market</CardTitle></CardHeader>
-          <CardContent className="grid md:grid-cols-4 gap-4 text-sm">
-            <div><div className="text-muted-foreground">Cycle</div><div className="font-mono">{cycle.cycle}</div></div>
-            <div><div className="text-muted-foreground">Reserve</div><div className="font-mono">${cycle.reserve.toFixed(2)}</div></div>
-            <div><div className="text-muted-foreground">LPU</div><div className="font-mono">${cycle.lpu.toFixed(6)}</div></div>
-            <div><div className="text-muted-foreground">YIELD Price</div><div className="font-mono">${yieldIndex.price.toFixed(6)}</div></div>
+          <CardHeader>
+            <CardTitle>Owned LFT Collections</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {ownedAssetLfts.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No asset-specific LFTs yet. Hunt CoinTags to populate this section.</p>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {ownedAssetLfts.map((asset) => {
+                  const balances = userAssets[asset.id] ?? { coinTags: 0, lfts: 0 };
+                  const count = assetRedeemCounts[asset.id] ?? 1;
+                  return (
+                    <div
+                      key={asset.id}
+                      className="rounded-2xl border border-border/40 bg-surface/40 p-4 space-y-3 text-sm"
+                    >
+                      <div className="flex items-center gap-3">
+                        <img src={asset.image} alt={asset.name} className="h-10 w-10 rounded-lg object-cover" />
+                        <span className="font-medium truncate">{asset.name}</span>
+                      </div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">LFTs owned</span><span className="font-mono">{balances.lfts}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Current LPU</span><span className="font-mono">{formatCurrency(asset.cycle.lpu)}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Reserve</span><span className="font-mono">{formatCurrency(asset.cycle.reserve)}</span></div>
+                      <div className="space-y-2">
+                        <label className="text-xs text-muted-foreground" htmlFor={`asset-redeem-${asset.id}`}>
+                          Redeem count
+                        </label>
+                        <Input
+                          id={`asset-redeem-${asset.id}`}
+                          type="number"
+                          min={1}
+                          value={count}
+                          onChange={(event) =>
+                            setAssetRedeemCount(asset.id, Math.max(0, Number(event.target.value) || 0))
+                          }
+                        />
+                        <Button
+                          className="w-full"
+                          onClick={() => onRedeemAsset(asset.id)}
+                          disabled={balances.lfts <= 0 || count <= 0}
+                        >
+                          Redeem
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
       </main>
     </div>
   );
 }
-

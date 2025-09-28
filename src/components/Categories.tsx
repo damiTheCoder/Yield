@@ -1,118 +1,62 @@
 import { Button } from "@/components/ui/button";
-import { 
-  Palette, 
-  Music, 
-  Camera, 
-  Gamepad2, 
-  Trophy, 
-  Sparkles,
-  ArrowRight 
-} from "lucide-react";
+import { Coins, HeartHandshake, Rocket } from "lucide-react";
+import { useScrollReveal } from "@/hooks/use-scroll-reveal";
+
+const highlights = [
+  {
+    icon: Rocket,
+    title: "Launch quickly",
+    summary: "Guided setup and prebuilt tokenomics get your campaign live without spreadsheets or custom code.",
+  },
+  {
+    icon: Coins,
+    title: "See every dollar",
+    summary: "Revenue streams into creator pay, liquidity, holder rewards, and reserve growth the instant tags sell.",
+  },
+  {
+    icon: HeartHandshake,
+    title: "Reward believers",
+    summary: "Finders redeem at live LPU or roll into yield, keeping collectors excited well past mint day.",
+  },
+];
 
 const Categories = () => {
-  const categories = [
-    {
-      icon: Palette,
-      title: "Art",
-      description: "Digital artwork and illustrations",
-      count: "125K+",
-      color: "text-foreground",
-      bgColor: "bg-surface"
-    },
-    {
-      icon: Music,
-      title: "Music",
-      description: "Audio files and music NFTs",
-      count: "45K+",
-      color: "text-foreground",
-      bgColor: "bg-surface"
-    },
-    {
-      icon: Camera,
-      title: "Photography",
-      description: "Unique digital photographs",
-      count: "78K+",
-      color: "text-foreground",
-      bgColor: "bg-surface"
-    },
-    {
-      icon: Gamepad2,
-      title: "Gaming",
-      description: "In-game items and collectibles",
-      count: "92K+",
-      color: "text-foreground",
-      bgColor: "bg-surface"
-    },
-    {
-      icon: Trophy,
-      title: "Sports",
-      description: "Sports memorabilia and moments",
-      count: "34K+",
-      color: "text-foreground",
-      bgColor: "bg-surface"
-    },
-    {
-      icon: Sparkles,
-      title: "Metaverse",
-      description: "Virtual world assets",
-      count: "56K+",
-      color: "text-foreground",
-      bgColor: "bg-surface"
-    }
-  ];
+  const reveal = useScrollReveal();
 
   return (
-    <section className="py-20">
-      <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4 text-foreground">
-            Explore by Category
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Find the perfect NFTs across diverse categories and discover new worlds of digital creativity
+    <section className="py-16">
+      <div className="container mx-auto px-4 space-y-12">
+        <div ref={reveal} className="text-center max-w-2xl mx-auto space-y-3">
+          <h2 className="text-3xl font-bold text-foreground">Why creators choose LFTs</h2>
+          <p className="text-base text-muted-foreground">
+            A lean launch stack that keeps liquidity, storytelling, and community aligned.
           </p>
         </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {categories.map((category, index) => (
+        <div className="grid gap-6 md:grid-cols-3">
+          {highlights.map((item, index) => (
             <div
-              key={index}
-              className="group cursor-pointer bg-surface border border-border rounded-xl p-6 transition-smooth hover:border-accent/50 hover:shadow-hover"
+              key={item.title}
+              ref={reveal}
+              style={{ animationDelay: `${0.1 * (index + 1)}s` }}
+              className="rounded-2xl border border-border/40 bg-surface/40 p-6 space-y-3"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className={`p-3 rounded-lg ${category.bgColor} border border-border`}>
-                  <category.icon className={`h-6 w-6 ${category.color}`} />
-                </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-1 transition-smooth" />
-              </div>
-              
-              <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-foreground/80 transition-smooth">
-                {category.title}
-              </h3>
-              
-              <p className="text-muted-foreground mb-4">
-                {category.description}
-              </p>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">
-                  {category.count} items
-                </span>
-                <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-smooth">
-                  Explore
-                </Button>
-              </div>
+              <item.icon className="h-6 w-6 text-foreground" />
+              <h3 className="text-lg font-semibold text-foreground">{item.title}</h3>
+              <p className="text-sm text-muted-foreground">{item.summary}</p>
             </div>
           ))}
         </div>
 
-        {/* CTA */}
-        <div className="text-center">
-          <Button variant="default" size="lg">
-            View All Categories
-          </Button>
+        <div ref={reveal} style={{ animationDelay: "0.4s" }} className="rounded-2xl border border-border/40 bg-surface/40 p-8 text-center space-y-4">
+          <h3 className="text-2xl font-semibold text-foreground">Ready to launch?</h3>
+          <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+            Deploy your first liquidity-funded collection in minutes and watch reserve charts update from the very first CoinTag.
+          </p>
+          <div className="flex flex-col sm:flex-row sm:justify-center gap-3">
+            <Button size="lg">Start Building</Button>
+            <Button variant="outline" size="lg">Talk to us</Button>
+          </div>
         </div>
       </div>
     </section>

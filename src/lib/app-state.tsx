@@ -25,7 +25,9 @@ export type Asset = {
   name: string;
   params: CycleParams;
   cycle: CycleState;
-  image: string; // path from /public
+  image: string; // path or data url
+  ticker?: string;
+  summary?: string;
 };
 
 type AppState = {
@@ -55,6 +57,16 @@ type AppActions = {
     count: number,
     discoveryRate?: number
   ) => { found: number; opened: number };
+  discoverAssetLFTs: (assetId: string, count?: number) => { claimed: number };
+  redeemAssetLFTs: (assetId: string, count: number) => { redeemed: number; payout: number };
+  launchAsset: (config: {
+    name: string;
+    ticker: string;
+    image: string;
+    summary?: string;
+    params: CycleParams;
+    raise: number;
+  }) => string;
 };
 
 const DEFAULT_PARAMS: CycleParams = {
@@ -101,6 +113,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [userAssets, setUserAssets] = useState<Record<string, { coinTags: number; lfts: number }>>(
     () => Object.fromEntries(assets.map((a) => [a.id, { coinTags: 0, lfts: 0 }]))
   );
+
+  const slugify = useCallback((value: string) => {
+    return value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 32);
+  }, []);
 
   const reset = useCallback(() => {
     setParams(DEFAULT_PARAMS);
@@ -260,6 +280,72 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     [assetAvailable, userAssets]
   );
 
+  const discoverAssetLFTs = useCallback((assetId: string, count = 1) => {
+    if (count <= 0) return { claimed: 0 };
+
+    let claimed = 0;
+    setAssetAvailable((prev) => {
+      const available = prev[assetId] ?? 0;
+      claimed = Math.min(count, available);
+      if (claimed <= 0) return prev;
+      return { ...prev, [assetId]: available - claimed };
+    });
+
+    if (claimed <= 0) return { claimed: 0 };
+
+    setUserAssets((prev) => ({
+      ...prev,
+      [assetId]: {
+        coinTags: prev[assetId]?.coinTags ?? 0,
+        lfts: (prev[assetId]?.lfts ?? 0) + claimed,
+      },
+    }));
+
+    return { claimed };
+  }, []);
+
+  const redeemAssetLFTs = useCallback(
+    (assetId: string, count: number) => {
+      const owned = userAssets[assetId]?.lfts ?? 0;
+      if (count <= 0 || owned <= 0) return { redeemed: 0, payout: 0 };
+      const toRedeem = Math.min(Math.floor(count), owned);
+      if (toRedeem <= 0) return { redeemed: 0, payout: 0 };
+
+      let redeemed = 0;
+      let payout = 0;
+
+      setAssets((prev) => {
+        const idx = prev.findIndex((asset) => asset.id === assetId);
+        if (idx < 0) return prev;
+        const asset = prev[idx];
+        const beforeSupply = asset.cycle.supply;
+        const beforeReserve = asset.cycle.reserve;
+        const nextCycle = redeemFinders(asset.cycle, toRedeem, asset.params.redemptionThreshold);
+        redeemed = Math.max(0, beforeSupply - nextCycle.supply);
+        payout = Math.max(0, beforeReserve - nextCycle.reserve);
+        if (redeemed <= 0 && payout <= 0) return prev;
+        const next = prev.slice();
+        next[idx] = { ...asset, cycle: nextCycle };
+        return next;
+      });
+
+      if (redeemed <= 0) return { redeemed: 0, payout: 0 };
+
+      setUserAssets((prev) => ({
+        ...prev,
+        [assetId]: {
+          coinTags: prev[assetId]?.coinTags ?? 0,
+          lfts: Math.max(0, (prev[assetId]?.lfts ?? 0) - redeemed),
+        },
+      }));
+
+      setUser((prev) => ({ ...prev, usd: prev.usd + payout }));
+
+      return { redeemed, payout };
+    },
+    [userAssets],
+  );
+
   const value = useMemo(
     () => ({
       params,
@@ -282,8 +368,74 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       claimRewards,
       buyAssetCoinTags,
       openAssetCoinTags,
+      discoverAssetLFTs,
+      redeemAssetLFTs,
+      launchAsset: ({ name, ticker, image, summary, params: launchParams, raise }) => {
+        const safeName = name.trim() || "Untitled Asset";
+        const baseSlug = slugify(ticker.trim() || safeName);
+        let createdId = baseSlug || `asset-${Date.now()}`;
+        setAssets((prev) => {
+          let slug = createdId;
+          let suffix = 1;
+          while (prev.some((asset) => asset.id === slug)) {
+            slug = `${baseSlug || "asset"}-${suffix++}`;
+          }
+          createdId = slug;
+          const clonedSplit = launchParams.split
+            ? {
+                creator: launchParams.split.creator,
+                reserveGrowth: launchParams.split.reserveGrowth,
+                platform: launchParams.split.platform,
+                liquidityContribution: launchParams.split.liquidityContribution,
+                holderRewards: launchParams.split.holderRewards,
+              }
+            : undefined;
+          const paramConfig: CycleParams = {
+            ...launchParams,
+            split: clonedSplit,
+          };
+          const initialCycle = initializeCycle(paramConfig, 1);
+          const cycleAfterRaise = raise > 0 ? applyCoinTagSales(initialCycle, raise) : initialCycle;
+          const nextAsset: Asset = {
+            id: slug,
+            name: safeName,
+            params: paramConfig,
+            cycle: cycleAfterRaise,
+            image,
+            ticker: ticker.trim(),
+            summary,
+          };
+          return [nextAsset, ...prev];
+        });
+        setAssetAvailable((prev) => ({ ...prev, [createdId]: Math.max(1, launchParams.initialSupply) }));
+        setUserAssets((prev) => ({ ...prev, [createdId]: { coinTags: 0, lfts: 0 } }));
+        return createdId;
+      },
     }),
-    [params, cycle, yieldIndex, availableToFind, user, assets, assetAvailable, userAssets, reset, buyCoinTags, openCoinTags, redeemFindersAction, convertToYield, endCycle, buyYield, sellYield, claimRewards, buyAssetCoinTags, openAssetCoinTags]
+    [
+      params,
+      cycle,
+      yieldIndex,
+      availableToFind,
+      user,
+      assets,
+      assetAvailable,
+      userAssets,
+      reset,
+      buyCoinTags,
+      openCoinTags,
+      redeemFindersAction,
+      convertToYield,
+      endCycle,
+      buyYield,
+      sellYield,
+      claimRewards,
+      buyAssetCoinTags,
+      openAssetCoinTags,
+      discoverAssetLFTs,
+      redeemAssetLFTs,
+      slugify,
+    ]
   );
 
   return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;

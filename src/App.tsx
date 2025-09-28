@@ -5,14 +5,15 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import LFTSimulator from "./pages/LFTSimulator";
 import CoinTags from "./pages/CoinTags";
-import Discover from "./pages/Discover";
 import Portfolio from "./pages/Portfolio";
 import Market from "./pages/Market";
 import { AppStateProvider } from "@/lib/app-state";
 import Assets from "./pages/Assets";
 import AssetDetail from "./pages/AssetDetail";
+import Revenue from "./pages/Revenue";
+import HuntPage from "./pages/Hunt";
+import Notifications from "./pages/Notifications";
 
 const queryClient = new QueryClient();
 
@@ -26,12 +27,13 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/coin-tags" element={<CoinTags />} />
-            <Route path="/discover" element={<Discover />} />
             <Route path="/portfolio" element={<Portfolio />} />
             <Route path="/market" element={<Market />} />
+            <Route path="/market/:id/hunt" element={<HuntPage />} />
+            <Route path="/revenue" element={<Revenue />} />
+            <Route path="/notifications" element={<Notifications />} />
             <Route path="/assets" element={<Assets />} />
             <Route path="/assets/:id" element={<AssetDetail />} />
-            <Route path="/lft" element={<LFTSimulator />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
