@@ -1,5 +1,4 @@
 import { useState } from "react";
-import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -29,14 +28,13 @@ import {
   ExternalLink,
   FileText,
   Image as ImageIcon,
-  Layers,
-  LineChart,
-  PieChart,
   Repeat,
   ShieldCheck,
   Sparkles,
   TrendingUp,
   Users,
+  ArrowUpRight,
+  ArrowDownRight,
 } from "lucide-react";
 
 type TrackingPayload = Record<string, unknown>;
@@ -148,6 +146,54 @@ const revenueAllocation = [
 ];
 
 const badgeStrip = ["Stability", "Sustainability", "Ongoing Rewards", "Fairness"];
+
+const heroTokens = [
+  {
+    label: "YLD",
+    change: "+3.4%",
+    positive: true,
+    positionClass: "left-4 top-12 md:left-[6%] md:top-[10%]",
+    image: "/doodles.jpeg",
+  },
+  {
+    label: "LFT",
+    change: "+0.9%",
+    positive: true,
+    positionClass: "right-6 top-14 md:right-[6%] md:top-[12%]",
+    image: "/alios.jpeg",
+  },
+  {
+    label: "OP",
+    change: "-2.4%",
+    positive: false,
+    positionClass: "right-8 top-1/2 md:right-[10%] md:top-[46%]",
+    image: "/_ (14).jpeg",
+  },
+];
+
+const conceptTokens = [
+  {
+    label: "YLD",
+    price: "$2.4K",
+    change: "+3.4%",
+    positive: true,
+    image: "/doodles.jpeg",
+  },
+  {
+    label: "LFT",
+    price: "$1.9K",
+    change: "+0.9%",
+    positive: true,
+    image: "/alios.jpeg",
+  },
+  {
+    label: "OP",
+    price: "$1.1K",
+    change: "-2.4%",
+    positive: false,
+    image: "/_ (14).jpeg",
+  },
+];
 
 const caseSnapshots: CaseSnapshot[] = [
   {
@@ -296,15 +342,103 @@ const handleCta = (location: string, href?: string, options?: { newTab?: boolean
 
 const Index = () => {
   const [activePersona, setActivePersona] = useState<string>(personaTabs[0].value);
+  const [activeToken, setActiveToken] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Header />
       <main className="flex flex-col">
-        <section id="hero" className="relative overflow-hidden border-b border-border/30 bg-gradient-to-b from-emerald-500/10 via-background to-background/60">
+        <section id="hero" className="relative overflow-hidden border-b border-border/30 bg-gradient-to-b from-emerald-500/25 via-background to-background/60">
+          <div
+            className="pointer-events-none absolute inset-0 z-0 hidden opacity-30 md:block"
+            style={{
+              backgroundImage:
+                "linear-gradient(0deg, rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
+              backgroundSize: "90px 90px",
+            }}
+            aria-hidden="true"
+          />
           <div className="absolute inset-x-0 -top-36 h-[420px] bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.26),_transparent_70%)]" aria-hidden="true" />
-          <div className="container mx-auto px-4 py-20 text-center lg:py-28">
-            <div className="mx-auto flex max-w-3xl flex-col items-center gap-10">
+          {heroTokens.map((token) => (
+            <div
+              key={token.label}
+              className={`absolute z-[1] opacity-90 md:opacity-100 ${token.positionClass}`}
+            >
+              <button
+                type="button"
+                onClick={() => setActiveToken((prev) => (prev === token.label ? null : token.label))}
+                className="flex animate-[float-soft_5s_ease-in-out_infinite] items-center gap-3 rounded-full border border-emerald-400/10 bg-black/20 px-3 py-2 backdrop-blur-sm md:px-4 md:py-3"
+              >
+                <div className="relative h-12 w-12 overflow-hidden rounded-full md:h-16 md:w-16">
+                  <div
+                    className={`absolute inset-0 rounded-full ${
+                      token.positive ? "bg-emerald-500/20" : "bg-rose-500/20"
+                    }`}
+                  />
+                  <div
+                    className={`absolute inset-2 rounded-full border ${
+                      token.positive ? "border-emerald-400/40" : "border-rose-400/40"
+                    }`}
+                  />
+                  <img src={token.image} alt={`${token.label} art`} className="absolute inset-3 h-[calc(100%-24px)] w-[calc(100%-24px)] rounded-full object-cover" />
+                  <div
+                    className={`absolute inset-[-8px] rounded-full border ${
+                      token.positive ? "border-emerald-400/30" : "border-rose-400/30"
+                    } opacity-70`}
+                    aria-hidden="true"
+                  />
+                  <div
+                    className={`absolute inset-[-16px] rounded-full border ${
+                      token.positive ? "border-emerald-400/20" : "border-rose-400/20"
+                    } opacity-50`}
+                    aria-hidden="true"
+                  />
+                </div>
+                <div className="hidden flex-col text-left text-sm md:flex">
+                  <span className="text-sm font-semibold text-emerald-50 tracking-wide">{token.label}</span>
+                  <div
+                    className={`flex items-center gap-1 text-xs ${
+                      token.positive ? "text-emerald-200" : "text-rose-300"
+                    }`}
+                  >
+                    {token.positive ? (
+                      <ArrowUpRight className="h-3.5 w-3.5" />
+                    ) : (
+                      <ArrowDownRight className="h-3.5 w-3.5" />
+                    )}
+                    <span>{token.change}</span>
+                  </div>
+                </div>
+              </button>
+              {activeToken === token.label && (
+                <div className="mt-2 flex items-center gap-3 rounded-full border border-emerald-400/10 bg-black/40 px-3 py-2 text-xs text-emerald-100 backdrop-blur-sm md:hidden">
+                  <div className="relative h-10 w-10 overflow-hidden rounded-full">
+                    <div className="absolute inset-0 rounded-full bg-emerald-500/15" aria-hidden="true" />
+                    <img src={token.image} alt={`${token.label} avatar badge`} className="absolute inset-[6px] h-[calc(100%-12px)] w-[calc(100%-12px)] rounded-full object-cover" />
+                  </div>
+                  <div className="flex flex-col text-left">
+                    <span className="text-sm font-semibold text-foreground">{token.label}</span>
+                    <div
+                      className={`flex items-center gap-1 ${
+                        token.positive ? "text-emerald-300" : "text-rose-300"
+                      }`}
+                    >
+                      {token.positive ? (
+                        <ArrowUpRight className="h-3.5 w-3.5" />
+                      ) : (
+                        <ArrowDownRight className="h-3.5 w-3.5" />
+                      )}
+                      <span>{token.change}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+          <div className="container mx-auto px-4 pb-20 pt-24 text-center lg:pb-28 lg:pt-32">
+            <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center gap-10">
+              <span className="text-lg font-semibold uppercase tracking-[0.6em] text-emerald-200" style={{ fontFamily: 'Nasalization, var(--font-sans)' }}>
+                YIELD
+              </span>
               <div className="space-y-6">
                 <div className="inline-flex items-center rounded-full border border-emerald-400/40 bg-emerald-500/10 px-4 py-1.5 text-xs uppercase tracking-[0.3em] text-emerald-300">
                   Liquidity Funded Tokens
@@ -326,18 +460,6 @@ const Index = () => {
                   Launch App / Join Waitlist
                   <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" />
                 </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  data-event="open_whitepaper"
-                  onClick={() => {
-                    trackEvent("open_whitepaper", { location: "hero" });
-                    handleCta("hero_whitepaper", "/whitepaper.pdf", { newTab: true });
-                  }}
-                >
-                  Read the Whitepaper
-                  <FileText className="ml-2 h-5 w-5" />
-                </Button>
               </div>
               <ul className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
                 {trustSignals.map((signal) => (
@@ -351,7 +473,7 @@ const Index = () => {
           </div>
         </section>
 
-        <section id="what" className="border-b border-border/20 bg-background">
+        <section id="what" className="border-b border-border/20 bg-black">
           <div className="container mx-auto grid gap-10 px-4 py-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)] lg:items-center">
             <div className="space-y-5">
               <div className="inline-flex items-center gap-2 rounded-full border border-border/40 bg-surface/40 px-3 py-1 text-xs uppercase tracking-wide text-muted-foreground">
@@ -363,44 +485,60 @@ const Index = () => {
                 Each Liquidity Funded Token ties to a live liquidity reserve. That reserve creates an always-on, redeemable LPU floor. As the ecosystem sells CoinTags and grows, the reserve compounds and rewards stream seamlessly—no hype cycle required.
               </p>
             </div>
-            <Card className="border-border/40 bg-surface/60 shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
-                  <Layers className="h-4 w-4" />
-                  Anatomy of an LFT
-                </CardTitle>
-                <CardDescription>Conceptual flow showing the core value loop.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-5 text-sm text-muted-foreground">
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-200">
-                    <ShieldCheck className="h-5 w-5" />
-                    <div>
-                      <p className="font-semibold text-foreground">Liquidity Reserve</p>
-                      <p>Verifiable capital escrowed on-chain to guarantee the LPU floor.</p>
+            <div className="space-y-5">
+              {conceptTokens.map((token) => (
+                <div
+                  key={token.label}
+                  className="flex items-center justify-between gap-4 rounded-3xl border border-border/40 bg-surface/60 px-4 py-4 shadow-card backdrop-blur-sm"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="relative h-14 w-14 overflow-hidden rounded-full md:h-16 md:w-16">
+                      <div
+                        className={`absolute inset-0 rounded-full ${
+                          token.positive ? "bg-emerald-500/15" : "bg-rose-500/15"
+                        }`}
+                      />
+                      <div
+                        className={`absolute inset-2 rounded-full border ${
+                          token.positive ? "border-emerald-400/40" : "border-rose-400/40"
+                        }`}
+                      />
+                      <img
+                        src={token.image}
+                        alt={`${token.label} avatar`}
+                        className="absolute inset-3 h-[calc(100%-24px)] w-[calc(100%-24px)] rounded-full object-cover"
+                      />
+                      <div
+                        className={`absolute inset-[-8px] rounded-full border ${
+                          token.positive ? "border-emerald-400/25" : "border-rose-400/25"
+                        } opacity-70`}
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <div className="flex flex-col text-sm text-muted-foreground">
+                      <span className="text-base font-semibold text-foreground">{token.label}</span>
+                      <span>{token.price}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 rounded-2xl border border-indigo-500/30 bg-indigo-500/10 p-4 text-indigo-200">
-                    <LineChart className="h-5 w-5" />
-                    <div>
-                      <p className="font-semibold text-foreground">Liquidity Per Unit (LPU)</p>
-                      <p>Redeemable baseline value that steps higher as liquidity grows.</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-200">
-                    <TrendingUp className="h-5 w-5" />
-                    <div>
-                      <p className="font-semibold text-foreground">Rewards Engine</p>
-                      <p>Automated revenue splits stream value to creators, holders, and future cycles.</p>
-                    </div>
+                  <div
+                    className={`flex items-center gap-1 text-sm font-medium ${
+                      token.positive ? "text-emerald-300" : "text-rose-300"
+                    }`}
+                  >
+                    {token.positive ? (
+                      <ArrowUpRight className="h-4 w-4" />
+                    ) : (
+                      <ArrowDownRight className="h-4 w-4" />
+                    )}
+                    <span>{token.change}</span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              ))}
+            </div>
           </div>
         </section>
 
-        <section id="creators" className="border-b border-border/20 bg-surface/30 py-16">
+        <section id="creators" className="border-b border-border/20 bg-black py-16">
           <span id="collectors" className="sr-only" aria-hidden="true" />
           <span id="yield" className="sr-only" aria-hidden="true" />
           <div className="container mx-auto px-4">
@@ -484,7 +622,7 @@ const Index = () => {
           </div>
         </section>
 
-        <section id="how" className="border-b border-border/20 bg-background">
+        <section id="how" className="border-b border-border/20 bg-black">
           <div className="container mx-auto px-4 py-16">
             <div className="grid gap-16 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
               <div className="space-y-6">
@@ -524,50 +662,14 @@ const Index = () => {
                   </button>
                 </div>
               </div>
-              <Card className="border-border/40 bg-surface/60 shadow-card">
-                <CardHeader className="space-y-1">
-                  <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
-                    <PieChart className="h-4 w-4" />
-                    Revenue Allocation (illustrative)
-                  </CardTitle>
-                  <CardDescription>
-                    Smart contracts route every sale automatically—no manual accounting required.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="relative mx-auto h-52 w-52">
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-emerald-500/20 via-indigo-500/15 to-amber-500/15" />
-                    <div className="absolute inset-[18%] rounded-full border border-border/40 bg-background/80 backdrop-blur" />
-                    <div className="absolute inset-[33%] flex items-center justify-center rounded-full bg-background">
-                      <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Cycle</span>
-                    </div>
-                    <div className="absolute inset-0" aria-hidden="true">
-                      {revenueAllocation.map((slice, index) => (
-                        <div
-                          key={slice.label}
-                          className="absolute left-1/2 top-1/2 h-[52%] w-[52%] origin-bottom-left -translate-x-1/2 -translate-y-full"
-                          style={{ transform: `rotate(${index * 72}deg)` }}
-                        >
-                          <div className="h-full w-[3px] bg-emerald-300/60" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <ul className="mt-6 space-y-3 text-sm text-muted-foreground">
-                    {revenueAllocation.map((slice) => (
-                      <li key={slice.label} className="flex items-center justify-between rounded-xl border border-border/40 bg-background/60 px-4 py-3">
-                        <span className="font-medium text-foreground">{slice.label}</span>
-                        <span>{slice.value}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
+              <div className="overflow-hidden rounded-3xl border border-border/40 bg-surface/60 shadow-card">
+                <img src="/Logo5.png" alt="Revenue allocation illustration" className="h-full w-full object-cover" />
+              </div>
             </div>
           </div>
         </section>
 
-        <section id="tiers" className="border-b border-border/20 bg-surface/20">
+        <section id="tiers" className="border-b border-border/20 bg-black">
           <div className="container mx-auto px-4 py-16">
             <div className="space-y-6">
               <h2 className="text-3xl font-semibold md:text-4xl">Two-tier value system</h2>
@@ -659,7 +761,7 @@ const Index = () => {
           </div>
         </section>
 
-        <section id="compare" className="border-b border-border/20 bg-background py-16">
+        <section id="compare" className="border-b border-border/20 bg-black py-16">
           <div className="container mx-auto px-4">
             <div className="space-y-6">
               <h2 className="text-3xl font-semibold md:text-4xl">Why LFTs win vs legacy models</h2>
@@ -702,7 +804,7 @@ const Index = () => {
           </div>
         </section>
 
-        <section id="cases" className="border-b border-border/20 bg-surface/20 py-16">
+        <section id="cases" className="border-b border-border/20 bg-black py-16">
           <div className="container mx-auto px-4">
             <div className="mb-10 space-y-4">
               <h2 className="text-3xl font-semibold md:text-4xl">Case snapshots</h2>
@@ -740,7 +842,7 @@ const Index = () => {
           </div>
         </section>
 
-        <section id="market-design" className="border-b border-border/20 bg-background py-16">
+        <section id="market-design" className="border-b border-border/20 bg-black py-16">
           <div className="container mx-auto grid gap-10 px-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)] lg:items-center">
             <div className="space-y-5">
               <div className="inline-flex items-center gap-2 rounded-full border border-border/40 bg-surface/40 px-3 py-1 text-xs uppercase tracking-wide text-muted-foreground">
@@ -786,7 +888,7 @@ const Index = () => {
           </div>
         </section>
 
-        <section id="trust" className="border-b border-border/20 bg-surface/25 py-16">
+        <section id="trust" className="border-b border-border/20 bg-black py-16">
           <div className="container mx-auto px-4">
             <div className="space-y-6">
               <h2 className="text-3xl font-semibold md:text-4xl">Trust, transparency & risk</h2>
@@ -815,7 +917,7 @@ const Index = () => {
           </div>
         </section>
 
-        <section id="docs" className="border-b border-border/20 bg-background py-16">
+        <section id="docs" className="border-b border-border/20 bg-black py-16">
           <div className="container mx-auto px-4">
             <div className="space-y-4">
               <h2 className="text-3xl font-semibold md:text-4xl">Docs & resources</h2>
@@ -854,7 +956,7 @@ const Index = () => {
           </div>
         </section>
 
-        <section id="faq" className="border-b border-border/20 bg-surface/20 py-16">
+        <section id="faq" className="border-b border-border/20 bg-black py-16">
           <div className="container mx-auto px-4">
             <div className="mb-8 space-y-4">
               <h2 className="text-3xl font-semibold md:text-4xl">FAQ</h2>
@@ -880,7 +982,7 @@ const Index = () => {
           </div>
         </section>
 
-        <section id="final-cta" className="relative overflow-hidden bg-gradient-to-br from-emerald-500/20 via-background to-indigo-500/20 py-16">
+        <section id="final-cta" className="relative overflow-hidden bg-black py-16">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.05),_transparent_70%)]" aria-hidden="true" />
           <div className="container relative mx-auto px-4">
             <div className="flex flex-col items-center gap-6 text-center">

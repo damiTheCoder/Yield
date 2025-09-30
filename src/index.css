@@ -1,6 +1,17 @@
 @tailwind base;
-@tailwind components;
-@tailwind utilities;
+  @tailwind components;
+  @tailwind utilities;
+
+  @import url("https://fonts.cdnfonts.com/css/nasalization");
+
+  @keyframes float-soft {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
 
 /* Black and White NFT Marketplace Design System */
 

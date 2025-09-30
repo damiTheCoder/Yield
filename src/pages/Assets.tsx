@@ -49,19 +49,7 @@ export default function Assets() {
     return { percent, delta };
   }, [highlightedAsset, highlightedPayout]);
   const creatorSharePercent = highlightedAsset ? Math.round((highlightedAsset.cycle?.split?.creator ?? 0) * 100) : null;
-  const trendingTokens = useMemo(
-    () =>
-      [...assets]
-        .sort((a, b) => b.cycle.reserve - a.cycle.reserve)
-        .slice(0, 4),
-    [assets],
-  );
-  const gradientStyles = [
-    "linear-gradient(135deg, rgba(16,185,129,0.28), rgba(16,185,129,0.05))",
-    "linear-gradient(135deg, rgba(56,189,248,0.28), rgba(56,189,248,0.05))",
-    "linear-gradient(135deg, rgba(244,114,182,0.28), rgba(244,114,182,0.05))",
-    "linear-gradient(135deg, rgba(250,204,21,0.28), rgba(250,204,21,0.05))",
-  ];
+  const rightPanelImage = "/Can%20(7).png";
 
   return (
     <div className="min-h-screen">
@@ -257,44 +245,17 @@ export default function Assets() {
                     </div>
                   </div>
                 </div>
-                {trendingTokens.length > 0 && (
-                  <div className="space-y-3">
-                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                      <span className="inline-flex items-center gap-1">
-                        Trending tokens
-                        <span role="img" aria-label="Trending" className="text-emerald-300">🔥</span>
-                      </span>
-                    </div>
-                    <div className="space-y-2">
-                      {trendingTokens.map((token, index) => (
-                        <button
-                          key={token.id}
-                          onClick={() => navigate(`/assets/${token.id}`)}
-                          className="flex w-full items-center justify-between gap-3 rounded-2xl border border-border/30 px-4 py-3 text-left transition-transform hover:-translate-y-0.5"
-                          style={{
-                            backgroundImage: gradientStyles[index % gradientStyles.length],
-                            backgroundSize: "100% 100%",
-                          }}
-                        >
-                          <div className="flex items-center gap-3">
-                            <img src={token.image} alt={token.name} className="h-10 w-10 rounded-xl object-cover" />
-                            <div className="flex flex-col">
-                              <span className="text-sm font-semibold text-foreground">{token.name}</span>
-                              <span className="text-[11px] uppercase text-muted-foreground">{token.ticker || token.id.toUpperCase()}</span>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-[9px] uppercase tracking-wide text-muted-foreground">Liquidity</div>
-                            <div className="font-mono text-xs text-foreground">{formatCurrencyK(token.cycle.reserve)}</div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <div className="overflow-hidden rounded-3xl border border-border/40 bg-surface/60 shadow-lg">
+                  <img src={rightPanelImage} alt="Yield ecosystem visual" className="h-full w-full object-cover" />
+                </div>
               </aside>
             )}
           </div>
+          {assets.length > 0 && (
+            <div className="lg:hidden">
+              <img src={rightPanelImage} alt="Yield ecosystem visual" className="mt-6 w-full rounded-3xl border border-border/40 object-cover" />
+            </div>
+          )}
         </div>
       </main>
     </div>
