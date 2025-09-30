@@ -303,105 +303,50 @@ const Index = () => {
       <main className="flex flex-col">
         <section id="hero" className="relative overflow-hidden border-b border-border/30 bg-gradient-to-b from-emerald-500/10 via-background to-background/60">
           <div className="absolute inset-x-0 -top-36 h-[420px] bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.26),_transparent_70%)]" aria-hidden="true" />
-          <div className="container mx-auto px-4 py-20 lg:py-28">
-            <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)] lg:items-center">
-              <div className="space-y-10">
-                <div className="space-y-6">
-                  <div className="inline-flex items-center rounded-full border border-emerald-400/40 bg-emerald-500/10 px-4 py-1.5 text-xs uppercase tracking-[0.3em] text-emerald-300">
-                    Liquidity Funded Tokens
-                  </div>
-                  <h1 className="text-4xl font-bold leading-tight text-foreground md:text-5xl lg:text-6xl">
-                    Turn speculation into sustainable value.
-                  </h1>
-                  <p className="max-w-3xl text-lg text-muted-foreground md:text-xl">
-                    Liquidity Funded Tokens (LFTs) are a new asset class: liquidity-backed from day one, fueled by real cash flows, and designed to reward creators and holders—not just hype.
-                  </p>
+          <div className="container mx-auto px-4 py-20 text-center lg:py-28">
+            <div className="mx-auto flex max-w-3xl flex-col items-center gap-10">
+              <div className="space-y-6">
+                <div className="inline-flex items-center rounded-full border border-emerald-400/40 bg-emerald-500/10 px-4 py-1.5 text-xs uppercase tracking-[0.3em] text-emerald-300">
+                  Liquidity Funded Tokens
                 </div>
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <Button
-                    size="lg"
-                    className="group"
-                    data-event="cta_click"
-                    onClick={() => handleCta("hero_primary", "/market")}
-                  >
-                    Launch App / Join Waitlist
-                    <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" />
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    data-event="open_whitepaper"
-                    onClick={() => {
-                      trackEvent("open_whitepaper", { location: "hero" });
-                      handleCta("hero_whitepaper", "/whitepaper.pdf", { newTab: true });
-                    }}
-                  >
-                    Read the Whitepaper
-                    <FileText className="ml-2 h-5 w-5" />
-                  </Button>
-                </div>
-                <ul className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
-                  {trustSignals.map((signal) => (
-                    <li key={signal} className="flex items-start gap-2 rounded-xl border border-border/40 bg-surface/40 p-3">
-                      <ShieldCheck className="mt-0.5 h-4 w-4 text-emerald-400" />
-                      <span>{signal}</span>
-                    </li>
-                  ))}
-                </ul>
+                <h1 className="text-4xl font-bold leading-tight text-foreground md:text-5xl lg:text-6xl">
+                  Turn speculation into sustainable value.
+                </h1>
+                <p className="text-lg text-muted-foreground md:text-xl">
+                  Liquidity Funded Tokens (LFTs) are a new asset class: liquidity-backed from day one, fueled by real cash flows, and designed to reward creators and holders—not just hype.
+                </p>
               </div>
-
-              <div className="relative overflow-hidden rounded-3xl border border-border/40 bg-gradient-to-br from-[#11131c] via-[#090a0f] to-[#050608] p-6 shadow-card">
-                <div className="absolute -left-28 -top-32 h-60 w-60 rounded-full bg-emerald-500/10 blur-3xl" aria-hidden="true" />
-                <div className="absolute -right-16 bottom-0 h-40 w-40 rounded-full bg-yellow-400/5 blur-3xl" aria-hidden="true" />
-                <div className="relative flex items-start justify-between gap-6">
-                  <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 overflow-hidden rounded-2xl border border-white/10">
-                      <img src="/cool-ape.jpeg" alt="Gamma Labs avatar" className="h-full w-full object-cover" />
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-semibold text-foreground">Gamma Labs</h3>
-                        <BadgeCheck className="h-4 w-4 text-emerald-300" aria-label="Verified" />
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <span className="inline-flex items-center gap-1 text-emerald-300">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
-                          Live chart
-                        </span>
-                        <span>•</span>
-                        <span>Cycle 1</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <ImageIcon className="h-4 w-4" />
-                    Image
-                  </div>
-                </div>
-                <div className="relative mt-6 space-y-6">
-                  <p className="text-4xl font-semibold text-foreground">$812.00</p>
-                  <div className="relative h-40 w-full overflow-hidden rounded-3xl border border-yellow-400/20 bg-black/60">
-                    <svg viewBox="0 0 320 160" className="absolute inset-0 h-full w-full" role="presentation" aria-hidden="true">
-                      <path
-                        d="M0 120 C30 70 60 150 90 110 C120 80 150 130 180 90 C210 50 240 160 270 100 C300 60 320 140 320 140"
-                        fill="none"
-                        stroke="rgba(250, 204, 21, 0.9)"
-                        strokeWidth="6"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black via-transparent" aria-hidden="true" />
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className="inline-flex items-center gap-1 text-emerald-300">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
-                      Live data
-                    </span>
-                    <span>•</span>
-                    <span>Updates every 3s</span>
-                  </div>
-                </div>
+              <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
+                <Button
+                  size="lg"
+                  className="group"
+                  data-event="cta_click"
+                  onClick={() => handleCta("hero_primary", "/market")}
+                >
+                  Launch App / Join Waitlist
+                  <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" />
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  data-event="open_whitepaper"
+                  onClick={() => {
+                    trackEvent("open_whitepaper", { location: "hero" });
+                    handleCta("hero_whitepaper", "/whitepaper.pdf", { newTab: true });
+                  }}
+                >
+                  Read the Whitepaper
+                  <FileText className="ml-2 h-5 w-5" />
+                </Button>
               </div>
+              <ul className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
+                {trustSignals.map((signal) => (
+                  <li key={signal} className="flex items-start gap-2 rounded-xl border border-border/40 bg-surface/40 p-3">
+                    <ShieldCheck className="mt-0.5 h-4 w-4 text-emerald-400" />
+                    <span>{signal}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </section>

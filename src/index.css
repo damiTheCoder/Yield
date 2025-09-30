@@ -10,10 +10,10 @@
     --background: 0 0% 4%;
     --foreground: 0 0% 98%;
 
-    --card: 0 0% 7%;
+    --card: 0 0% 12%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 7%;
+    --popover: 0 0% 12%;
     --popover-foreground: 0 0% 98%;
 
     /* Primary - White */
@@ -21,34 +21,34 @@
     --primary-foreground: 0 0% 4%;
 
     /* Secondary - Dark Gray */
-    --secondary: 0 0% 12%;
+    --secondary: 0 0% 18%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 65%;
+    --muted: 0 0% 22%;
+    --muted-foreground: 0 0% 70%;
 
     /* Accent - Light Gray */
-    --accent: 0 0% 20%;
+    --accent: 0 0% 26%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 15%;
-    --input: 0 0% 12%;
+    --border: 0 0% 22%;
+    --input: 0 0% 18%;
     --ring: 0 0% 50%;
 
     --radius: 0.5rem;
 
     /* Custom marketplace colors */
-    --surface: 0 0% 7%;
-    --surface-hover: 0 0% 10%;
+    --surface: 0 0% 16%;
+    --surface-hover: 0 0% 20%;
     --accent-yellow: 51 100% 50%;
     --success-green: 142 76% 36%;
 
     /* Gradients - minimal for black/white theme */
-    --gradient-subtle: linear-gradient(135deg, hsl(0 0% 7%), hsl(0 0% 10%));
-    --gradient-card: linear-gradient(135deg, hsl(0 0% 7%), hsl(0 0% 9%));
+    --gradient-subtle: linear-gradient(135deg, hsl(0 0% 12%), hsl(0 0% 18%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 14%), hsl(0 0% 20%));
 
     /* Shadows */
     --shadow-card: 0 4px 16px hsl(0 0% 0% / 0.4);

@@ -78,7 +78,7 @@ export default function HuntPage() {
     );
   }
 
-  return <HuntExperience assetId={asset.id} assetName={asset.name} ticker={asset.ticker} lpu={asset.cycle.lpu} pricePerUnit={asset.cycle.lpu} initialSupply={asset.params.initialSupply} image={asset.image} onBack={() => navigate("/market")} />;
+  return <HuntExperience assetId={asset.id} assetName={asset.name} ticker={asset.ticker} lpu={asset.cycle.lpu} pricePerUnit={asset.cycle.lpu} initialSupply={asset.params.initialSupply} image={asset.image} />;
 }
 
 type HuntExperienceProps = {
@@ -89,10 +89,9 @@ type HuntExperienceProps = {
   pricePerUnit: number;
   initialSupply: number;
   image: string;
-  onBack: () => void;
 };
 
-function HuntExperience({ assetId, assetName, ticker, lpu, pricePerUnit, initialSupply, image, onBack }: HuntExperienceProps) {
+function HuntExperience({ assetId, assetName, ticker, lpu, pricePerUnit, initialSupply, image }: HuntExperienceProps) {
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
   const [matched, setMatched] = useState<Set<string>>(new Set());
   const [inputValue, setInputValue] = useState("");
@@ -149,31 +148,28 @@ function HuntExperience({ assetId, assetName, ticker, lpu, pricePerUnit, initial
   return (
     <div className="min-h-screen">
       <Header />
-      <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-8">
-        {/* Header Section - Improved mobile layout */}
-        <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-col gap-2 sm:gap-4 sm:flex-row sm:items-center">
-            <button onClick={onBack} className="text-xs sm:text-sm text-muted-foreground transition-colors hover:text-foreground self-start">
-              ← Back to market
-            </button>
-            <div className="flex items-center gap-2 sm:gap-3">
+      <main className="container mx-auto px-2 sm:px-4 pt-4 pb-32 sm:py-8 space-y-4 sm:space-y-8">
+        {/* Header Section - Mobile-first layout */}
+        <div className="space-y-2 sm:space-y-4">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 lg:flex-nowrap lg:justify-between">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               <img src={image} alt={assetName} className="h-10 w-10 sm:h-14 sm:w-14 rounded-xl object-cover flex-shrink-0" />
               <div className="min-w-0">
                 <h1 className="text-lg sm:text-2xl font-semibold text-foreground truncate">{assetName}</h1>
                 <p className="text-xs sm:text-sm text-muted-foreground">Cycle hunt • LPU {formatCurrency(lpu)}</p>
               </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3 rounded-xl sm:rounded-2xl border border-border/40 bg-surface/40 px-3 sm:px-5 py-2 sm:py-3 text-xs sm:text-sm">
-            <div>
-              <div className="text-[10px] sm:text-[11px] uppercase tracking-wide text-muted-foreground">Wallet value</div>
-              <div className="text-sm sm:text-lg font-semibold text-foreground">{formatCurrency(walletValue)}</div>
-            </div>
-            <div className="w-px self-stretch bg-border/40" />
-            <div>
-              <div className="text-[10px] sm:text-[11px] uppercase tracking-wide text-muted-foreground">Tokens</div>
-              <div className="text-sm sm:text-lg font-semibold text-foreground">
-                {foundTokens}/{maxTokens}
+            <div className="flex flex-shrink-0 items-center gap-2 rounded-lg sm:rounded-2xl border border-border/40 bg-surface/40 px-2 py-2 text-[10px] sm:px-4 sm:py-3 sm:text-sm">
+              <div className="flex flex-col items-end">
+                <span className="text-[9px] uppercase tracking-wide text-muted-foreground sm:text-[11px]">Wallet value</span>
+                <span className="text-xs font-semibold text-foreground sm:text-lg">{formatCurrency(walletValue)}</span>
+              </div>
+              <div className="h-8 w-px bg-border/30 sm:h-10" />
+              <div className="flex flex-col items-end">
+                <span className="text-[9px] uppercase tracking-wide text-muted-foreground sm:text-[11px]">Tokens</span>
+                <span className="text-xs font-semibold text-foreground sm:text-lg">
+                  {foundTokens}/{maxTokens}
+                </span>
               </div>
             </div>
           </div>
@@ -182,7 +178,7 @@ function HuntExperience({ assetId, assetName, ticker, lpu, pricePerUnit, initial
         {/* Main Content - Stack on mobile, side-by-side on desktop */}
         <section className="flex flex-col lg:flex-row gap-4 sm:gap-6">
           {/* Sidebar */}
-          <aside className="w-full lg:w-80 lg:flex-shrink-0 space-y-3 sm:space-y-4">
+          <aside className="hidden w-full lg:w-80 lg:flex-shrink-0 space-y-3 sm:space-y-4 sm:block">
             <div className="hunt-image-card overflow-hidden rounded-xl sm:rounded-2xl border border-border/40 bg-surface/40 shadow-card">
               <div className="hunt-image-card__media">
                 <img src={image} alt={assetName} className="w-full h-32 sm:h-auto object-cover" />
@@ -220,20 +216,23 @@ function HuntExperience({ assetId, assetName, ticker, lpu, pricePerUnit, initial
 
           {/* Main Game Area */}
           <section className="flex-1 space-y-4 sm:space-y-6 min-w-0">
-            {/* Coordinate Reference - Fixed mobile scrolling */}
-            <div className="rounded-xl sm:rounded-2xl border border-border/40 bg-surface/40">
-              <div className="flex flex-col gap-1 sm:gap-2 border-b border-border/40 px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-                <span>Coordinate reference</span>
-                <span className="hidden sm:inline">Scroll to explore</span>
-                <span className="sm:hidden">Swipe right to see more →</span>
+            <div className="rounded-xl sm:rounded-2xl border border-border/40 bg-surface/40 overflow-hidden">
+              <div className="flex flex-wrap items-center justify-between gap-1 sm:gap-2 border-b border-border/40 px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">
+                <span className="whitespace-nowrap">Coordinate reference</span>
+                <span className="hidden sm:inline whitespace-nowrap">Scroll to explore</span>
+                <span className="sm:hidden whitespace-nowrap">Swipe right to see more →</span>
               </div>
-              <div className="w-full overflow-x-auto overflow-y-hidden" style={{ WebkitOverflowScrolling: 'touch' }}>
+              <div className="w-full overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch', maxHeight: '360px' }}>
                 <table className="border-collapse text-[9px] sm:text-[10px] md:text-[11px]" style={{ minWidth: '100%', width: 'max-content' }}>
                   <thead>
                     <tr>
-                      <th scope="col" className="sticky left-0 bg-surface/40 border-r border-border/40 w-8 sm:w-10 h-6 sm:h-8 text-center font-medium text-muted-foreground z-10"></th>
+                      <th scope="col" className="sticky left-0 bg-muted border-r border-border/40 w-8 sm:w-10 h-6 sm:h-8 text-center font-medium text-muted-foreground z-10"></th>
                       {LETTERS.map((letter) => (
-                        <th key={letter} scope="col" className="w-12 sm:w-14 md:w-16 h-6 sm:h-8 text-center font-medium text-muted-foreground border-r border-border/20 bg-surface/20">
+                        <th
+                          key={letter}
+                          scope="col"
+                          className="sticky top-0 bg-muted border-r border-border/20 w-12 sm:w-14 md:w-16 h-6 sm:h-8 text-center font-medium text-muted-foreground z-10"
+                        >
                           {letter}
                         </th>
                       ))}
@@ -242,7 +241,7 @@ function HuntExperience({ assetId, assetName, ticker, lpu, pricePerUnit, initial
                   <tbody>
                     {ROWS.map((row) => (
                       <tr key={row}>
-                        <th scope="row" className="sticky left-0 bg-surface/40 border-r border-border/40 w-8 sm:w-10 h-6 sm:h-7 text-center font-medium text-muted-foreground z-10">{row}</th>
+                        <th scope="row" className="sticky left-0 bg-muted border-r border-border/40 w-8 sm:w-10 h-6 sm:h-7 text-center font-medium text-muted-foreground z-10">{row}</th>
                         {LETTERS.map((letter) => {
                           const coord = `${letter}${row}`;
                           const value = huntData.values[coord];
@@ -266,8 +265,8 @@ function HuntExperience({ assetId, assetName, ticker, lpu, pricePerUnit, initial
               </div>
             </div>
 
-            {/* Input Section */}
-            <div className="space-y-3 sm:space-y-4">
+            {/* Input Section (desktop/tablet) */}
+            <div className="hidden space-y-3 sm:block sm:space-y-4">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">Enter coordinate</div>
                 <div className="flex gap-2">
@@ -281,22 +280,44 @@ function HuntExperience({ assetId, assetName, ticker, lpu, pricePerUnit, initial
                       }
                     }}
                     placeholder="E.g. G12"
-                    className="flex-1 min-w-0 rounded-md border border-border bg-background px-2 sm:px-3 py-1.5 sm:py-2 text-sm text-foreground outline-none focus:border-foreground"
+                    className="flex-1 min-w-0 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground"
                   />
-                  <Button onClick={handleSubmit} className="px-3 sm:px-4 py-1.5 sm:py-2 text-sm">Submit</Button>
+                  <Button onClick={handleSubmit} className="px-4 py-2 text-sm">Submit</Button>
                 </div>
               </div>
               {status && <p className={`text-xs sm:text-sm ${statusType === "success" ? "text-emerald-400" : "text-destructive"}`}>{status}</p>}
             </div>
 
+            {/* Input Section (mobile floating bar) */}
+            <div className="sm:hidden fixed inset-x-0 bottom-0 z-40 border-t border-border/40 bg-background/95 px-3 py-3 backdrop-blur-sm shadow-[0_-16px_32px_rgba(0,0,0,0.35)]">
+              <div className="container mx-auto px-0">
+                <div className="flex flex-col gap-2">
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Enter coordinate</div>
+                  <div className="flex gap-2">
+                    <input
+                      value={inputValue}
+                      onChange={(event) => setInputValue(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          handleSubmit();
+                        }
+                      }}
+                      placeholder="E.g. G12"
+                      className="flex-1 min-w-0 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground"
+                    />
+                    <Button onClick={handleSubmit} className="px-4 py-2 text-sm">Submit</Button>
+                  </div>
+                  {status && <p className={`text-xs ${statusType === "success" ? "text-emerald-400" : "text-destructive"}`}>{status}</p>}
+                </div>
+              </div>
+            </div>
+
             {/* Hunt Grid - Fixed mobile layout */}
             <div className="space-y-2 sm:space-y-3">
               <div className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">Hunt grid</div>
-              <div className="rounded-xl border border-border/30 bg-surface/40 p-2 sm:p-3 overflow-hidden">
-                <div className="grid gap-1 sm:gap-1.5" style={{
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(32px, 1fr))',
-                  maxWidth: '100%'
-                }}>
+              <div className="rounded-xl border border-border/30 bg-surface/40 p-2 sm:p-3 overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+                <div className="grid auto-cols-min grid-flow-col gap-1 sm:gap-1.5" style={{ gridTemplateRows: 'repeat(7, minmax(32px, 1fr))' }}>
                   {huntData.boxes.map((coord, index) => {
                     const isMatched = matched.has(coord);
                     const isRevealed = revealed.has(coord);
@@ -306,14 +327,13 @@ function HuntExperience({ assetId, assetName, ticker, lpu, pricePerUnit, initial
                         key={`${coord}-${index}`}
                         type="button"
                         onClick={() => handleReveal(coord)}
-                        className={`aspect-square rounded border text-[8px] sm:text-[9px] md:text-[10px] font-semibold transition-colors flex items-center justify-center w-full min-h-8 sm:min-h-10 ${
+                        className={`aspect-square rounded border text-[8px] sm:text-[9px] md:text-[10px] font-semibold transition-colors flex items-center justify-center min-w-[32px] sm:min-w-[40px] min-h-[32px] sm:min-h-[40px] ${
                           isMatched
                             ? "border-emerald-400/70 bg-emerald-500/25 text-emerald-50"
                             : isRevealed
                             ? "border-border bg-muted text-foreground"
                             : "border-border/60 bg-background text-muted-foreground hover:border-border hover:text-foreground active:scale-95"
                         }`}
-                        style={{ minWidth: '32px' }}
                       >
                         <span className="block text-center leading-none p-0.5 break-all">
                           {isMatched ? "🏆" : isRevealed ? value : ""}
