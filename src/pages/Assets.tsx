@@ -37,8 +37,8 @@ export default function Assets() {
   const listLabel = isLiveMarket ? "Live List" : "Listed List";
   const gridLabel = isLiveMarket ? "Live Grid" : "Listed Grid";
 
-  const cardBorderClass = "";
-  const cardMediaBorderClass = "";
+  const cardBorderClass = isDarkTheme ? "" : "border border-neutral-300";
+  const cardMediaBorderClass = isDarkTheme ? "" : "border-b border-neutral-300";
   const liveCardBorderClass = cardBorderClass;
   const liveCardMediaBorderClass = cardMediaBorderClass;
 
@@ -142,7 +142,7 @@ export default function Assets() {
               <TableHead className="text-center">CoinTag</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody className="border-t border-border/40 divide-y divide-border/40">
+          <TableBody className="divide-y divide-border/40 [&>tr:first-child]:border-t-0 [&>tr]:border-b-0">
             {items.map((a) => {
               const change = getAssetChange(a);
               const changeText = formatChange(change);
@@ -298,12 +298,12 @@ export default function Assets() {
             return (
               <TableRow
                 key={asset.id}
-                className="cursor-pointer text-sm transition-colors hover:bg-surface/70 [&>td]:bg-surface/60"
+                className="cursor-pointer text-sm transition-colors hover:bg-surface/70"
                 onClick={() => navigate(`/market/${asset.id}/hunt`)}
               >
-                <TableCell className="sticky left-0 z-10 min-w-[200px] bg-surface/60">
+                <TableCell className="sticky left-0 z-10 min-w-[200px] bg-surface/90">
         <div className="flex items-center gap-3 text-sm">
-          <img src={asset.image} alt={asset.name} className="h-9 w-9 rounded-lg object-cover" />
+          <img src={asset.image} alt={asset.name} className="h-9 w-9 rounded-xl border border-black/70 object-cover" />
                     <div className="flex flex-col">
                       <span className="font-medium text-foreground">{asset.name}</span>
                       <span className={`text-xs font-semibold ${changeClass}`}>{changeText}</span>
