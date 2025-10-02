@@ -47,7 +47,12 @@ function generateHuntData(seed: string): HuntData {
       .padStart(2, "0");
     values[coord] = `${left}, ${right}`;
   });
-  const boxes: string[] = Array.from({ length: 320 }, () => coords[Math.floor(random() * coords.length)]);
+  const shuffled = [...coords];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  const boxes: string[] = shuffled.slice(0, 320);
   return { boxes, values };
 }
 
@@ -156,18 +161,18 @@ function HuntExperience({ assetId, assetName, ticker, lpu, pricePerUnit, initial
               <img src={image} alt={assetName} className="h-10 w-10 sm:h-14 sm:w-14 rounded-xl object-cover flex-shrink-0" />
               <div className="min-w-0">
                 <h1 className="text-lg sm:text-2xl font-semibold text-foreground truncate">{assetName}</h1>
-                <p className="text-xs sm:text-sm text-muted-foreground">Cycle hunt • LPU {formatCurrency(lpu)}</p>
+                <p className="text-xs sm:text-sm font-semibold text-emerald-400">LPU {formatCurrency(lpu)}</p>
               </div>
             </div>
             <div className="flex flex-shrink-0 items-center gap-2 rounded-lg sm:rounded-2xl border border-border/40 bg-surface/40 px-2 py-2 text-[10px] sm:px-4 sm:py-3 sm:text-sm">
               <div className="flex flex-col items-end">
                 <span className="text-[9px] uppercase tracking-wide text-muted-foreground sm:text-[11px]">Wallet value</span>
-                <span className="text-xs font-semibold text-foreground sm:text-lg">{formatCurrency(walletValue)}</span>
+                <span className="text-xs font-semibold text-emerald-400 sm:text-lg">{formatCurrency(walletValue)}</span>
               </div>
               <div className="h-8 w-px bg-border/30 sm:h-10" />
               <div className="flex flex-col items-end">
                 <span className="text-[9px] uppercase tracking-wide text-muted-foreground sm:text-[11px]">Tokens</span>
-                <span className="text-xs font-semibold text-foreground sm:text-lg">
+                <span className="text-xs font-semibold text-emerald-400 sm:text-lg">
                   {foundTokens}/{maxTokens}
                 </span>
               </div>
@@ -336,7 +341,7 @@ function HuntExperience({ assetId, assetName, ticker, lpu, pricePerUnit, initial
                         }`}
                       >
                         <span className="block text-center leading-none p-0.5 break-all">
-                          {isMatched ? "🏆" : isRevealed ? value : ""}
+                          {isMatched ? "" : isRevealed ? value : ""}
                         </span>
                       </button>
                     );

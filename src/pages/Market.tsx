@@ -50,7 +50,7 @@ export default function Market() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="sticky left-0 z-20 min-w-[200px] bg-surface/80 text-left">Collection</TableHead>
-                    <TableHead className="sticky left-[200px] z-10 min-w-[140px] bg-surface/80 text-center">Liquidity</TableHead>
+                    <TableHead className="min-w-[140px] text-center">Liquidity</TableHead>
                     <TableHead className="text-center">LPU</TableHead>
                     <TableHead className="text-center">CoinTag</TableHead>
                     <TableHead className="text-center">Backing Reserve</TableHead>
@@ -74,9 +74,7 @@ export default function Market() {
                           </div>
                         </div>
                       </TableCell>
-                        <TableCell className="sticky left-[200px] z-10 min-w-[140px] bg-surface/90 text-center font-mono text-xs">
-                          {formatCurrencyK(asset.cycle.reserve)}
-                        </TableCell>
+                        <TableCell className="min-w-[140px] text-center font-mono text-xs">{formatCurrencyK(asset.cycle.reserve)}</TableCell>
                         <TableCell className="min-w-[140px] text-center font-mono text-xs">{formatCurrency(asset.cycle.lpu)}</TableCell>
                         <TableCell className="min-w-[140px] text-center font-mono text-xs">{formatCurrency(coinTagPrice)}</TableCell>
                         <TableCell className="min-w-[160px] text-center font-mono text-xs">

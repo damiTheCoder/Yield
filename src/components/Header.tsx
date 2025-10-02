@@ -1,11 +1,15 @@
-import { useMemo, useState, useRef, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Menu, Gift, Sun, Moon } from "lucide-react";
+import { Search, Menu, Gift, Sun, Moon, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
+import { CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem, CommandSeparator } from "@/components/ui/command";
 import { useApp } from "@/lib/app-state";
+import type { Asset } from "@/lib/app-state";
 import { useTheme } from "@/hooks/useTheme";
+import { useToast } from "@/hooks/use-toast";
+import { formatCurrency, formatCurrencyK } from "@/lib/utils";
 
 type SearchResult = {
   type: "page" | "asset";
@@ -15,15 +19,35 @@ type SearchResult = {
   path: string;
 };
 
+type WalletOption = {
+  id: string;
+  name: string;
+  emoji?: string;
+  icon?: string;
+  gradient: string;
+  detected: boolean;
+};
+
+const NAV_LINKS = [
+  { label: "Assets", href: "/assets" },
+  { label: "LaunchPad", href: "/coin-tags" },
+  { label: "Portfolio", href: "/portfolio" },
+  { label: "Revenue", href: "/revenue" },
+  { label: "Market", href: "/market" },
+  { label: "Notifications", href: "/notifications" },
+];
+
 const Header = () => {
   const { assets } = useApp();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const [query, setQuery] = useState("");
-  const [showResults, setShowResults] = useState(false);
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const resultPanelRef = useRef<HTMLDivElement | null>(null);
+  const isDarkTheme = theme === "dark";
+  const { toast } = useToast();
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchFilter, setSearchFilter] = useState<"all" | "assets" | "pages">("all");
+  const [walletDialogOpen, setWalletDialogOpen] = useState(false);
+  const [connectingWallet, setConnectingWallet] = useState<string | null>(null);
+  const [connectedWallet, setConnectedWallet] = useState<string | null>(null);
 
   const staticPages = useMemo<SearchResult[]>(
     () => [
@@ -38,220 +62,377 @@ const Header = () => {
     [],
   );
 
-  const assetResults = useMemo<SearchResult[]>(
-    () =>
-      assets.map((asset) => ({
-        type: "asset",
-        label: asset.name,
-        description: `Asset · ${asset.params.initialSupply} supply · LPU ${asset.cycle.lpu.toFixed(2)}`,
-        badge: asset.ticker || undefined,
-        path: `/assets/${asset.id}`,
-      })),
-    [assets],
+  const trendingAssets = useMemo(() => {
+    return [...assets].sort((a, b) => b.cycle.totalSales - a.cycle.totalSales).slice(0, 6);
+  }, [assets]);
+
+  const orderedAssets = useMemo(() => {
+    return [...assets].sort((a, b) => a.name.localeCompare(b.name));
+  }, [assets]);
+
+  const walletOptions = useMemo<WalletOption[]>(() => {
+    const win = typeof window === "undefined" ? undefined : (window as any);
+    const gateIcon = "/Gate%20IO%20Exchange.jpeg";
+    const walletConnectIcon = "/walletconnect.png";
+    const coinbaseIcon = "/Coinbase%20Logo.jpeg";
+    return [
+      {
+        id: "trust",
+        name: "Trust Wallet",
+        icon: "/r2.jpeg",
+        gradient: "from-blue-500 via-blue-600 to-indigo-500",
+        detected: Boolean(win?.ethereum?.isTrust),
+      },
+      {
+        id: "metamask",
+        name: "MetaMask",
+        icon: "/r3.jpeg",
+        gradient: "from-orange-400 via-orange-500 to-amber-500",
+        detected: Boolean(win?.ethereum?.isMetaMask),
+      },
+      {
+        id: "phantom",
+        name: "Phantom",
+        icon: "/r1.jpeg",
+        gradient: "from-violet-500 via-purple-500 to-fuchsia-500",
+        detected: Boolean(win?.solana?.isPhantom),
+      },
+      {
+        id: "gate",
+        name: "Gate Wallet",
+        icon: gateIcon,
+        gradient: "from-sky-400 via-cyan-500 to-blue-500",
+        detected: Boolean(win?.gatewallet),
+      },
+      {
+        id: "walletconnect",
+        name: "WalletConnect",
+        icon: walletConnectIcon,
+        gradient: "from-cyan-400 via-cyan-500 to-cyan-600",
+        detected: true,
+      },
+      {
+        id: "coinbase",
+        name: "Coinbase Wallet",
+        icon: coinbaseIcon,
+        gradient: "from-blue-500 via-blue-500 to-blue-600",
+        detected: Boolean(win?.coinbaseWalletExtension),
+      },
+    ];
+  }, [walletDialogOpen]);
+
+  const renderAssetCommandItem = (asset: Asset, context: "trending" | "all") => (
+    <CommandItem
+      key={`${context}-${asset.id}`}
+      value={`${asset.name} ${asset.ticker ?? asset.id}`}
+      onSelect={() => handleNavigate(`/assets/${asset.id}`)}
+      className="data-[selected=true]:bg-surface/90"
+    >
+      <div className="flex w-full items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <img
+            src={asset.image}
+            alt={asset.name}
+            className="h-9 w-9 rounded-full border border-border/50 object-cover"
+          />
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold text-foreground">{asset.name}</span>
+            <span className="text-xs text-muted-foreground">
+              {asset.ticker || asset.id.toUpperCase()} · LPU {formatCurrency(asset.cycle.lpu)}
+            </span>
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="text-xs font-semibold text-foreground">{formatCurrencyK(asset.cycle.reserve)}</div>
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Liquidity</div>
+        </div>
+      </div>
+    </CommandItem>
   );
 
-  const results = useMemo<SearchResult[]>(() => {
-    const term = query.trim().toLowerCase();
-    if (!term) return [];
-    const merged = [...staticPages, ...assetResults];
-    return merged.filter((item) => {
-      const haystack = `${item.label} ${item.description ?? ""} ${item.badge ?? ""}`.toLowerCase();
-      return haystack.includes(term);
-    });
-  }, [assetResults, staticPages, query]);
+  const searchTabs: Array<{ id: "all" | "assets" | "pages"; label: string }> = [
+    { id: "all", label: "All" },
+    { id: "assets", label: "Listed" },
+    { id: "pages", label: "Sections" },
+  ];
+
+  const showAssets = searchFilter === "all" || searchFilter === "assets";
+  const showPages = searchFilter === "all" || searchFilter === "pages";
+
+  const handleWalletConnect = async (wallet: WalletOption) => {
+    if (connectingWallet) return;
+    setConnectingWallet(wallet.id);
+    try {
+      if (wallet.id === "metamask" && typeof window !== "undefined") {
+        const provider = (window as any).ethereum;
+        if (provider?.request) {
+          await provider.request({ method: "eth_requestAccounts" });
+        }
+      }
+
+      if (wallet.id === "phantom" && typeof window !== "undefined") {
+        const provider = (window as any).solana;
+        if (provider?.connect) {
+          await provider.connect();
+        }
+      }
+
+      // Simulate handshake latency
+      await new Promise((resolve) => setTimeout(resolve, 400));
+
+      setConnectedWallet(wallet.name);
+      toast({
+        title: `${wallet.name} connected`,
+        description: "Wallet ready for hunts and redemptions.",
+      });
+      setWalletDialogOpen(false);
+    } catch (error) {
+      toast({
+        title: `Unable to connect ${wallet.name}`,
+        description:
+          error instanceof Error ? error.message : "Connection was cancelled or is not supported.",
+        variant: "destructive",
+      });
+    } finally {
+      setConnectingWallet(null);
+    }
+  };
 
   const handleNavigate = useCallback(
-    (result: SearchResult) => {
-      navigate(result.path);
-      setQuery("");
-      setShowResults(false);
-      setMobileSearchOpen(false);
+    (path: string) => {
+      navigate(path);
+      setSearchOpen(false);
+      setSearchFilter("all");
     },
     [navigate],
   );
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        resultPanelRef.current &&
-        !resultPanelRef.current.contains(event.target as Node) &&
-        inputRef.current &&
-        !inputRef.current.contains(event.target as Node)
-      ) {
-        setShowResults(false);
+    const down = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setSearchOpen((prev) => !prev);
       }
     };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
   }, []);
 
-  const shouldShowDropdown = showResults && results.length > 0;
-
-  useEffect(() => {
-    if (!mobileSearchOpen) setShowResults(false);
-  }, [mobileSearchOpen]);
-
   return (
-    <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <div className="flex items-center">
-          <a href="/" className="text-2xl font-bold text-foreground hover:text-foreground/80 transition-smooth">
-            YIELD
-          </a>
+    <>
+      <CommandDialog
+        open={searchOpen}
+        onOpenChange={(open) => {
+          setSearchOpen(open);
+          if (!open) {
+            setSearchFilter("all");
+          }
+        }}
+      >
+        <CommandInput placeholder="Search listed assets or sections" />
+        <div className="flex items-center gap-2 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          {searchTabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setSearchFilter(tab.id)}
+              className={`rounded-full px-3 py-1 text-xs transition-colors ${
+                searchFilter === tab.id
+                  ? "bg-foreground text-background"
+                  : "bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
+        <CommandList>
+          <CommandEmpty>No matches found.</CommandEmpty>
+          {showAssets && (
+            <>
+              {trendingAssets.length > 0 && (
+                <CommandGroup heading="Tokens by 24H volume">
+                  {trendingAssets.map((asset) => renderAssetCommandItem(asset, "trending"))}
+                </CommandGroup>
+              )}
+              {orderedAssets.length > 0 && (
+                <>
+                  {trendingAssets.length > 0 && <CommandSeparator />}
+                  <CommandGroup heading="All listed assets">
+                    {orderedAssets.map((asset) => renderAssetCommandItem(asset, "all"))}
+                  </CommandGroup>
+                </>
+              )}
+            </>
+          )}
+          {showPages && staticPages.length > 0 && (
+            <>
+              {showAssets && (trendingAssets.length > 0 || orderedAssets.length > 0) && <CommandSeparator />}
+              <CommandGroup heading="Sections">
+                {staticPages.map((page) => (
+                  <CommandItem
+                    key={`page-${page.path}`}
+                    value={`${page.label} ${page.description ?? ""}`}
+                    onSelect={() => handleNavigate(page.path)}
+                    className="data-[selected=true]:bg-surface/90"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm font-semibold text-foreground">{page.label}</span>
+                      {page.description && (
+                        <span className="text-xs text-muted-foreground">{page.description}</span>
+                      )}
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </>
+          )}
+        </CommandList>
+      </CommandDialog>
 
-        <nav className="hidden md:flex flex-1 mx-4 items-center space-x-6 text-sm md:text-base">
-          <a href="/assets" className="text-foreground hover:text-foreground/80 transition-smooth font-medium">Assets</a>
-          <a href="/coin-tags" className="text-foreground hover:text-foreground/80 transition-smooth font-medium">LaunchPad</a>
-          <a href="/portfolio" className="text-foreground hover:text-foreground/80 transition-smooth font-medium">Portfolio</a>
-          <a href="/revenue" className="text-foreground hover:text-foreground/80 transition-smooth font-medium">Revenue</a>
-          <a href="/market" className="text-foreground hover:text-foreground/80 transition-smooth font-medium">Market</a>
-          <a href="/notifications" className="text-foreground hover:text-foreground/80 transition-smooth font-medium">Notifications</a>
-        </nav>
+      <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto flex items-center justify-between gap-3 px-4 py-2">
+          <div className="flex items-center gap-6">
+            <a href="/" className="text-2xl font-bold text-foreground hover:text-foreground/80 transition-smooth">
+              YIELD
+            </a>
+            <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+              {NAV_LINKS.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="text-foreground hover:text-foreground/80 transition-smooth"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </nav>
+          </div>
 
-        <div className="hidden md:flex flex-1 max-w-md mx-8">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              ref={inputRef}
-              value={query}
-              onChange={(event) => {
-                setQuery(event.target.value);
-                setShowResults(true);
-              }}
-              onFocus={() => setShowResults(true)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" && results[0]) {
-                  event.preventDefault();
-                  handleNavigate(results[0]);
-                }
-              }}
-              placeholder="Search pages or assets"
-              className="pl-10 bg-surface border-border rounded-lg"
-            />
-            {shouldShowDropdown && (
-              <div
-                ref={resultPanelRef}
-                className="absolute left-0 right-0 top-[110%] z-50 rounded-2xl border border-border/50 bg-background/95 shadow-lg backdrop-blur"
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setSearchOpen(true)}
+              className="hidden md:inline-flex items-center gap-2 rounded-full border-border/60 bg-surface/60 px-3 py-1 text-sm font-medium text-foreground"
+            >
+              <Search className="h-4 w-4" />
+              <span>Search</span>
+              <span className="hidden items-center gap-1 rounded border border-border/40 bg-background px-1.5 text-[10px] font-semibold uppercase text-muted-foreground md:flex">
+                ⌘K
+              </span>
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setSearchOpen(true)}
+              className="md:hidden"
+              aria-label="Search listed assets"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
+
+            <Dialog open={walletDialogOpen} onOpenChange={setWalletDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="default" size="sm" className="hidden md:inline-flex min-w-[120px] justify-center">
+                  {connectedWallet ? (
+                    <span className="flex items-center gap-1">
+                      <Check className="h-4 w-4 text-emerald-300" />
+                      <span className="truncate max-w-[80px]">{connectedWallet}</span>
+                    </span>
+                  ) : (
+                    "Connect"
+                  )}
+                </Button>
+              </DialogTrigger>
+              <DialogTrigger asChild>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="md:hidden rounded-full px-4 py-1 text-sm font-semibold"
+                >
+                  {connectedWallet ? "Wallet" : "Connect"}
+                </Button>
+              </DialogTrigger>
+              <DialogContent
+                className={`w-[calc(100%-2rem)] max-w-[420px] border-0 mx-auto rounded-3xl p-0 shadow-xl transition-colors duration-200 sm:max-w-md ${
+                  isDarkTheme ? "bg-[#0f0f10] text-neutral-100" : "bg-neutral-100"
+                }`}
               >
-                <ul className="max-h-80 overflow-auto py-2">
-                  {results.map((result) => (
-                    <li key={`${result.type}-${result.path}`}>
-                      <button
-                        type="button"
-                        onMouseDown={(event) => event.preventDefault()}
-                        onClick={() => handleNavigate(result)}
-                        className="w-full px-4 py-2 text-left transition-smooth hover:bg-surface"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <div>
-                            <div className="text-sm font-medium text-foreground">{result.label}</div>
-                            {result.description && (
-                              <div className="text-xs text-muted-foreground mt-0.5">{result.description}</div>
+                <DialogHeader className="space-y-1 px-6 pt-6">
+                  <DialogTitle className="text-lg font-semibold">Connect a Wallet</DialogTitle>
+                  <DialogDescription className="text-sm text-muted-foreground">
+                    Choose a wallet provider to continue. We detect installed extensions automatically.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="px-2 pb-6 pt-4">
+                  <div className="max-h-[60vh] overflow-y-auto space-y-2">
+                    {walletOptions.map((wallet) => {
+                      const isConnecting = connectingWallet === wallet.id;
+                      const isConnected = connectedWallet === wallet.name;
+                      return (
+                        <button
+                          key={wallet.id}
+                          type="button"
+                          disabled={isConnecting}
+                          onClick={() => handleWalletConnect(wallet)}
+                          className={`flex w-full items-center justify-between gap-4 rounded-2xl px-4 py-3 text-left transition-colors ${
+                            isDarkTheme ? "bg-[#1f1f24] hover:bg-[#292a30]" : "bg-neutral-200 hover:bg-neutral-300"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span
+                              className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br ${wallet.gradient}`}
+                            >
+                              {wallet.icon ? (
+                                <img src={wallet.icon} alt={`${wallet.name} icon`} className="h-full w-full object-cover" />
+                              ) : (
+                                <span className="text-lg">{wallet.emoji}</span>
+                              )}
+                            </span>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-semibold text-foreground">{wallet.name}</span>
+                              <span
+                                className={`text-xs font-medium ${wallet.detected ? "text-emerald-300" : "text-muted-foreground"}`}
+                              >
+                                {wallet.detected ? "Detected" : "Not detected"}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {isConnected && <Check className="h-4 w-4 text-emerald-300" />}
+                            {isConnecting ? (
+                              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                            ) : (
+                              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                {isConnected ? "Connected" : "Connect"}
+                              </span>
                             )}
                           </div>
-                          {result.badge && (
-                            <span className="rounded-full bg-surface px-2 py-1 text-[11px] uppercase text-muted-foreground">
-                              {result.badge}
-                            </span>
-                          )}
-                        </div>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleTheme}
-            aria-label="Toggle theme"
-            className="relative"
-          >
-            {theme === "dark" ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
-            )}
-          </Button>
-          <Sheet open={mobileSearchOpen} onOpenChange={setMobileSearchOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
-                <Search className="h-4 w-4" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="top" className="w-full bg-background/95 backdrop-blur border-b border-border/50">
-              <SheetHeader className="mb-6 text-left">
-                <SheetTitle className="text-xl font-semibold text-foreground">Search</SheetTitle>
-              </SheetHeader>
-              <div className="space-y-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input
-                    autoFocus
-                    value={query}
-                    onChange={(event) => {
-                      setQuery(event.target.value);
-                      setShowResults(true);
-                    }}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" && results[0]) {
-                        event.preventDefault();
-                        handleNavigate(results[0]);
-                      }
-                    }}
-                    placeholder="Search pages or assets"
-                    className="pl-10 bg-surface border-border rounded-lg"
-                  />
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="mt-4 px-2 text-center text-[11px] text-muted-foreground">
+                    Need help? Install your preferred wallet extension and refresh this page to detect it automatically.
+                  </p>
                 </div>
-                <div className="max-h-[65vh] overflow-auto space-y-2">
-                  {query.trim() && results.length === 0 && (
-                    <p className="text-sm text-muted-foreground px-1">No results for “{query}”.</p>
-                  )}
-                  {results.map((result) => (
-                    <button
-                      key={`mobile-${result.type}-${result.path}`}
-                      type="button"
-                      onClick={() => handleNavigate(result)}
-                      className="w-full rounded-xl border border-border/40 bg-surface/50 px-4 py-3 text-left transition-smooth hover:bg-surface"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <div className="text-sm font-medium text-foreground">{result.label}</div>
-                          {result.description && (
-                            <div className="text-xs text-muted-foreground mt-0.5">{result.description}</div>
-                          )}
-                        </div>
-                        {result.badge && (
-                          <span className="rounded-full bg-background/70 px-2 py-1 text-[11px] uppercase text-muted-foreground">
-                            {result.badge}
-                          </span>
-                        )}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
+              </DialogContent>
+            </Dialog>
 
-          <Button variant="ghost" className="hidden lg:flex items-center gap-2">
-            <Gift className="h-4 w-4" />
-            Earn Points
-          </Button>
-
-          <Button variant="default" size="sm">
-            Connect
-          </Button>
-
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden bg-muted/60 hover:bg-muted text-foreground">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden bg-muted/60 hover:bg-muted text-foreground">
                 <Menu className="h-4 w-4" />
               </Button>
             </SheetTrigger>
@@ -260,30 +441,20 @@ const Header = () => {
                 <SheetTitle className="text-2xl font-semibold text-foreground">Menu</SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col space-y-6 text-3xl font-semibold">
-                <SheetClose asChild>
-                  <a href="/assets" className="transition-smooth hover:text-foreground/80">Assets</a>
-                </SheetClose>
-                <SheetClose asChild>
-                  <a href="/coin-tags" className="transition-smooth hover:text-foreground/80">LaunchPad</a>
-                </SheetClose>
-                <SheetClose asChild>
-                  <a href="/portfolio" className="transition-smooth hover:text-foreground/80">Portfolio</a>
-                </SheetClose>
-                <SheetClose asChild>
-                  <a href="/revenue" className="transition-smooth hover:text-foreground/80">Revenue</a>
-                </SheetClose>
-                <SheetClose asChild>
-                  <a href="/market" className="transition-smooth hover:text-foreground/80">Market</a>
-                </SheetClose>
-                <SheetClose asChild>
-                  <a href="/notifications" className="transition-smooth hover:text-foreground/80">Notifications</a>
-                </SheetClose>
+                {NAV_LINKS.map((link) => (
+                  <SheetClose asChild key={link.href}>
+                    <a href={link.href} className="transition-smooth hover:text-foreground/80">
+                      {link.label}
+                    </a>
+                  </SheetClose>
+                ))}
               </nav>
             </SheetContent>
           </Sheet>
         </div>
       </div>
     </header>
+    </>
   );
 };
 

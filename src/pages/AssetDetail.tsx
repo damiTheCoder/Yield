@@ -1,10 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useApp } from "@/lib/app-state";
@@ -15,14 +14,7 @@ import { Line, LineChart as RechartsLineChart, XAxis } from "recharts";
 export default function AssetDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const {
-    assets,
-    user,
-    userAssets,
-    assetAvailable,
-    buyAssetCoinTags,
-    openAssetCoinTags,
-  } = useApp();
+  const { assets, user, userAssets, assetAvailable, buyAssetCoinTags } = useApp();
 
   const asset = useMemo(() => assets.find((a) => a.id === id), [assets, id]);
   const ua = userAssets[id ?? ""] || { coinTags: 0, lfts: 0 };
@@ -40,9 +32,8 @@ export default function AssetDetail() {
     );
   }
 
-  const [amount, setAmount] = useState(10);
-  const [openCount, setOpenCount] = useState(5);
-  const [lastOpen, setLastOpen] = useState<{ opened: number; found: number } | null>(null);
+  const [showHuntPrompt, setShowHuntPrompt] = useState(false);
+  const [purchaseMessage, setPurchaseMessage] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"chart" | "image">("chart");
   const isImageMode = viewMode === "image";
   const handleToggleView = (checked: boolean) => setViewMode(checked ? "image" : "chart");
@@ -124,6 +115,16 @@ export default function AssetDetail() {
   }, [asset.id, asset.ticker, currentLiquidity]);
 
   const chartConfig = { value: { label: "Liquidity", color: "hsl(var(--accent-yellow))" } } as const;
+
+  useEffect(() => {
+    if (ua.coinTags > 0) {
+      setShowHuntPrompt(true);
+      setPurchaseMessage("CoinTag already purchased.");
+    } else {
+      setShowHuntPrompt(false);
+      setPurchaseMessage(null);
+    }
+  }, [ua.coinTags]);
   const transactions = useMemo(() => {
     const base = Math.max(lpu || 1, 0.5);
     const formatter = new Intl.DateTimeFormat(undefined, {
@@ -214,7 +215,12 @@ export default function AssetDetail() {
                 </div>
               )}
 
-              <div className="relative h-56 overflow-hidden rounded-3xl sm:h-64">
+              <div
+                className={cn(
+                  "relative overflow-hidden rounded-3xl",
+                  isImageMode ? "h-64 sm:h-72" : "h-56 sm:h-64"
+                )}
+              >
                 <div
                   className={`absolute inset-0 transition-opacity duration-500 ${isImageMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
                 >
@@ -317,35 +323,99 @@ export default function AssetDetail() {
             </section>
 
             <section className="space-y-4">
-              <Card>
-                <CardHeader><CardTitle>Buy CoinTags</CardTitle></CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="text-sm text-muted-foreground">USD: {formatCurrency(user.usd)}</div>
-                  <div>
-                    <label className="text-sm text-muted-foreground">Amount (USD)</label>
-                    <Input type="number" value={amount} onChange={(e) => setAmount(Number(e.target.value) || 0)} />
+              <div className="space-y-4 rounded-2xl border border-border/50 bg-surface/50 p-4 shadow-card sm:p-6">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <div className="inline-flex items-center gap-1 rounded-full bg-background/80 px-3 py-1 text-foreground">
+                    <span className="text-[11px]">Buy</span>
                   </div>
-                  <Button onClick={() => buyAssetCoinTags(asset.id, amount)} disabled={user.usd <= 0}>Purchase</Button>
-                  <div className="text-xs text-muted-foreground">Receive {Math.floor(amount)} CoinTags (1$ each).</div>
-                </CardContent>
-              </Card>
+                  <span className="hidden text-[11px] text-muted-foreground/70 sm:inline">Purchase CoinTags directly</span>
+                </div>
+                <div className="flex flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-2">
+                    <span>Wallet balance</span>
+                    <div className="font-mono text-base text-foreground">{formatCurrency(user.usd)}</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span>CoinTag balance</span>
+                    <span className="font-mono text-base text-emerald-400">{ua.coinTags}</span>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="rounded-xl border border-border/40 bg-background/80 p-4 sm:p-5">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <span className="text-[11px] uppercase tracking-wide text-muted-foreground">You pay</span>
+                        <div className="mt-2 flex items-baseline gap-2">
+                          <span className="text-3xl font-semibold text-foreground">{formatCurrency(huntFee)}</span>
+                          <span className="text-sm text-muted-foreground">USD</span>
+                        </div>
+                      </div>
+                      <div className="rounded-full border border-border/40 bg-surface/60 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-foreground">
+                        USD
+                      </div>
+                    </div>
+                    <div className="mt-3 text-xs text-muted-foreground">Deducted from your balance instantly.</div>
+                  </div>
 
-              <Card>
-                <CardHeader><CardTitle>Hunt LFTs</CardTitle></CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="text-sm flex justify-between"><span className="text-muted-foreground">Your CoinTags</span><span className="font-mono">{ua.coinTags}</span></div>
-                  <div className="text-sm flex justify-between"><span className="text-muted-foreground">Your LFTs</span><span className="font-mono">{ua.lfts}</span></div>
-                  <div className="text-sm flex justify-between"><span className="text-muted-foreground">Findable remaining</span><span className="font-mono">{findable}</span></div>
-                  <div>
-                    <label className="text-sm text-muted-foreground">Open count</label>
-                    <Input type="number" value={openCount} onChange={(e) => setOpenCount(Number(e.target.value) || 0)} />
+                  <div className="rounded-xl border border-border/40 bg-background/80 p-4 sm:p-5">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <span className="text-[11px] uppercase tracking-wide text-muted-foreground">You receive</span>
+                        <div className="mt-2 flex items-baseline gap-2">
+                          <span className="text-3xl font-semibold text-emerald-400">1</span>
+                          <span className="text-sm text-muted-foreground">CoinTag</span>
+                        </div>
+                      </div>
+                      <div className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-300">
+                        {formatCurrency(huntFee)} → 1 Tag
+                      </div>
+                    </div>
+                    <div className="mt-3 text-xs text-muted-foreground">Ready for hunts immediately.</div>
                   </div>
-                  <Button onClick={() => setLastOpen(openAssetCoinTags(asset.id, openCount))} disabled={ua.coinTags <= 0}>Open</Button>
-                  {lastOpen && (
-                    <div className="text-xs">Opened {lastOpen.opened}, found {lastOpen.found} LFT{lastOpen.found === 1 ? "" : "s"}.</div>
+                </div>
+                <Button
+                  className="h-12 w-full rounded-full text-base font-semibold"
+                  disabled={user.usd < huntFee || ua.coinTags >= 1}
+                  onClick={() => {
+                    if (ua.coinTags >= 1) {
+                      setPurchaseMessage("CoinTag already purchased.");
+                      return;
+                    }
+                    if (user.usd < huntFee) {
+                      setPurchaseMessage("Insufficient balance for this CoinTag.");
+                      return;
+                    }
+                    buyAssetCoinTags(asset.id, huntFee, huntFee);
+                    setShowHuntPrompt(true);
+                  }}
+                >
+                  Purchase CoinTags
+                </Button>
+                <div className="space-y-3 text-[11px] text-muted-foreground/80">
+                  <p>1 CoinTag unlocks one hunt attempt. Funds settle instantly into the ecosystem reserve.</p>
+                  {purchaseMessage && (
+                    <p
+                      className={cn(
+                        "text-[11px]",
+                        purchaseMessage.toLowerCase().includes("insufficient")
+                          ? "text-rose-400"
+                          : "text-emerald-300"
+                      )}
+                    >
+                      {purchaseMessage}
+                    </p>
                   )}
-                </CardContent>
-              </Card>
+                  {showHuntPrompt && (
+                    <Button
+                      onClick={() => navigate(`/market/${asset.id}/hunt`)}
+                      className="h-11 w-full rounded-full border border-emerald-400/60 bg-transparent text-emerald-300 hover:bg-emerald-400/10"
+                    >
+                      Start Hunt
+                    </Button>
+                  )}
+                </div>
+              </div>
+
             </section>
           </div>
         </div>

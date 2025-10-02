@@ -82,11 +82,11 @@ export default function Revenue() {
           </p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Protocol Totals</CardTitle>
-          </CardHeader>
-          <CardContent className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-xl font-semibold">Protocol Totals</h2>
+          </div>
+          <div className="grid grid-cols-2 gap-4 text-sm sm:gap-6">
             <Metric label="Gross Sales" value={totals.sales} />
             <Metric label="Liquidity Added" value={totals.liquidity} />
             <Metric label="Creator Share" value={totals.creator} />
@@ -94,15 +94,15 @@ export default function Revenue() {
             <Metric label="Platform" value={totals.platform} />
             <Metric label="Holder Rewards" value={totals.holderRewards} />
             <Metric label="Seeded Next Cycle" value={totals.seedNext} />
-          </CardContent>
-        </Card>
+          </div>
+        </section>
 
         <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
-          <Card className="border-border/40 bg-surface/40">
-            <CardHeader>
+          <Card className="bg-background">
+            <CardHeader className="pb-1">
               <CardTitle>Revenue Allocation</CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="px-1 pb-3">
               {hasRevenue ? (
                 <ChartContainer config={chartConfig} className="aspect-square">
                   <PieChart>
@@ -110,8 +110,8 @@ export default function Revenue() {
                       data={distribution}
                       dataKey="value"
                       nameKey="label"
-                      innerRadius={60}
-                      outerRadius={100}
+                      innerRadius={80}
+                      outerRadius={140}
                       paddingAngle={4}
                     >
                       {distribution.map((slice) => (
@@ -223,8 +223,8 @@ export default function Revenue() {
 function Metric({ label, value }: { label: string; value: number }) {
   return (
     <div className="space-y-1">
-      <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className="text-base font-semibold">{formatCurrency(value)}</div>
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="font-mono text-lg font-semibold">{formatCurrency(value)}</div>
     </div>
   );
 }
