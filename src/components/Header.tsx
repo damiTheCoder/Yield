@@ -293,7 +293,11 @@ const Header = () => {
       <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex items-center justify-between gap-3 px-4 py-2">
           <div className="flex items-center gap-6">
-            <a href="/" className="text-2xl font-bold text-foreground hover:text-foreground/80 transition-smooth">
+            <a
+              href="/"
+              className="text-xl font-bold text-foreground hover:text-foreground/80 transition-smooth"
+              style={{ fontFamily: '"Glacial Indifference", "Nasalization", sans-serif' }}
+            >
               YIELD
             </a>
             <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
@@ -356,11 +360,7 @@ const Header = () => {
                 </Button>
               </DialogTrigger>
               <DialogTrigger asChild>
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="md:hidden rounded-full px-4 py-1 text-sm font-semibold"
-                >
+                <Button variant="default" size="sm" className="md:hidden rounded-lg px-4 py-1 text-sm font-semibold">
                   {connectedWallet ? "Wallet" : "Connect"}
                 </Button>
               </DialogTrigger>

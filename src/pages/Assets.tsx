@@ -4,11 +4,25 @@ import type { Asset } from "@/lib/app-state";
 import { useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatCurrencyK } from "@/lib/utils";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { ArrowLeftRight, ChevronDown } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
+import { Input } from "@/components/ui/input";
+
+const MAX_TRENDING = 10;
+
+type AssetsPageProps = {
+  showTrending?: boolean;
+  showViewAllButton?: boolean;
+  listedLimit?: number;
+  showSearchBar?: boolean;
+};
+
+type RGBColor = { r: number; g: number; b: number };
+
+const imageColorCache = new Map<string, RGBColor>();
 
 function hashString(value: string): number {
   let hash = 0;
@@ -19,7 +33,140 @@ function hashString(value: string): number {
   return Math.abs(hash);
 }
 
-export default function Assets() {
+function clampColor(value: number) {
+  return Math.max(0, Math.min(255, Math.round(value)));
+}
+
+function adjustColor(color: RGBColor, amount: number): RGBColor {
+  const target = amount < 0 ? 0 : 255;
+  const factor = Math.abs(amount);
+  return {
+    r: clampColor((target - color.r) * factor + color.r),
+    g: clampColor((target - color.g) * factor + color.g),
+    b: clampColor((target - color.b) * factor + color.b),
+  };
+}
+
+function toRgba({ r, g, b }: RGBColor, alpha: number) {
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function hslToRgb(h: number, s: number, l: number): RGBColor {
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const hp = h / 60;
+  const x = c * (1 - Math.abs((hp % 2) - 1));
+  let r1 = 0;
+  let g1 = 0;
+  let b1 = 0;
+
+  if (hp >= 0 && hp < 1) {
+    r1 = c;
+    g1 = x;
+  } else if (hp >= 1 && hp < 2) {
+    r1 = x;
+    g1 = c;
+  } else if (hp >= 2 && hp < 3) {
+    g1 = c;
+    b1 = x;
+  } else if (hp >= 3 && hp < 4) {
+    g1 = x;
+    b1 = c;
+  } else if (hp >= 4 && hp < 5) {
+    r1 = x;
+    b1 = c;
+  } else {
+    r1 = c;
+    b1 = x;
+  }
+
+  const m = l - c / 2;
+  return {
+    r: clampColor((r1 + m) * 255),
+    g: clampColor((g1 + m) * 255),
+    b: clampColor((b1 + m) * 255),
+  };
+}
+
+function fallbackColor(id: string): RGBColor {
+  const hue = hashString(id) % 360;
+  return hslToRgb(hue, 0.58, 0.46);
+}
+
+function useAverageColor(src: string, id: string): RGBColor {
+  const initial = useMemo(() => fallbackColor(id), [id]);
+  const [color, setColor] = useState<RGBColor>(initial);
+
+  useEffect(() => {
+    setColor(initial);
+  }, [initial]);
+
+  useEffect(() => {
+    if (!src) {
+      setColor(initial);
+      return;
+    }
+    if (imageColorCache.has(src)) {
+      setColor(imageColorCache.get(src)!);
+      return;
+    }
+
+    let cancelled = false;
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+
+    img.onload = () => {
+      if (cancelled) return;
+      try {
+        const canvas = document.createElement("canvas");
+        const size = 16;
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("missing context");
+        ctx.drawImage(img, 0, 0, size, size);
+        const { data } = ctx.getImageData(0, 0, size, size);
+        let r = 0;
+        let g = 0;
+        let b = 0;
+        let count = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          const alpha = data[i + 3] / 255;
+          if (alpha === 0) continue;
+          r += data[i] * alpha;
+          g += data[i + 1] * alpha;
+          b += data[i + 2] * alpha;
+          count += alpha;
+        }
+        if (count === 0) throw new Error("transparent image");
+        const averaged: RGBColor = {
+          r: clampColor(r / count),
+          g: clampColor(g / count),
+          b: clampColor(b / count),
+        };
+        imageColorCache.set(src, averaged);
+        if (!cancelled) setColor(averaged);
+      } catch (error) {
+        if (!cancelled) setColor(initial);
+      }
+    };
+
+    img.onerror = () => {
+      if (!cancelled) setColor(initial);
+    };
+
+    img.src = src;
+
+    return () => {
+      cancelled = true;
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [src, initial]);
+
+  return color;
+}
+
+function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit, showSearchBar = false }: AssetsPageProps) {
   const { assets } = useApp();
   const { theme } = useTheme();
   const isDarkTheme = theme === "dark";
@@ -27,13 +174,31 @@ export default function Assets() {
   const [marketMode, setMarketMode] = useState<"listed" | "live">("listed");
   const [gridViewListed, setGridViewListed] = useState(false);
   const [gridViewLive, setGridViewLive] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
   const isLiveMarket = marketMode === "live";
   const gridView = isLiveMarket ? gridViewLive : gridViewListed;
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+
+  const filteredAssets = useMemo(() => {
+    if (!normalizedSearch) return assets;
+    return assets.filter((asset) => {
+      const name = asset.name.toLowerCase();
+      const ticker = asset.ticker?.toLowerCase() ?? "";
+      const id = asset.id.toLowerCase();
+      return name.includes(normalizedSearch) || ticker.includes(normalizedSearch) || id.includes(normalizedSearch);
+    });
+  }, [assets, normalizedSearch]);
+
   const liveAssets = useMemo(
-    () => [...assets].sort((a, b) => b.cycle.totalSales - a.cycle.totalSales),
-    [assets]
+    () => [...filteredAssets].sort((a, b) => b.cycle.totalSales - a.cycle.totalSales),
+    [filteredAssets]
   );
-  const currentAssets = isLiveMarket ? liveAssets : assets;
+
+  const listedAssets = filteredAssets;
+  const currentAssets = isLiveMarket ? liveAssets : listedAssets;
+  const displayListedAssets = !isLiveMarket && listedLimit ? currentAssets.slice(0, listedLimit) : currentAssets;
+
   const listLabel = isLiveMarket ? "Live List" : "Listed List";
   const gridLabel = isLiveMarket ? "Live Grid" : "Listed Grid";
 
@@ -59,40 +224,10 @@ export default function Assets() {
       return next;
     });
   };
-  const totalCreatorPayout = useMemo(
-    () => currentAssets.reduce((sum, asset) => sum + (asset.cycle?.accrued?.creator ?? 0), 0),
-    [currentAssets]
-  );
-  const highlightedAsset = useMemo(() => {
-    if (currentAssets.length === 0) return null;
-    return currentAssets.reduce((top, asset) => {
-      const current = asset.cycle?.accrued?.creator ?? 0;
-      const best = top?.cycle?.accrued?.creator ?? 0;
-      return current > best ? asset : top;
-    }, currentAssets[0] ?? null);
-  }, [currentAssets]);
-  const highlightedPayout = highlightedAsset?.cycle?.accrued?.creator ?? 0;
-  const creatorHandle = useMemo(() => {
-    if (!highlightedAsset) return "creators.eth";
-    const slug = highlightedAsset.name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-    return slug ? `${slug.replace(/-/g, "")}.eth` : "creators.eth";
-  }, [highlightedAsset]);
-  const trend = useMemo(() => {
-    if (!highlightedAsset || highlightedPayout <= 0) return null;
-    const hash = hashString(highlightedAsset.id);
-    const percent = parseFloat((1 + ((hash % 40) / 10)).toFixed(1));
-    const delta = highlightedPayout * (percent / 100);
-    return { percent, delta };
-  }, [highlightedAsset, highlightedPayout]);
-  const creatorSharePercent = highlightedAsset ? Math.round((highlightedAsset.cycle?.split?.creator ?? 0) * 100) : null;
-  const rightPanelImage = "/Can%20(7).png";
 
   const getAssetChange = (asset: Asset) => {
     const baseHash = hashString(`${asset.id}-${asset.name}`);
-    const raw = ((baseHash % 140) - 60) / 10; // roughly between -6.0% and +7.9%
+    const raw = ((baseHash % 140) - 60) / 10;
     return Number(raw.toFixed(1));
   };
 
@@ -154,8 +289,8 @@ export default function Assets() {
                   onClick={() => navigate(`/assets/${a.id}`)}
                 >
                   <TableCell className="font-medium">
-                  <div className="flex items-center gap-3 text-sm">
-                    <img src={a.image} alt={a.name} className="h-8 w-8 rounded-xl" />
+                    <div className="flex items-center gap-3 text-sm">
+                      <img src={a.image} alt={a.name} className="h-8 w-8 rounded-xl" />
                       <div className="flex flex-col leading-tight">
                         <div className="flex items-center gap-1">
                           <span className="font-medium text-foreground">{a.name}</span>
@@ -168,7 +303,7 @@ export default function Assets() {
                   <TableCell className="text-center font-mono text-xs">{formatCurrencyK(a.params.initialReserve)}</TableCell>
                   <TableCell className="text-center font-mono text-xs">{formatCurrencyK(a.cycle.reserve)}</TableCell>
                   <TableCell className="text-center font-mono text-xs">${a.cycle.lpu.toFixed(6)}</TableCell>
-                  <TableCell className="text-center font-mono text-xs">$1.00</TableCell>
+                  <TableCell className="text-center font-mono text-xs">${Math.max(4.2, a.cycle.lpu * 0.4).toFixed(2)}</TableCell>
                 </TableRow>
               );
             })}
@@ -177,10 +312,10 @@ export default function Assets() {
       </div>
 
       <div className="md:hidden">
-        <div className="grid grid-cols-[1fr_auto_auto] items-center px-2 pb-3 text-[10px] uppercase tracking-wide text-muted-foreground">
+        <div className="grid grid-cols-[1fr_5.5rem_5rem] items-center px-2 pb-3 text-[10px] uppercase tracking-wide text-muted-foreground">
           <div>Collection</div>
-          <div className="w-24 text-right">Current</div>
-          <div className="w-20 text-right">CoinTag</div>
+          <div className="text-right">Current</div>
+          <div className="text-right">CoinTag</div>
         </div>
         <div className="flex flex-col gap-4">
           {items.map((a) => {
@@ -191,10 +326,10 @@ export default function Assets() {
               <button
                 key={a.id}
                 onClick={() => navigate(`/assets/${a.id}`)}
-                className="grid grid-cols-[1fr_auto_auto] items-start gap-3 border-b border-border/40 px-1.5 pb-3 text-left text-[13px] last:border-b-0"
+                className="grid grid-cols-[1fr_5.5rem_5rem] items-start gap-3 border-b border-border/40 px-1.5 pb-3 text-left text-[13px] last:border-b-0"
               >
-              <div className="min-w-0 flex items-center gap-3">
-                <img src={a.image} alt={a.name} className="h-9 w-9 rounded-lg" />
+                <div className="min-w-0 flex items-center gap-3">
+                  <img src={a.image} alt={a.name} className="h-9 w-9 rounded-lg" />
                   <div className="min-w-0 flex flex-col leading-tight">
                     <div className="flex items-center gap-1 text-[13px] font-medium">
                       <span className="max-w-[12ch] truncate">{a.name}</span>
@@ -203,8 +338,12 @@ export default function Assets() {
                     <span className={`text-[11px] font-semibold ${changeClass}`}>{changeText}</span>
                   </div>
                 </div>
-                <div className="w-24 self-center text-right font-mono text-sm tabular-nums">{formatCurrencyK(a.cycle.reserve)}</div>
-                <div className="w-20 self-center text-right font-mono text-sm tabular-nums">$1.00</div>
+                <div className="flex min-w-[5.5rem] flex-col items-end text-xs font-mono tabular-nums">
+                  <span className="text-sm">{formatCurrencyK(a.cycle.reserve)}</span>
+                </div>
+                <div className="flex min-w-[5rem] flex-col items-end text-xs font-mono tabular-nums">
+                  <span className="text-sm">{formatCurrency(Math.max(4.2, a.cycle.lpu * 0.4))}</span>
+                </div>
               </button>
             );
           })}
@@ -227,7 +366,7 @@ export default function Assets() {
             className={`group relative overflow-hidden rounded-2xl bg-surface/75 p-0 text-left transition-all duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border ${cardBorderClass}`}
             style={{ animationDelay: `${0.04 * index}s` }}
           >
-          <div className={`relative h-40 w-full overflow-hidden sm:h-44 ${cardMediaBorderClass}`}>
+            <div className={`relative h-40 w-full overflow-hidden sm:h-44 ${cardMediaBorderClass}`}>
               <img
                 src={a.image}
                 alt={a.name}
@@ -258,19 +397,19 @@ export default function Assets() {
                   <div className="font-mono text-[10px] md:text-[11px]">{formatCurrencyK(a.cycle.reserve)}</div>
                 </div>
                 <div className="rounded-xl border border-border/40 bg-surface/60 px-2 py-1.5 md:px-2.5 md:py-2">
-                <div className="text-[8px] uppercase tracking-wide text-muted-foreground md:text-[9px]">LPU</div>
-                <div className="font-mono text-[10px] md:text-[11px]">${a.cycle.lpu.toFixed(3)}</div>
+                  <div className="text-[8px] uppercase tracking-wide text-muted-foreground md:text-[9px]">LPU</div>
+                  <div className="font-mono text-[10px] md:text-[11px]">${a.cycle.lpu.toFixed(3)}</div>
+                </div>
+                <div className="rounded-xl border border-border/40 bg-surface/60 px-2 py-1.5 md:px-2.5 md:py-2">
+                  <div className="text-[8px] uppercase tracking-wide text-muted-foreground md:text-[9px]">Supply</div>
+                  <div className="font-mono text-[10px] md:text-[11px]">{a.params.initialSupply}</div>
+                </div>
               </div>
-              <div className="rounded-xl border border-border/40 bg-surface/60 px-2 py-1.5 md:px-2.5 md:py-2">
-                <div className="text-[8px] uppercase tracking-wide text-muted-foreground md:text-[9px]">Supply</div>
-                <div className="font-mono text-[10px] md:text-[11px]">{a.params.initialSupply}</div>
+              <div className="flex items-center justify-between text-[10px] md:text-[11px]">
+                <span className="text-muted-foreground">Tap to explore</span>
+                <span className="font-medium text-foreground/80">View →</span>
               </div>
             </div>
-            <div className="flex items-center justify-between text-[10px] md:text-[11px]">
-              <span className="text-muted-foreground">Tap to explore</span>
-              <span className="font-medium text-foreground/80">View →</span>
-            </div>
-          </div>
           </button>
         );
       })}
@@ -302,8 +441,8 @@ export default function Assets() {
                 onClick={() => navigate(`/market/${asset.id}/hunt`)}
               >
                 <TableCell className="sticky left-0 z-10 min-w-[200px] bg-surface/90">
-        <div className="flex items-center gap-3 text-sm">
-          <img src={asset.image} alt={asset.name} className="h-9 w-9 rounded-xl border border-black/70 object-cover" />
+                  <div className="flex items-center gap-3 text-sm">
+                    <img src={asset.image} alt={asset.name} className="h-9 w-9 rounded-xl border border-black/70 object-cover" />
                     <div className="flex flex-col">
                       <span className="font-medium text-foreground">{asset.name}</span>
                       <span className={`text-xs font-semibold ${changeClass}`}>{changeText}</span>
@@ -368,12 +507,10 @@ export default function Assets() {
                     </h2>
                     <img src="/checklist.png" className="h-3.5 w-3.5 opacity-80 sm:h-4 sm:w-4" alt="verified" />
                   </div>
-                  <span className="text-xs uppercase tracking-wide text-muted-foreground">
-                    {asset.ticker || asset.id.toUpperCase()}
-                  </span>
+                  <span className={`text-xs font-semibold ${changeClass}`}>{changeText}</span>
                 </div>
-                <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${changeBadgeClass(change)}`}>
-                  {changeText}
+                <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${badgeClass}`}>
+                  {formatChange(change)}
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-2 text-[10px] sm:grid-cols-4 sm:gap-3 sm:text-xs">
@@ -384,7 +521,7 @@ export default function Assets() {
               </div>
               <div className="flex items-center justify-between text-[10px] uppercase tracking-wide text-muted-foreground sm:text-[11px]">
                 <span>{formatCurrency(asset.cycle.totalSales)} gross</span>
-                <span className="font-medium text-emerald-400">Enter Hunt →</span>
+                <span className="font-medium text-foreground/80">Enter Hunt →</span>
               </div>
             </div>
           </button>
@@ -393,13 +530,54 @@ export default function Assets() {
     </section>
   );
 
+  const trendingTokens = useMemo(() => {
+    if (!showTrending) return [];
+    return [...listedAssets]
+      .map((asset) => ({ asset, change: getAssetChange(asset) }))
+      .sort((a, b) => b.change - a.change)
+      .slice(0, MAX_TRENDING);
+  }, [listedAssets, showTrending]);
+
+  const TrendingTokenCard = ({ asset, change }: { asset: Asset; change: number }) => {
+    const baseColor = useAverageColor(asset.image, asset.id);
+    const startColor = adjustColor(baseColor, isDarkTheme ? 0.15 : 0.35);
+    const endColor = adjustColor(baseColor, isDarkTheme ? -0.25 : -0.05);
+    const background = `linear-gradient(135deg, ${toRgba(startColor, 0.75)}, ${toRgba(endColor, 0.9)})`;
+    const isPositive = change >= 0;
+    return (
+      <button
+        type="button"
+        onClick={() => navigate(`/assets/${asset.id}`)}
+        className="group flex min-w-[240px] items-center justify-between gap-4 rounded-2xl border-0 px-4 py-3 text-left transition hover:-translate-y-0.5 hover:shadow-lg"
+        style={{ backgroundImage: background }}
+      >
+        <div className="flex min-w-0 items-center gap-3">
+          <img src={asset.image} alt={asset.name} className="h-12 w-12 rounded-xl border border-border/40 object-cover shadow-sm" />
+          <div className="min-w-0 space-y-1">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <span className="max-w-[12ch] truncate sm:max-w-[14ch]">{asset.name}</span>
+              {asset.ticker && <span className="max-w-[6ch] truncate text-xs font-medium text-muted-foreground">{asset.ticker}</span>}
+            </div>
+            <div className="flex items-center gap-2 text-xs text-foreground">
+              <span className="text-foreground">{formatCurrencyK(asset.cycle.reserve)}</span>
+              <span className={`font-semibold ${isPositive ? "text-emerald-300" : "text-rose-300"}`}>{formatChange(change)}</span>
+            </div>
+          </div>
+        </div>
+        <div className="hidden h-10 w-16 items-center justify-center text-emerald-200 group-hover:text-emerald-100 sm:flex">
+          <span className="text-sm font-semibold">↗</span>
+        </div>
+      </button>
+    );
+  };
+
   return (
     <div className="min-h-screen">
       <Header />
       <main className="container mx-auto px-4 pt-4 pb-6">
         <div className="flex flex-col gap-5">
           <div className="space-y-6">
-            <div className="space-y-5">
+            <div className="space-y-5 px-0">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
                   <h1 className="text-3xl font-bold">Assets</h1>
@@ -432,83 +610,68 @@ export default function Assets() {
                     aria-label="Toggle grid view"
                   />
                   <span className={gridView ? "text-foreground font-semibold" : undefined}>{gridLabel}</span>
+                  {showViewAllButton && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => navigate("/assets/all")}
+                      className="rounded-2xl px-3 py-1 text-xs font-semibold"
+                    >
+                      View all tokens
+                    </Button>
+                  )}
                 </div>
               </div>
+
+              {showSearchBar && (
+                <div className="px-0">
+                  <Input
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    placeholder="Search tokens, tickers, or IDs"
+                    className="h-11 w-full rounded-2xl border border-border/40 bg-background/80 px-4 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0"
+                  />
+                </div>
+              )}
+
+              {showTrending && trendingTokens.length > 0 && (
+                <section className="space-y-1">
+                  <h2 className="text-xl font-semibold text-foreground">Trending Tokens</h2>
+                  <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-3 no-scrollbar">
+                    {trendingTokens.map(({ asset, change }) => (
+                      <TrendingTokenCard key={`trending-${asset.id}`} asset={asset} change={change} />
+                    ))}
+                  </div>
+                </section>
+              )}
+
               {!gridView &&
-                (currentAssets.length > 0
+                (displayListedAssets.length > 0
                   ? isLiveMarket
-                    ? renderLiveList(currentAssets)
-                    : renderListedList(currentAssets)
+                    ? renderLiveList(displayListedAssets)
+                    : renderListedList(displayListedAssets)
                   : renderEmptyState())}
 
               {gridView &&
-                (currentAssets.length > 0
+                (displayListedAssets.length > 0
                   ? isLiveMarket
-                    ? renderLiveGrid(currentAssets)
-                    : renderListedGrid(currentAssets)
+                    ? renderLiveGrid(displayListedAssets)
+                    : renderListedGrid(displayListedAssets)
                   : renderEmptyState())}
             </div>
 
-            {currentAssets.length > 0 && highlightedAsset && (
-              <section className="rounded-3xl border border-border/40 bg-surface/60 p-4 shadow-lg ring-1 ring-black/5">
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  <div className="rounded-2xl border border-border/40 bg-surface/50 p-3 shadow-inner">
-                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Creator wallet</div>
-                    <div className="mt-2 flex items-center gap-2 text-xs text-foreground">
-                      <span className="font-semibold tracking-tight">{creatorHandle}</span>
-                      <ChevronDown className="h-3 w-3" aria-hidden="true" />
-                    </div>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {currentAssets.length === 1 ? "1 creator" : `${currentAssets.length} creators`}
-                    </p>
-                  </div>
-                  <div className="rounded-2xl border border-border/40 bg-surface/50 p-3 shadow-inner">
-                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Total payout</div>
-                    <div className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
-                      {formatCurrency(totalCreatorPayout)}
-                    </div>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {isLiveMarket ? "Across live listings" : "Across all listed assets"}
-                    </p>
-                    {trend ? (
-                      <p className="mt-2 text-xs font-medium text-emerald-400">
-                        +{trend.percent}% ({formatCurrency(trend.delta)}) Today
-                      </p>
-                    ) : (
-                      <p className="mt-2 text-xs text-muted-foreground">No creator payouts recorded yet</p>
-                    )}
-                  </div>
-                  <div className="rounded-2xl border border-border/40 bg-surface/50 p-3 shadow-inner">
-                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Top earner</div>
-                    <div className="mt-2 flex items-center gap-3">
-                      <img
-                        src={highlightedAsset.image}
-                        alt={highlightedAsset.name}
-                        className="h-11 w-11 rounded-xl object-cover"
-                      />
-                      <div className="flex flex-col">
-                        <span className="text-sm font-semibold text-foreground">{highlightedAsset.name}</span>
-                        <span className="text-xs text-muted-foreground">{formatCurrency(highlightedPayout)}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="rounded-2xl border border-border/40 bg-surface/50 p-3 shadow-inner">
-                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Revenue split</div>
-                    {creatorSharePercent !== null ? (
-                      <div className="mt-2 text-xs text-foreground">
-                        <span className="font-semibold">{creatorSharePercent}%</span> creator share
-                        <p className="mt-2 text-xs text-muted-foreground">Cycle {highlightedAsset.cycle.cycle}</p>
-                      </div>
-                    ) : (
-                      <p className="mt-2 text-xs text-muted-foreground">Split details unavailable</p>
-                    )}
-                  </div>
-                </div>
-              </section>
-            )}
           </div>
         </div>
       </main>
     </div>
   );
+}
+
+export default function Assets() {
+  return <AssetsPage showTrending showViewAllButton listedLimit={10} />;
+}
+
+export function ViewAllAssets() {
+  return <AssetsPage showTrending={false} showViewAllButton={false} showSearchBar />;
 }

@@ -83,20 +83,32 @@ export default function HuntPage() {
     );
   }
 
-  return <HuntExperience assetId={asset.id} assetName={asset.name} ticker={asset.ticker} lpu={asset.cycle.lpu} pricePerUnit={asset.cycle.lpu} initialSupply={asset.params.initialSupply} image={asset.image} />;
+  return (
+    <HuntExperience
+      assetId={asset.id}
+      assetName={asset.name}
+      ticker={asset.ticker}
+      cycleNumber={asset.cycle.cycle}
+      lpu={asset.cycle.lpu}
+      pricePerUnit={asset.cycle.lpu}
+      initialSupply={asset.params.initialSupply}
+      image={asset.image}
+    />
+  );
 }
 
 type HuntExperienceProps = {
   assetId: string;
   assetName: string;
   ticker?: string;
+  cycleNumber: number;
   lpu: number;
   pricePerUnit: number;
   initialSupply: number;
   image: string;
 };
 
-function HuntExperience({ assetId, assetName, ticker, lpu, pricePerUnit, initialSupply, image }: HuntExperienceProps) {
+function HuntExperience({ assetId, assetName, ticker, cycleNumber, lpu, pricePerUnit, initialSupply, image }: HuntExperienceProps) {
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
   const [matched, setMatched] = useState<Set<string>>(new Set());
   const [inputValue, setInputValue] = useState("");
@@ -151,35 +163,45 @@ function HuntExperience({ assetId, assetName, ticker, lpu, pricePerUnit, initial
   };
 
   return (
-    <div className="min-h-screen">
-      <Header />
-      <main className="container mx-auto px-2 sm:px-4 pt-4 pb-32 sm:py-8 space-y-4 sm:space-y-8">
-        {/* Header Section - Mobile-first layout */}
-        <div className="space-y-2 sm:space-y-4">
-          <div className="flex flex-wrap items-center gap-3 sm:gap-4 lg:flex-nowrap lg:justify-between">
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-              <img src={image} alt={assetName} className="h-10 w-10 sm:h-14 sm:w-14 rounded-xl object-cover flex-shrink-0" />
-              <div className="min-w-0">
-                <h1 className="text-lg sm:text-2xl font-semibold text-foreground truncate">{assetName}</h1>
-                <p className="text-xs sm:text-sm font-semibold text-emerald-400">LPU {formatCurrency(lpu)}</p>
+    <div className="min-h-screen bg-background">
+      <div className="sticky top-0 z-40 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
+        <Header />
+        <div className="container mx-auto px-2 sm:px-4 pt-3 pb-4 sm:pt-4 sm:pb-6 space-y-3 sm:space-y-4 font-mono">
+          {/* Header Section - Mobile-first layout */}
+          <div className="flex items-start gap-3 sm:gap-4">
+            <img src={image} alt={assetName} className="h-10 w-10 sm:h-14 sm:w-14 rounded-full border border-border/50 object-cover" />
+            <div className="flex-1 space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-lg font-semibold text-foreground sm:text-2xl">{assetName}</h1>
+                {ticker && <span className="rounded-full border border-border/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground sm:text-xs">{ticker}</span>}
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground sm:text-sm">
+                <span className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400" />Live Hunt
+                </span>
+                <span className="hidden text-xs text-muted-foreground sm:inline">•</span>
+                <span>Cycle {cycleNumber}</span>
+                <span className="hidden text-xs text-muted-foreground sm:inline">•</span>
+                <span className="text-muted-foreground">{foundTokens} tokens claimed</span>
               </div>
             </div>
-            <div className="flex flex-shrink-0 items-center gap-2 rounded-lg sm:rounded-2xl border border-border/40 bg-surface/40 px-2 py-2 text-[10px] sm:px-4 sm:py-3 sm:text-sm">
-              <div className="flex flex-col items-end">
-                <span className="text-[9px] uppercase tracking-wide text-muted-foreground sm:text-[11px]">Wallet value</span>
-                <span className="text-xs font-semibold text-emerald-400 sm:text-lg">{formatCurrency(walletValue)}</span>
-              </div>
-              <div className="h-8 w-px bg-border/30 sm:h-10" />
-              <div className="flex flex-col items-end">
-                <span className="text-[9px] uppercase tracking-wide text-muted-foreground sm:text-[11px]">Tokens</span>
-                <span className="text-xs font-semibold text-emerald-400 sm:text-lg">
-                  {foundTokens}/{maxTokens}
-                </span>
+          </div>
+          <div className="flex flex-wrap gap-6 sm:gap-10">
+            <div className="space-y-0.5">
+              <span className="text-[10px] uppercase tracking-wide text-muted-foreground sm:text-xs">Wallet value</span>
+              <div className="text-xl font-semibold text-emerald-400 sm:text-3xl">{formatCurrency(walletValue)}</div>
+            </div>
+            <div className="space-y-0.5">
+              <span className="text-[10px] uppercase tracking-wide text-muted-foreground sm:text-xs">Tokens found</span>
+              <div className="text-xl font-semibold text-emerald-400 sm:text-3xl">
+                {foundTokens}/{maxTokens}
               </div>
             </div>
           </div>
         </div>
+      </div>
 
+      <main className="container mx-auto px-2 sm:px-4 pb-32 pt-4 sm:pt-6 space-y-4 sm:space-y-8">
         {/* Main Content - Stack on mobile, side-by-side on desktop */}
         <section className="flex flex-col lg:flex-row gap-4 sm:gap-6">
           {/* Sidebar */}
@@ -227,7 +249,7 @@ function HuntExperience({ assetId, assetName, ticker, lpu, pricePerUnit, initial
                 <span className="hidden sm:inline whitespace-nowrap">Scroll to explore</span>
                 <span className="sm:hidden whitespace-nowrap">Swipe right to see more →</span>
               </div>
-              <div className="w-full overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch', maxHeight: '360px' }}>
+              <div className="w-full overflow-x-auto no-scrollbar" style={{ WebkitOverflowScrolling: 'touch', maxHeight: '360px' }}>
                 <table className="border-collapse text-[9px] sm:text-[10px] md:text-[11px]" style={{ minWidth: '100%', width: 'max-content' }}>
                   <thead>
                     <tr>

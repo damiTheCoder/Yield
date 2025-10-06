@@ -101,9 +101,17 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     makeAsset("epsilon", "Epsilon Arts", { ...DEFAULT_PARAMS, initialReserve: 950, initialSupply: 95 }, 210, "/landers.jpeg"),
     makeAsset("zeta", "Zeta Labs", { ...DEFAULT_PARAMS, initialReserve: 1300, initialSupply: 105 }, 275, "/alios.jpeg"),
     makeAsset("theta", "Theta Network", { ...DEFAULT_PARAMS, initialReserve: 1700, initialSupply: 120 }, 420, "/digital-art.jpeg"),
-    makeAsset("sigma", "Sigma Studio", { ...DEFAULT_PARAMS, initialReserve: 1100, initialSupply: 90 }, 180, "/Can.jpeg"),
-    makeAsset("orion", "Orion Guild", { ...DEFAULT_PARAMS, initialReserve: 2200, initialSupply: 140 }, 700, "/N26 Expands its Footprints in Europe as Crypto Market Bounces.jpeg"),
-    makeAsset("nova", "Nova Builders", { ...DEFAULT_PARAMS, initialReserve: 1050, initialSupply: 88 }, 160, "/NFTs Digital Art & Passive Income.jpeg"),
+    makeAsset("sigma", "Sigma Studio", { ...DEFAULT_PARAMS, initialReserve: 1100, initialSupply: 90 }, 180, "/_ (17).jpeg"),
+    makeAsset("orion", "Orion Guild", { ...DEFAULT_PARAMS, initialReserve: 2200, initialSupply: 140 }, 700, "/_ (18).jpeg"),
+    makeAsset("nova", "Nova Builders", { ...DEFAULT_PARAMS, initialReserve: 1050, initialSupply: 88 }, 160, "/_ (19).jpeg"),
+    makeAsset("kappa", "Kappa Syndicate", { ...DEFAULT_PARAMS, initialReserve: 1450, initialSupply: 115 }, 360, "/k1.jpeg"),
+    makeAsset("lambda", "Lambda Atelier", { ...DEFAULT_PARAMS, initialReserve: 980, initialSupply: 92 }, 210, "/k2.jpeg"),
+    makeAsset("mu", "Mu Collective", { ...DEFAULT_PARAMS, initialReserve: 1650, initialSupply: 123 }, 410, "/k3.jpeg"),
+    makeAsset("nu", "Nu Labs", { ...DEFAULT_PARAMS, initialReserve: 890, initialSupply: 84 }, 150, "/_ (14).jpeg"),
+    makeAsset("omicron", "Omicron Vault", { ...DEFAULT_PARAMS, initialReserve: 1850, initialSupply: 132 }, 480, "/k5.jpeg"),
+    makeAsset("pi", "Pi Forge", { ...DEFAULT_PARAMS, initialReserve: 1180, initialSupply: 97 }, 230, "/k6.jpeg"),
+    makeAsset("rho", "Rho Gallery", { ...DEFAULT_PARAMS, initialSupply: 108, initialReserve: 1420 }, 320, "/_ (5).jpeg"),
+    makeAsset("tau", "Tau Vision", { ...DEFAULT_PARAMS, initialReserve: 1010, initialSupply: 90 }, 190, "/_ (6).jpeg"),
   ]);
 
   // Per-asset findable counters and user balances

@@ -9,7 +9,7 @@ import CoinTags from "./pages/CoinTags";
 import Portfolio from "./pages/Portfolio";
 import Market from "./pages/Market";
 import { AppStateProvider } from "@/lib/app-state";
-import Assets from "./pages/Assets";
+import Assets, { ViewAllAssets } from "./pages/Assets";
 import AssetDetail from "./pages/AssetDetail";
 import Revenue from "./pages/Revenue";
 import HuntPage from "./pages/Hunt";
@@ -33,6 +33,7 @@ const App = () => (
             <Route path="/revenue" element={<Revenue />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/assets" element={<Assets />} />
+            <Route path="/assets/all" element={<ViewAllAssets />} />
             <Route path="/assets/:id" element={<AssetDetail />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
