@@ -450,7 +450,7 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, lpu, pricePer
             {/* Hunt Grid - Fixed mobile layout */}
             <div className="space-y-2 sm:space-y-3">
               <div className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">Hunt grid</div>
-              <div className="rounded-xl border border-border/30 bg-surface/40 p-2 sm:p-3 overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+              <div className="rounded-xl border border-border/30 bg-surface/40 p-2 sm:p-3 overflow-x-auto no-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
                 <div className="grid auto-cols-min grid-flow-col gap-1 sm:gap-1.5" style={{ gridTemplateRows: 'repeat(7, minmax(32px, 1fr))' }}>
                   {huntData.boxes.map((coord) => {
                     const isMatched = matched.has(coord);

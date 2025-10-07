@@ -202,10 +202,10 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
   const listLabel = isLiveMarket ? "Live List" : "Listed List";
   const gridLabel = isLiveMarket ? "Live Grid" : "Listed Grid";
 
-  const cardBorderClass = isDarkTheme ? "" : "border border-neutral-300";
-  const cardMediaBorderClass = isDarkTheme ? "" : "border-b border-neutral-300";
-  const liveCardBorderClass = cardBorderClass;
-  const liveCardMediaBorderClass = cardMediaBorderClass;
+  const cardBorderClass = "";
+  const cardMediaBorderClass = "";
+  const liveCardBorderClass = "";
+  const liveCardMediaBorderClass = "";
 
   const handleGridToggle = (checked: boolean) => {
     if (isLiveMarket) {
@@ -353,7 +353,7 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
   );
 
   const renderListedGrid = (items: Asset[]) => (
-    <div className="grid grid-cols-2 gap-4 sm:gap-6">
+    <div className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-4">
       {items.map((a, index) => {
         const change = getAssetChange(a);
         const changeText = formatChange(change);
@@ -481,7 +481,7 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
   );
 
   const renderLiveGrid = (items: Asset[]) => (
-    <section className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-2 xl:grid-cols-3">
+    <section className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-4">
       {items.map((asset) => {
         const coinTagPrice = Math.max(4.2, asset.cycle.lpu * 0.4);
         const change = getAssetChange(asset);
