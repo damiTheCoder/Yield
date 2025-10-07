@@ -353,61 +353,68 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
   );
 
   const renderListedGrid = (items: Asset[]) => (
-    <div className="-mx-1 grid grid-cols-2 gap-2 sm:mx-0 sm:grid-cols-2 sm:gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-3 xl:grid-cols-3">
+    <div className="grid grid-cols-2 gap-4 sm:gap-6">
       {items.map((a, index) => {
         const change = getAssetChange(a);
         const changeText = formatChange(change);
         const changeClass = changeColorClass(change);
+        const badgeClass = changeBadgeClass(change);
         return (
           <button
             type="button"
             key={a.id}
             onClick={() => navigate(`/assets/${a.id}`)}
-            className={`group relative overflow-hidden rounded-2xl bg-surface/75 p-0 text-left transition-all duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border ${cardBorderClass}`}
-            style={{ animationDelay: `${0.04 * index}s` }}
+            className={`group relative flex h-full flex-col overflow-hidden rounded-3xl bg-surface/60 text-left transition-all hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:ring-foreground/50 ${cardBorderClass}`}
           >
-            <div className={`relative h-40 w-full overflow-hidden sm:h-44 ${cardMediaBorderClass}`}>
+            <div className={`relative h-32 w-full overflow-hidden sm:h-40 lg:h-48 ${cardMediaBorderClass}`}>
               <img
                 src={a.image}
                 alt={a.name}
                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
-              <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/75 via-black/20 to-transparent px-4 py-2 text-[11px] text-white">
+              <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/80 via-black/10 to-transparent px-3 py-2 text-[11px] text-white sm:px-5 sm:py-3">
                 <span className="font-medium uppercase tracking-wide">Cycle {a.cycle.cycle}</span>
-                <span className="rounded-full bg-white/15 px-3 py-1 font-mono text-[10px]">
+                <span className="rounded-full bg-white/15 px-2 py-0.5 font-mono text-[10px] sm:text-[11px]">
                   {formatCurrencyK(a.cycle.reserve)}
                 </span>
               </div>
             </div>
-            <div className="space-y-3 p-3 md:p-4">
+            <div className="flex flex-1 flex-col gap-3 px-3 py-3 sm:px-5 sm:py-5">
               <div className="flex items-start justify-between gap-2">
-                <div className="flex flex-col">
+                <div className="flex min-w-0 flex-col">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-semibold text-foreground transition-colors group-hover:text-foreground/90 md:text-base">
+                    <h2 className="truncate text-sm font-semibold text-foreground transition-colors group-hover:text-foreground/90 sm:text-base">
                       {a.name}
-                    </h3>
-                    <img src="/checklist.png" alt="verified" className="h-4 w-4 opacity-80" />
+                    </h2>
+                    <img src="/checklist.png" className="h-3.5 w-3.5 opacity-80 sm:h-4 sm:w-4" alt="verified" />
                   </div>
                   <span className={`text-xs font-semibold ${changeClass}`}>{changeText}</span>
                 </div>
+                <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${badgeClass}`}>
+                  {formatChange(change)}
+                </span>
               </div>
-              <div className="grid grid-cols-3 gap-1.5 text-[10px] md:gap-2 md:text-[11px]">
-                <div className="rounded-xl border border-border/40 bg-surface/60 px-2 py-1.5 md:px-2.5 md:py-2">
-                  <div className="text-[8px] uppercase tracking-wide text-muted-foreground md:text-[9px]">Liquidity</div>
-                  <div className="font-mono text-[10px] md:text-[11px]">{formatCurrencyK(a.cycle.reserve)}</div>
+              <div className="grid grid-cols-2 gap-2 text-[10px] sm:grid-cols-4 sm:gap-3 sm:text-xs">
+                <div className="rounded-xl border border-border/25 bg-surface/45 p-2">
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Liquidity</div>
+                  <div className="font-mono text-xs text-foreground">{formatCurrencyK(a.cycle.reserve)}</div>
                 </div>
-                <div className="rounded-xl border border-border/40 bg-surface/60 px-2 py-1.5 md:px-2.5 md:py-2">
-                  <div className="text-[8px] uppercase tracking-wide text-muted-foreground md:text-[9px]">LPU</div>
-                  <div className="font-mono text-[10px] md:text-[11px]">${a.cycle.lpu.toFixed(3)}</div>
+                <div className="rounded-xl border border-border/25 bg-surface/45 p-2">
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">LPU</div>
+                  <div className="font-mono text-xs text-foreground">{formatCurrency(a.cycle.lpu)}</div>
                 </div>
-                <div className="rounded-xl border border-border/40 bg-surface/60 px-2 py-1.5 md:px-2.5 md:py-2">
-                  <div className="text-[8px] uppercase tracking-wide text-muted-foreground md:text-[9px]">Supply</div>
-                  <div className="font-mono text-[10px] md:text-[11px]">{a.params.initialSupply}</div>
+                <div className="rounded-xl border border-border/25 bg-surface/45 p-2">
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">CoinTag</div>
+                  <div className="font-mono text-xs text-foreground">{formatCurrency(Math.max(4.2, a.cycle.lpu * 0.4))}</div>
+                </div>
+                <div className="rounded-xl border border-border/25 bg-surface/45 p-2">
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Backing</div>
+                  <div className="font-mono text-xs text-foreground">{formatCurrencyK(a.params.initialReserve)}</div>
                 </div>
               </div>
-              <div className="flex items-center justify-between text-[10px] md:text-[11px]">
-                <span className="text-muted-foreground">Tap to explore</span>
-                <span className="font-medium text-foreground/80">View →</span>
+              <div className="flex items-center justify-between text-[10px] uppercase tracking-wide text-muted-foreground sm:text-[11px]">
+                <span>{formatCurrency(a.cycle.totalSales)} gross</span>
+                <span className="font-medium text-foreground/80">Explore →</span>
               </div>
             </div>
           </button>
@@ -417,11 +424,11 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
   );
 
   const renderLiveList = (items: Asset[]) => (
-    <div className="overflow-x-auto rounded-3xl border border-border/30 bg-black/40">
+    <div className="overflow-x-auto">
       <Table className="min-w-[720px] text-sm">
         <TableHeader>
           <TableRow>
-            <TableHead className="sticky left-0 z-20 min-w-[200px] bg-surface/80 text-left">Collection</TableHead>
+            <TableHead className="sticky left-0 z-20 min-w-[200px] bg-background text-left">Collection</TableHead>
             <TableHead className="min-w-[140px] text-center">Liquidity</TableHead>
             <TableHead className="min-w-[140px] text-center">LPU</TableHead>
             <TableHead className="min-w-[140px] text-center">CoinTag</TableHead>
@@ -437,22 +444,25 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
             return (
               <TableRow
                 key={asset.id}
-                className="cursor-pointer text-sm transition-colors hover:bg-surface/70"
+                className="cursor-pointer text-sm transition-colors hover:bg-surface/30"
                 onClick={() => navigate(`/market/${asset.id}/hunt`)}
               >
-                <TableCell className="sticky left-0 z-10 min-w-[200px] bg-surface/90">
+                <TableCell className="sticky left-0 z-10 min-w-[200px] bg-background px-2">
                   <div className="flex items-center gap-3 text-sm">
-                    <img src={asset.image} alt={asset.name} className="h-9 w-9 rounded-xl border border-black/70 object-cover" />
-                    <div className="flex flex-col">
-                      <span className="font-medium text-foreground">{asset.name}</span>
+                    <img src={asset.image} alt={asset.name} className="h-9 w-9 rounded-xl object-cover" />
+                    <div className="flex flex-col min-w-0">
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium text-foreground truncate">{asset.name}</span>
+                        <img src="/checklist.png" alt="verified" className="h-4 w-4 opacity-80 flex-shrink-0" />
+                      </div>
                       <span className={`text-xs font-semibold ${changeClass}`}>{changeText}</span>
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="min-w-[140px] text-center font-mono text-xs">{formatCurrencyK(asset.cycle.reserve)}</TableCell>
-                <TableCell className="min-w-[140px] text-center font-mono text-xs">{formatCurrency(asset.cycle.lpu)}</TableCell>
-                <TableCell className="min-w-[140px] text-center font-mono text-xs">{formatCurrency(coinTagPrice)}</TableCell>
-                <TableCell className="min-w-[160px] text-center font-mono text-xs">
+                <TableCell className="min-w-[140px] text-center font-mono text-xs px-2">{formatCurrencyK(asset.cycle.reserve)}</TableCell>
+                <TableCell className="min-w-[140px] text-center font-mono text-xs px-2">{formatCurrency(asset.cycle.lpu)}</TableCell>
+                <TableCell className="min-w-[140px] text-center font-mono text-xs px-2">{formatCurrency(coinTagPrice)}</TableCell>
+                <TableCell className="min-w-[160px] text-center font-mono text-xs px-2">
                   {formatCurrencyK(asset.params.initialReserve)}
                 </TableCell>
               </TableRow>
@@ -578,72 +588,138 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
         <div className="flex flex-col gap-5">
           <div className="space-y-6">
             <div className="space-y-5 px-0">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-3">
-                  <h1 className="text-3xl font-bold">Assets</h1>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    onClick={handleToggleMarket}
-                    className={
-                      isLiveMarket
-                        ? "inline-flex items-center gap-2 rounded-full border-emerald-500/50 !bg-emerald-950/80 px-3 py-1 text-xs uppercase tracking-wide !text-emerald-200 hover:!bg-emerald-900/70 hover:!text-emerald-100"
-                        : "inline-flex items-center gap-2 rounded-full border-purple-400/50 !bg-purple-950/80 px-3 py-1 text-xs uppercase tracking-wide !text-purple-200 hover:!bg-purple-900/70 hover:!text-purple-100"
-                    }
-                  >
-                    <ArrowLeftRight className="h-3.5 w-3.5" />
-                    {isLiveMarket ? "Switch to listed market" : "Switch to live market"}
-                  </Button>
-                  {isLiveMarket && (
-                    <span className="relative flex h-4 w-4 items-center justify-center" aria-hidden="true">
-                      <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400/40 blur-sm animate-ping" />
-                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
-                    </span>
+              {showTrending ? (
+                <>
+                  {showSearchBar && (
+                    <div className="px-0">
+                      <Input
+                        value={searchTerm}
+                        onChange={(event) => setSearchTerm(event.target.value)}
+                        placeholder="Search tokens, tickers, or IDs"
+                        className="h-11 w-full rounded-2xl border border-border/40 bg-background/80 px-4 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0"
+                      />
+                    </div>
                   )}
-                </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span className={!gridView ? "text-foreground font-semibold" : undefined}>{listLabel}</span>
-                  <Switch
-                    checked={gridView}
-                    onCheckedChange={handleGridToggle}
-                    aria-label="Toggle grid view"
-                  />
-                  <span className={gridView ? "text-foreground font-semibold" : undefined}>{gridLabel}</span>
-                  {showViewAllButton && (
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => navigate("/assets/all")}
-                      className="rounded-2xl px-3 py-1 text-xs font-semibold"
-                    >
-                      View all tokens
-                    </Button>
+
+                  {trendingTokens.length > 0 && (
+                    <section className="space-y-1 -mb-2">
+                      <h2 className="text-xl font-semibold text-foreground">Trending Tokens</h2>
+                      <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 no-scrollbar">
+                        {trendingTokens.map(({ asset, change }) => (
+                          <TrendingTokenCard key={`trending-${asset.id}`} asset={asset} change={change} />
+                        ))}
+                      </div>
+                    </section>
                   )}
-                </div>
-              </div>
 
-              {showSearchBar && (
-                <div className="px-0">
-                  <Input
-                    value={searchTerm}
-                    onChange={(event) => setSearchTerm(event.target.value)}
-                    placeholder="Search tokens, tickers, or IDs"
-                    className="h-11 w-full rounded-2xl border border-border/40 bg-background/80 px-4 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0"
-                  />
-                </div>
-              )}
-
-              {showTrending && trendingTokens.length > 0 && (
-                <section className="space-y-1">
-                  <h2 className="text-xl font-semibold text-foreground">Trending Tokens</h2>
-                  <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-3 no-scrollbar">
-                    {trendingTokens.map(({ asset, change }) => (
-                      <TrendingTokenCard key={`trending-${asset.id}`} asset={asset} change={change} />
-                    ))}
+                  {/* Asset control section - below trending with Assets title */}
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-3">
+                      <h1 className="text-3xl font-bold">Assets</h1>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleToggleMarket}
+                        className={
+                          isLiveMarket
+                            ? "inline-flex items-center gap-2 rounded-full border-emerald-500/50 !bg-emerald-950/80 px-3 py-1 text-xs uppercase tracking-wide !text-emerald-200 hover:!bg-emerald-900/70 hover:!text-emerald-100"
+                            : "inline-flex items-center gap-2 rounded-full border-sky-400/50 !bg-sky-950/80 px-3 py-1 text-xs uppercase tracking-wide !text-sky-200 hover:!bg-sky-900/70 hover:!text-sky-100"
+                        }
+                      >
+                        <ArrowLeftRight className="h-3.5 w-3.5" />
+                        {isLiveMarket ? "Switch to listed market" : "Switch to live market"}
+                      </Button>
+                      {isLiveMarket && (
+                        <span className="relative flex h-4 w-4 items-center justify-center" aria-hidden="true">
+                          <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400/40 blur-sm animate-ping" />
+                          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                        </span>
+                      )}
+                    </div>
+                    {/* Desktop view controls */}
+                    <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
+                      <span className={!gridView ? "text-foreground font-semibold" : undefined}>{listLabel}</span>
+                      <Switch
+                        checked={gridView}
+                        onCheckedChange={handleGridToggle}
+                        aria-label="Toggle grid view"
+                      />
+                      <span className={gridView ? "text-foreground font-semibold" : undefined}>{gridLabel}</span>
+                      {showViewAllButton && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => navigate("/assets/all")}
+                          className="rounded-2xl px-3 py-1 text-xs font-semibold"
+                        >
+                          View all tokens
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                </section>
+                </>
+              ) : (
+                <>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-3">
+                      <h1 className="text-3xl font-bold">Assets</h1>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleToggleMarket}
+                        className={
+                          isLiveMarket
+                            ? "inline-flex items-center gap-2 rounded-full border-emerald-500/50 !bg-emerald-950/80 px-3 py-1 text-xs uppercase tracking-wide !text-emerald-200 hover:!bg-emerald-900/70 hover:!text-emerald-100"
+                            : "inline-flex items-center gap-2 rounded-full border-sky-400/50 !bg-sky-950/80 px-3 py-1 text-xs uppercase tracking-wide !text-sky-200 hover:!bg-sky-900/70 hover:!text-sky-100"
+                        }
+                      >
+                        <ArrowLeftRight className="h-3.5 w-3.5" />
+                        {isLiveMarket ? "Switch to listed market" : "Switch to live market"}
+                      </Button>
+                      {isLiveMarket && (
+                        <span className="relative flex h-4 w-4 items-center justify-center" aria-hidden="true">
+                          <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400/40 blur-sm animate-ping" />
+                          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                        </span>
+                      )}
+                    </div>
+                    {/* Desktop view controls */}
+                    <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
+                      <span className={!gridView ? "text-foreground font-semibold" : undefined}>{listLabel}</span>
+                      <Switch
+                        checked={gridView}
+                        onCheckedChange={handleGridToggle}
+                        aria-label="Toggle grid view"
+                      />
+                      <span className={gridView ? "text-foreground font-semibold" : undefined}>{gridLabel}</span>
+                      {showViewAllButton && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => navigate("/assets/all")}
+                          className="rounded-2xl px-3 py-1 text-xs font-semibold"
+                        >
+                          View all tokens
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  {showSearchBar && (
+                    <div className="px-0">
+                      <Input
+                        value={searchTerm}
+                        onChange={(event) => setSearchTerm(event.target.value)}
+                        placeholder="Search tokens, tickers, or IDs"
+                        className="h-11 w-full rounded-2xl border border-border/40 bg-background/80 px-4 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0"
+                      />
+                    </div>
+                  )}
+                </>
               )}
 
               {!gridView &&
@@ -659,8 +735,39 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
                     ? renderLiveGrid(displayListedAssets)
                     : renderListedGrid(displayListedAssets)
                   : renderEmptyState())}
+              
+              {/* Spacer for mobile fixed bottom controls */}
+              <div className="h-20 sm:hidden" />
             </div>
 
+          </div>
+        </div>
+
+        {/* Mobile view controls - Fixed at bottom */}
+        <div className="fixed inset-x-0 bottom-0 z-40 sm:hidden">
+          <div className="border-t border-border/40 bg-background/95 backdrop-blur-sm px-4 py-3 shadow-lg">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span className={!gridView ? "text-foreground font-semibold" : undefined}>{listLabel}</span>
+                <Switch
+                  checked={gridView}
+                  onCheckedChange={handleGridToggle}
+                  aria-label="Toggle grid view"
+                />
+                <span className={gridView ? "text-foreground font-semibold" : undefined}>{gridLabel}</span>
+              </div>
+              {showViewAllButton && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => navigate("/assets/all")}
+                  className="rounded-2xl px-3 py-1 text-xs font-semibold"
+                >
+                  View all tokens
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </main>

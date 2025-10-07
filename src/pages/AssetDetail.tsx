@@ -213,7 +213,7 @@ export default function AssetDetail() {
         </div>
       </div>
       <div className="space-y-4">
-        <div className="rounded-xl border border-border/40 bg-background/80 p-4 sm:p-5">
+        <div className="border border-border/40 bg-background/80 p-4 sm:p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
               <span className="text-[11px] uppercase tracking-wide text-muted-foreground">You pay</span>
@@ -222,14 +222,14 @@ export default function AssetDetail() {
                 <span className="text-sm text-muted-foreground">USD</span>
               </div>
             </div>
-            <div className="rounded-full border border-border/40 bg-surface/60 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-foreground">
+            <div className="border border-border/40 bg-surface/60 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-foreground">
               USD
             </div>
           </div>
           <div className="mt-3 text-xs text-muted-foreground">Deducted from your balance instantly.</div>
         </div>
 
-        <div className="rounded-xl border border-border/40 bg-background/80 p-4 sm:p-5">
+        <div className="border border-border/40 bg-background/80 p-4 sm:p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
               <span className="text-[11px] uppercase tracking-wide text-muted-foreground">You receive</span>
@@ -238,7 +238,7 @@ export default function AssetDetail() {
                 <span className="text-sm text-muted-foreground">CoinTag</span>
               </div>
             </div>
-            <div className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-300">
+            <div className="border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-300">
               {formatCurrency(huntFee)} → 1 Tag
             </div>
           </div>

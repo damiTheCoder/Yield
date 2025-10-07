@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useMemo, useState, useEffect } from "react";
 import {
   CycleParams,
   CycleState,
@@ -11,6 +11,7 @@ import {
   redeemFinders,
   DEFAULT_SPLIT,
 } from "@/domain/tokenomics";
+import { saveState, loadState, clearState, hasStoredState, HuntProgress } from "@/lib/storage";
 
 type User = {
   usd: number;
@@ -39,6 +40,7 @@ type AppState = {
   assets: Asset[];
   assetAvailable: Record<string, number>; // per-asset findable units
   userAssets: Record<string, { coinTags: number; lfts: number }>;
+  huntProgress: Record<string, HuntProgress>; // per-asset hunt progress
 };
 
 type AppActions = {
@@ -67,6 +69,10 @@ type AppActions = {
     params: CycleParams;
     raise: number;
   }) => string;
+  // Hunt-related actions
+  getHuntProgress: (assetId: string) => HuntProgress;
+  updateHuntProgress: (assetId: string, progress: HuntProgress) => void;
+  claimHuntToken: (assetId: string) => boolean;
 };
 
 const DEFAULT_PARAMS: CycleParams = {
@@ -85,15 +91,30 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [cycle, setCycle] = useState<CycleState>(() => initializeCycle(DEFAULT_PARAMS, 1));
   const [yieldIndex, setYieldIndex] = useState<YieldIndex>(DEFAULT_INDEX);
   const [availableToFind, setAvailableToFind] = useState<number>(DEFAULT_PARAMS.initialSupply);
-  const [user, setUser] = useState<User>({ usd: 1000, coinTags: 0, lfts: 0, yieldUnits: 0, realizedRewards: 0 });
-
+  
   // Demo assets list (separate ecosystems) for listing view
   const makeAsset = (id: string, name: string, p: CycleParams, sales: number = 0, image: string = "/placeholder.svg"): Asset => {
     let c = initializeCycle(p, 1);
     if (sales > 0) c = applyCoinTagSales(c, sales);
     return { id, name, params: p, cycle: c, image };
   };
-  const [assets, setAssets] = useState<Asset[]>([
+
+  // Initialize state from localStorage if available
+  const [initialized, setInitialized] = useState(false);
+  const [user, setUser] = useState<User>(() => {
+    if (typeof window !== 'undefined' && hasStoredState()) {
+      const stored = loadState();
+      if (stored?.user) return stored.user;
+    }
+    return { usd: 1000, coinTags: 0, lfts: 0, yieldUnits: 0, realizedRewards: 0 };
+  });
+
+  const [assets, setAssets] = useState<Asset[]>(() => {
+    if (typeof window !== 'undefined' && hasStoredState()) {
+      const stored = loadState();
+      if (stored?.assets && stored.assets.length > 0) return stored.assets;
+    }
+    return [
     makeAsset("alpha", "Alpha Ecosystem", { ...DEFAULT_PARAMS, initialReserve: 1200, initialSupply: 100 }, 250, "/ape.jpeg"),
     makeAsset("beta", "Beta Studio", { ...DEFAULT_PARAMS, initialReserve: 2400, initialSupply: 150 }, 650, "/azuki.jpeg"),
     makeAsset("gamma", "Gamma Labs", { ...DEFAULT_PARAMS, initialReserve: 800, initialSupply: 80 }, 120, "/doodles.jpeg"),
@@ -112,15 +133,48 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     makeAsset("pi", "Pi Forge", { ...DEFAULT_PARAMS, initialReserve: 1180, initialSupply: 97 }, 230, "/k6.jpeg"),
     makeAsset("rho", "Rho Gallery", { ...DEFAULT_PARAMS, initialSupply: 108, initialReserve: 1420 }, 320, "/_ (5).jpeg"),
     makeAsset("tau", "Tau Vision", { ...DEFAULT_PARAMS, initialReserve: 1010, initialSupply: 90 }, 190, "/_ (6).jpeg"),
-  ]);
+    ];
+  });
 
   // Per-asset findable counters and user balances
-  const [assetAvailable, setAssetAvailable] = useState<Record<string, number>>(
-    () => Object.fromEntries(assets.map((a) => [a.id, a.params.initialSupply]))
-  );
-  const [userAssets, setUserAssets] = useState<Record<string, { coinTags: number; lfts: number }>>(
-    () => Object.fromEntries(assets.map((a) => [a.id, { coinTags: 0, lfts: 0 }]))
-  );
+  const [assetAvailable, setAssetAvailable] = useState<Record<string, number>>(() => {
+    if (typeof window !== 'undefined' && hasStoredState()) {
+      const stored = loadState();
+      if (stored?.assetAvailable) return stored.assetAvailable;
+    }
+    return Object.fromEntries(assets.map((a) => [a.id, a.params.initialSupply]));
+  });
+  
+  const [userAssets, setUserAssets] = useState<Record<string, { coinTags: number; lfts: number }>>(() => {
+    if (typeof window !== 'undefined' && hasStoredState()) {
+      const stored = loadState();
+      if (stored?.userAssets) return stored.userAssets;
+    }
+    return Object.fromEntries(assets.map((a) => [a.id, { coinTags: 0, lfts: 0 }]));
+  });
+
+  const [huntProgress, setHuntProgress] = useState<Record<string, HuntProgress>>(() => {
+    if (typeof window !== 'undefined' && hasStoredState()) {
+      const stored = loadState();
+      if (stored?.huntProgress) return stored.huntProgress;
+    }
+    return {};
+  });
+
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    if (!initialized) {
+      setInitialized(true);
+      return;
+    }
+    saveState({
+      user,
+      assets,
+      assetAvailable,
+      userAssets,
+      huntProgress,
+    });
+  }, [user, assets, assetAvailable, userAssets, huntProgress, initialized]);
 
   const slugify = useCallback((value: string) => {
     return value
@@ -131,14 +185,40 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const reset = useCallback(() => {
+    // Clear localStorage
+    clearState();
+    
+    // Reset to defaults with demo assets
+    const defaultAssets = [
+      makeAsset("alpha", "Alpha Ecosystem", { ...DEFAULT_PARAMS, initialReserve: 1200, initialSupply: 100 }, 250, "/ape.jpeg"),
+      makeAsset("beta", "Beta Studio", { ...DEFAULT_PARAMS, initialReserve: 2400, initialSupply: 150 }, 650, "/azuki.jpeg"),
+      makeAsset("gamma", "Gamma Labs", { ...DEFAULT_PARAMS, initialReserve: 800, initialSupply: 80 }, 120, "/doodles.jpeg"),
+      makeAsset("delta", "Delta Collective", { ...DEFAULT_PARAMS, initialReserve: 1500, initialSupply: 110 }, 300, "/cool-ape.jpeg"),
+      makeAsset("epsilon", "Epsilon Arts", { ...DEFAULT_PARAMS, initialReserve: 950, initialSupply: 95 }, 210, "/landers.jpeg"),
+      makeAsset("zeta", "Zeta Labs", { ...DEFAULT_PARAMS, initialReserve: 1300, initialSupply: 105 }, 275, "/alios.jpeg"),
+      makeAsset("theta", "Theta Network", { ...DEFAULT_PARAMS, initialReserve: 1700, initialSupply: 120 }, 420, "/digital-art.jpeg"),
+      makeAsset("sigma", "Sigma Studio", { ...DEFAULT_PARAMS, initialReserve: 1100, initialSupply: 90 }, 180, "/_ (17).jpeg"),
+      makeAsset("orion", "Orion Guild", { ...DEFAULT_PARAMS, initialReserve: 2200, initialSupply: 140 }, 700, "/_ (18).jpeg"),
+      makeAsset("nova", "Nova Builders", { ...DEFAULT_PARAMS, initialReserve: 1050, initialSupply: 88 }, 160, "/_ (19).jpeg"),
+      makeAsset("kappa", "Kappa Syndicate", { ...DEFAULT_PARAMS, initialReserve: 1450, initialSupply: 115 }, 360, "/k1.jpeg"),
+      makeAsset("lambda", "Lambda Atelier", { ...DEFAULT_PARAMS, initialReserve: 980, initialSupply: 92 }, 210, "/k2.jpeg"),
+      makeAsset("mu", "Mu Collective", { ...DEFAULT_PARAMS, initialReserve: 1650, initialSupply: 123 }, 410, "/k3.jpeg"),
+      makeAsset("nu", "Nu Labs", { ...DEFAULT_PARAMS, initialReserve: 890, initialSupply: 84 }, 150, "/_ (14).jpeg"),
+      makeAsset("omicron", "Omicron Vault", { ...DEFAULT_PARAMS, initialReserve: 1850, initialSupply: 132 }, 480, "/k5.jpeg"),
+      makeAsset("pi", "Pi Forge", { ...DEFAULT_PARAMS, initialReserve: 1180, initialSupply: 97 }, 230, "/k6.jpeg"),
+      makeAsset("rho", "Rho Gallery", { ...DEFAULT_PARAMS, initialSupply: 108, initialReserve: 1420 }, 320, "/_ (5).jpeg"),
+      makeAsset("tau", "Tau Vision", { ...DEFAULT_PARAMS, initialReserve: 1010, initialSupply: 90 }, 190, "/_ (6).jpeg"),
+    ];
+    
     setParams(DEFAULT_PARAMS);
     setCycle(initializeCycle(DEFAULT_PARAMS, 1));
     setYieldIndex(DEFAULT_INDEX);
     setAvailableToFind(DEFAULT_PARAMS.initialSupply);
     setUser({ usd: 1000, coinTags: 0, lfts: 0, yieldUnits: 0, realizedRewards: 0 });
-    setAssetAvailable(Object.fromEntries(assets.map((a) => [a.id, a.params.initialSupply])));
-    setUserAssets(Object.fromEntries(assets.map((a) => [a.id, { coinTags: 0, lfts: 0 }])));
-  }, [assets]);
+    setAssets(defaultAssets);
+    setAssetAvailable(Object.fromEntries(defaultAssets.map((a) => [a.id, a.params.initialSupply])));
+    setUserAssets(Object.fromEntries(defaultAssets.map((a) => [a.id, { coinTags: 0, lfts: 0 }])));
+  }, []);
 
   const buyCoinTags = useCallback(
     (usdAmount: number, pricePerTag = 1) => {
@@ -354,6 +434,52 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     [userAssets],
   );
 
+  // Hunt-related functions
+  const getHuntProgress = useCallback(
+    (assetId: string): HuntProgress => {
+      return huntProgress[assetId] || { revealed: [], matched: [], failed: [], foundTokens: 0 };
+    },
+    [huntProgress]
+  );
+
+  const updateHuntProgress = useCallback(
+    (assetId: string, progress: HuntProgress) => {
+      setHuntProgress((prev) => ({
+        ...prev,
+        [assetId]: progress,
+      }));
+    },
+    []
+  );
+
+  const claimHuntToken = useCallback(
+    (assetId: string): boolean => {
+      const asset = assets.find((a) => a.id === assetId);
+      if (!asset) return false;
+
+      const available = assetAvailable[assetId] ?? 0;
+      if (available <= 0) return false;
+
+      // Deduct from available pool
+      setAssetAvailable((prev) => ({
+        ...prev,
+        [assetId]: Math.max(0, available - 1),
+      }));
+
+      // Add to user's LFT balance for this asset
+      setUserAssets((prev) => ({
+        ...prev,
+        [assetId]: {
+          coinTags: prev[assetId]?.coinTags ?? 0,
+          lfts: (prev[assetId]?.lfts ?? 0) + 1,
+        },
+      }));
+
+      return true;
+    },
+    [assets, assetAvailable]
+  );
+
   const value = useMemo(
     () => ({
       params,
@@ -364,6 +490,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       assets,
       assetAvailable,
       userAssets,
+      huntProgress,
       // actions
       reset,
       buyCoinTags,
@@ -378,6 +505,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       openAssetCoinTags,
       discoverAssetLFTs,
       redeemAssetLFTs,
+      getHuntProgress,
+      updateHuntProgress,
+      claimHuntToken,
       launchAsset: ({ name, ticker, image, summary, params: launchParams, raise }) => {
         const safeName = name.trim() || "Untitled Asset";
         const baseSlug = slugify(ticker.trim() || safeName);
@@ -429,6 +559,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       assets,
       assetAvailable,
       userAssets,
+      huntProgress,
       reset,
       buyCoinTags,
       openCoinTags,
@@ -442,6 +573,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       openAssetCoinTags,
       discoverAssetLFTs,
       redeemAssetLFTs,
+      getHuntProgress,
+      updateHuntProgress,
+      claimHuntToken,
       slugify,
     ]
   );

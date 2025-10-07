@@ -40,19 +40,18 @@ export default function CoinTags() {
     "Outline the story behind this artifact and why finders will want to activate your CoinTag campaign.",
   );
   const [initialReserve, setInitialReserve] = useState<number>(params.initialReserve);
-  const [initialSupply, setInitialSupply] = useState<number>(params.initialSupply);
-  const [targetRaise, setTargetRaise] = useState<number>(5000);
-  const [pricePerTag, setPricePerTag] = useState<number>(1);
+  const [initialSupply, setInitialSupply] = useState<number>(100); // Fixed at 100 units
+  const [pricePerTag, setPricePerTag] = useState<number>(50); // CoinTag price
   const [discoveryRate, setDiscoveryRate] = useState<number>(25);
   const [imageName, setImageName] = useState<string>("");
   const [imagePreview, setImagePreview] = useState<string>(DEFAULT_IMAGE);
 
   const preview = useMemo(() => {
     const safeReserve = Math.max(0, initialReserve);
-    const safeSupply = Math.max(1, initialSupply);
-    const raise = Math.max(0, targetRaise);
-    const safePrice = pricePerTag > 0 ? pricePerTag : 1;
-    const tags = safePrice > 0 ? Math.floor(raise / safePrice) : 0;
+    const safeSupply = 100; // Always 100 units
+    const safePrice = Math.max(1, pricePerTag);
+    const tags = 100; // Always 100 CoinTags
+    const raise = tags * safePrice; // Calculate total raise from CoinTag price
     const effectiveDiscoveryRate = Math.min(Math.max(discoveryRate, 0), 100);
 
     const baseCycle = initializeCycle(
@@ -89,8 +88,9 @@ export default function CoinTags() {
       expectedFinds,
       expectedFinderValue,
       discoveryRate: effectiveDiscoveryRate,
+      coinTagPrice: safePrice,
     };
-  }, [baseSplit, discoveryRate, initialReserve, initialSupply, params.redemptionThreshold, pricePerTag, targetRaise]);
+  }, [baseSplit, discoveryRate, initialReserve, pricePerTag, params.redemptionThreshold]);
 
   const hasArtwork = imagePreview !== DEFAULT_IMAGE;
   const canLaunch = preview.raise > 0 && preview.tags > 0;
@@ -124,7 +124,7 @@ export default function CoinTags() {
       image: imagePreview,
       params: {
         initialReserve: Math.max(0, initialReserve),
-        initialSupply: Math.max(1, initialSupply),
+        initialSupply: 100, // Fixed at 100 units
         redemptionThreshold: params.redemptionThreshold,
         split: baseSplit,
       },
@@ -132,10 +132,14 @@ export default function CoinTags() {
     });
 
     toast({
-      title: "Launch staged",
-      description: `Mint ${preview.tags.toLocaleString()} CoinTags for ${collectionName} at ${formatCurrency(pricePerTag)} each.`,
+      title: "🚀 LFT Launched Successfully!",
+      description: `${collectionName} is now live with ${preview.tags.toLocaleString()} CoinTags at ${formatCurrency(pricePerTag)} each. Initial liquidity: ${formatCurrency(preview.postReserve)}`,
     });
-    navigate(`/assets/${nextId}`);
+    
+    // Navigate to the newly created asset
+    setTimeout(() => {
+      navigate(`/assets/${nextId}`);
+    }, 500);
   };
 
   return (
@@ -214,10 +218,11 @@ export default function CoinTags() {
               <section className="space-y-4">
                 <div>
                   <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Liquidity & Pricing</h3>
+                  <p className="text-xs text-muted-foreground mt-1">Set initial liquidity and CoinTag price. Supply is fixed at 100 units.</p>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="initialReserve">Initial reserve (USD)</Label>
+                    <Label htmlFor="initialReserve">Initial Reserve (USD)</Label>
                     <Input
                       id="initialReserve"
                       type="number"
@@ -226,43 +231,45 @@ export default function CoinTags() {
                       value={initialReserve}
                       onChange={(event) => setInitialReserve(Number(event.target.value) || 0)}
                     />
+                    <p className="text-xs text-muted-foreground">Starting liquidity backing your LFTs</p>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="initialSupply">Initial supply (LFTs)</Label>
-                    <Input
-                      id="initialSupply"
-                      type="number"
-                      inputMode="numeric"
-                      min={0}
-                      value={initialSupply}
-                      onChange={(event) => setInitialSupply(Number(event.target.value) || 0)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="targetRaise">Launch raise target (USD)</Label>
-                    <Input
-                      id="targetRaise"
-                      type="number"
-                      inputMode="decimal"
-                      min={0}
-                      value={targetRaise}
-                      onChange={(event) => setTargetRaise(Number(event.target.value) || 0)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="pricePerTag">Price per CoinTag (USD)</Label>
+                    <Label htmlFor="pricePerTag">CoinTag Price (USD)</Label>
                     <Input
                       id="pricePerTag"
                       type="number"
                       inputMode="decimal"
-                      min={0.1}
-                      step={0.1}
+                      min={1}
+                      step={1}
                       value={pricePerTag}
-                      onChange={(event) => setPricePerTag(Number(event.target.value) || 0)}
+                      onChange={(event) => setPricePerTag(Number(event.target.value) || 1)}
                     />
+                    <p className="text-xs text-muted-foreground">Price per CoinTag (100 tags will be created)</p>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="discoveryRate">Expected discovery rate (%)</Label>
+                    <Label htmlFor="initialSupply">LFT Supply</Label>
+                    <Input
+                      id="initialSupply"
+                      type="number"
+                      value={100}
+                      disabled
+                      className="bg-muted/50 cursor-not-allowed"
+                    />
+                    <p className="text-xs text-muted-foreground">Fixed at 100 units for all launches</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="totalRaise">Total Raise</Label>
+                    <Input
+                      id="totalRaise"
+                      type="number"
+                      value={preview.raise}
+                      disabled
+                      className="bg-muted/50 cursor-not-allowed"
+                    />
+                    <p className="text-xs text-muted-foreground">Calculated: {preview.tags} tags × ${pricePerTag}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="discoveryRate">Expected Discovery Rate (%)</Label>
                     <Input
                       id="discoveryRate"
                       type="number"
@@ -272,6 +279,7 @@ export default function CoinTags() {
                       value={discoveryRate}
                       onChange={(event) => setDiscoveryRate(Number(event.target.value) || 0)}
                     />
+                    <p className="text-xs text-muted-foreground">Estimated chance of finding LFTs per CoinTag</p>
                   </div>
                 </div>
               </section>

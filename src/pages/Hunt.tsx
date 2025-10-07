@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import { useApp } from "@/lib/app-state";
@@ -13,6 +13,7 @@ const MAX_TOKENS = 100;
 type HuntData = {
   boxes: string[];
   values: Record<string, string>;
+  winningCoordinates: Set<string>; // Only these coordinates contain tokens
 };
 
 function createSeededRandom(seedString: string) {
@@ -37,6 +38,8 @@ function generateHuntData(seed: string): HuntData {
       coords.push(`${letter}${row}`);
     });
   });
+  
+  // Generate all coordinate values
   const values: Record<string, string> = {};
   coords.forEach((coord) => {
     const left = Math.floor(random() * 100)
@@ -47,13 +50,22 @@ function generateHuntData(seed: string): HuntData {
       .padStart(2, "0");
     values[coord] = `${left}, ${right}`;
   });
+  
+  // Shuffle all coordinates
   const shuffled = [...coords];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
+  
+  // Select boxes to display (320 boxes)
   const boxes: string[] = shuffled.slice(0, 320);
-  return { boxes, values };
+  
+  // Only 30-40% of boxes actually contain tokens (makes it challenging but not impossible)
+  const numWinningBoxes = Math.floor(boxes.length * 0.35); // ~112 winning boxes out of 320
+  const winningCoordinates = new Set(boxes.slice(0, numWinningBoxes));
+  
+  return { boxes, values, winningCoordinates };
 }
 
 export default function HuntPage() {
@@ -109,33 +121,69 @@ type HuntExperienceProps = {
 };
 
 function HuntExperience({ assetId, assetName, ticker, cycleNumber, lpu, pricePerUnit, initialSupply, image }: HuntExperienceProps) {
-  const [revealed, setRevealed] = useState<Set<string>>(new Set());
-  const [matched, setMatched] = useState<Set<string>>(new Set());
+  const { getHuntProgress, updateHuntProgress, claimHuntToken } = useApp();
+  
+  // Load saved progress or initialize
+  const [revealed, setRevealed] = useState<Set<string>>(() => {
+    const saved = getHuntProgress(assetId);
+    return new Set(saved.revealed);
+  });
+  const [matched, setMatched] = useState<Set<string>>(() => {
+    const saved = getHuntProgress(assetId);
+    return new Set(saved.matched);
+  });
+  const [failed, setFailed] = useState<Set<string>>(() => {
+    const saved = getHuntProgress(assetId);
+    return new Set(saved.failed || []);
+  }); // Coordinates with no tokens (red boxes)
   const [inputValue, setInputValue] = useState("");
-  const [foundTokens, setFoundTokens] = useState(0);
+  const [foundTokens, setFoundTokens] = useState(() => {
+    const saved = getHuntProgress(assetId);
+    return saved.foundTokens;
+  });
   const [status, setStatus] = useState<string>("");
   const [statusType, setStatusType] = useState<"idle" | "success" | "error">("idle");
 
   const maxTokens = Math.min(MAX_TOKENS, initialSupply);
   const huntData = useMemo(() => generateHuntData(assetId), [assetId]);
 
+  // Reset when switching to a different asset
   useEffect(() => {
-    setRevealed(new Set());
-    setMatched(new Set());
+    const saved = getHuntProgress(assetId);
+    setRevealed(new Set(saved.revealed));
+    setMatched(new Set(saved.matched));
+    setFailed(new Set(saved.failed || [])); // Restore failed attempts from saved progress
+    setFoundTokens(saved.foundTokens);
     setInputValue("");
-    setFoundTokens(0);
     setStatus("");
     setStatusType("idle");
-  }, [assetId]);
+  }, [assetId, getHuntProgress]);
 
   const walletValue = foundTokens * pricePerUnit;
 
-  const handleReveal = (coordinate: string) => {
-    if (matched.has(coordinate)) return;
-    setRevealed((prev) => new Set(prev).add(coordinate));
-  };
+  const handleReveal = useCallback((coordinate: string) => {
+    setRevealed((prevRevealed) => {
+      if (matched.has(coordinate)) return prevRevealed;
+      if (prevRevealed.has(coordinate)) return prevRevealed; // Already revealed
+      
+      const nextRevealed = new Set(prevRevealed);
+      nextRevealed.add(coordinate);
+      
+      // Save progress after state update
+      setTimeout(() => {
+        updateHuntProgress(assetId, {
+          revealed: Array.from(nextRevealed),
+          matched: Array.from(matched),
+          failed: Array.from(failed),
+          foundTokens,
+        });
+      }, 0);
+      
+      return nextRevealed;
+    });
+  }, [assetId, matched, failed, foundTokens, updateHuntProgress]);
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     const coord = inputValue.trim().toUpperCase();
     if (!coord) return;
     if (!huntData.values[coord]) {
@@ -153,18 +201,70 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, lpu, pricePer
       setStatus("You already claimed that coordinate.");
       return;
     }
+    
+    // Check if this coordinate actually contains a token
+    if (!huntData.winningCoordinates.has(coord)) {
+      // Mark this coordinate as failed (red box)
+      setFailed((prevFailed) => {
+        const nextFailed = new Set(prevFailed);
+        nextFailed.add(coord);
+        
+        // Save progress immediately with failed state
+        setTimeout(() => {
+          updateHuntProgress(assetId, {
+            revealed: Array.from(revealed),
+            matched: Array.from(matched),
+            failed: Array.from(nextFailed),
+            foundTokens,
+          });
+        }, 0);
+        
+        return nextFailed;
+      });
+      setStatusType("error");
+      setStatus(`No token at ${coord}. Keep searching!`);
+      setInputValue("");
+      return;
+    }
+    
+    if (foundTokens >= maxTokens) {
+      setStatusType("error");
+      setStatus("You've already claimed the maximum tokens for this hunt.");
+      return;
+    }
+    
+    // Try to claim the token from the app state
+    const claimed = claimHuntToken(assetId);
+    if (!claimed) {
+      setStatusType("error");
+      setStatus("No more tokens available in this asset's pool.");
+      return;
+    }
+    
     const nextMatched = new Set(matched);
     nextMatched.add(coord);
+    const nextFoundTokens = Math.min(foundTokens + 1, maxTokens);
+    
     setMatched(nextMatched);
-    setFoundTokens((prev) => Math.min(prev + 1, maxTokens));
+    setFoundTokens(nextFoundTokens);
     setStatusType("success");
-    setStatus(`Token found at ${coord}! +${formatCurrency(pricePerUnit)} added.`);
+    setStatus(`Token found at ${coord}! +${formatCurrency(pricePerUnit)} added to your wallet.`);
     setInputValue("");
-  };
+    
+    // Save progress after state updates
+    setTimeout(() => {
+      updateHuntProgress(assetId, {
+        revealed: Array.from(revealed),
+        matched: Array.from(nextMatched),
+        failed: Array.from(failed),
+        foundTokens: nextFoundTokens,
+      });
+    }, 0);
+  }, [inputValue, huntData, revealed, matched, failed, foundTokens, maxTokens, claimHuntToken, assetId, pricePerUnit, updateHuntProgress]);
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="sticky top-0 z-40 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
+      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
         <Header />
         <div className="container mx-auto px-2 sm:px-4 pt-3 pb-4 sm:pt-4 sm:pb-6 space-y-3 sm:space-y-4 font-mono">
           {/* Header Section - Mobile-first layout */}
@@ -244,7 +344,7 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, lpu, pricePer
           {/* Main Game Area */}
           <section className="flex-1 space-y-4 sm:space-y-6 min-w-0">
             <div className="rounded-xl sm:rounded-2xl border border-border/40 bg-surface/40 overflow-hidden">
-              <div className="flex flex-wrap items-center justify-between gap-1 sm:gap-2 border-b border-border/40 px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">
+              <div className="flex flex-wrap items-center justify-between gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">
                 <span className="whitespace-nowrap">Coordinate reference</span>
                 <span className="hidden sm:inline whitespace-nowrap">Scroll to explore</span>
                 <span className="sm:hidden whitespace-nowrap">Swipe right to see more →</span>
@@ -253,12 +353,12 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, lpu, pricePer
                 <table className="border-collapse text-[9px] sm:text-[10px] md:text-[11px]" style={{ minWidth: '100%', width: 'max-content' }}>
                   <thead>
                     <tr>
-                      <th scope="col" className="sticky left-0 bg-muted border-r border-border/40 w-8 sm:w-10 h-6 sm:h-8 text-center font-medium text-muted-foreground z-10"></th>
+                      <th scope="col" className="sticky left-0 bg-muted w-8 sm:w-10 h-6 sm:h-8 text-center font-medium text-muted-foreground z-10"></th>
                       {LETTERS.map((letter) => (
                         <th
                           key={letter}
                           scope="col"
-                          className="sticky top-0 bg-muted border-r border-border/20 w-12 sm:w-14 md:w-16 h-6 sm:h-8 text-center font-medium text-muted-foreground z-10"
+                          className="sticky top-0 bg-muted w-12 sm:w-14 md:w-16 h-6 sm:h-8 text-center font-medium text-muted-foreground z-10"
                         >
                           {letter}
                         </th>
@@ -268,17 +368,24 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, lpu, pricePer
                   <tbody>
                     {ROWS.map((row) => (
                       <tr key={row}>
-                        <th scope="row" className="sticky left-0 bg-muted border-r border-border/40 w-8 sm:w-10 h-6 sm:h-7 text-center font-medium text-muted-foreground z-10">{row}</th>
+                        <th scope="row" className="sticky left-0 bg-muted w-8 sm:w-10 h-6 sm:h-7 text-center font-medium text-muted-foreground z-10">{row}</th>
                         {LETTERS.map((letter) => {
                           const coord = `${letter}${row}`;
                           const value = huntData.values[coord];
                           const isMatched = matched.has(coord);
+                          const isFailed = failed.has(coord);
                           const isRevealed = revealed.has(coord);
                           return (
                             <td
                               key={coord}
-                              className={`w-12 sm:w-14 md:w-16 h-6 sm:h-7 text-center font-mono border-r border-b border-border/20 transition-colors p-1 ${
-                                isMatched ? "bg-emerald-500/30 text-emerald-100 font-semibold" : isRevealed ? "bg-muted text-foreground" : "text-muted-foreground bg-background/50"
+                              className={`w-12 sm:w-14 md:w-16 h-6 sm:h-7 text-center font-mono transition-colors p-1 ${
+                                isMatched 
+                                  ? "bg-emerald-500/30 text-emerald-100 font-semibold" 
+                                  : isFailed
+                                  ? "bg-red-500/20 text-red-100 font-semibold"
+                                  : isRevealed 
+                                  ? "bg-muted text-foreground" 
+                                  : "text-muted-foreground bg-background/50"
                               }`}
                             >
                               <div className="text-center leading-none">{value}</div>
@@ -345,25 +452,29 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, lpu, pricePer
               <div className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">Hunt grid</div>
               <div className="rounded-xl border border-border/30 bg-surface/40 p-2 sm:p-3 overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
                 <div className="grid auto-cols-min grid-flow-col gap-1 sm:gap-1.5" style={{ gridTemplateRows: 'repeat(7, minmax(32px, 1fr))' }}>
-                  {huntData.boxes.map((coord, index) => {
+                  {huntData.boxes.map((coord) => {
                     const isMatched = matched.has(coord);
+                    const isFailed = failed.has(coord);
                     const isRevealed = revealed.has(coord);
                     const value = huntData.values[coord];
                     return (
                       <button
-                        key={`${coord}-${index}`}
+                        key={coord}
                         type="button"
                         onClick={() => handleReveal(coord)}
+                        disabled={isMatched}
                         className={`aspect-square rounded border text-[8px] sm:text-[9px] md:text-[10px] font-semibold transition-colors flex items-center justify-center min-w-[32px] sm:min-w-[40px] min-h-[32px] sm:min-h-[40px] ${
                           isMatched
-                            ? "border-emerald-400/70 bg-emerald-500/25 text-emerald-50"
+                            ? "border-emerald-400/70 bg-emerald-500/25 text-emerald-50 cursor-not-allowed"
+                            : isFailed
+                            ? "border-red-400/70 bg-red-500/20 text-red-100 cursor-pointer"
                             : isRevealed
-                            ? "border-border bg-muted text-foreground"
-                            : "border-border/60 bg-background text-muted-foreground hover:border-border hover:text-foreground active:scale-95"
+                            ? "border-border bg-muted text-foreground cursor-pointer"
+                            : "border-border/60 bg-background text-muted-foreground hover:border-border hover:text-foreground active:scale-95 cursor-pointer"
                         }`}
                       >
                         <span className="block text-center leading-none p-0.5 break-all">
-                          {isMatched ? "" : isRevealed ? value : ""}
+                          {isMatched ? "" : isFailed ? "" : isRevealed ? value : ""}
                         </span>
                       </button>
                     );
