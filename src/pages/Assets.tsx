@@ -616,22 +616,35 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
                       <h1 className="text-3xl font-bold">Assets</h1>
+                      {/* Desktop: Show switch market button */}
                       <Button
                         type="button"
                         size="sm"
                         variant="ghost"
                         onClick={handleToggleMarket}
-                        className={
+                        className={`hidden sm:inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs uppercase tracking-wide ${
                           isLiveMarket
-                            ? "inline-flex items-center gap-2 rounded-full border-emerald-500/50 !bg-emerald-950/80 px-3 py-1 text-xs uppercase tracking-wide !text-emerald-200 hover:!bg-emerald-900/70 hover:!text-emerald-100"
-                            : "inline-flex items-center gap-2 rounded-full border-sky-400/50 !bg-sky-950/80 px-3 py-1 text-xs uppercase tracking-wide !text-sky-200 hover:!bg-sky-900/70 hover:!text-sky-100"
-                        }
+                            ? "border-emerald-500/50 !bg-emerald-950/80 !text-emerald-200 hover:!bg-emerald-900/70 hover:!text-emerald-100"
+                            : "border-sky-400/50 !bg-sky-950/80 !text-sky-200 hover:!bg-sky-900/70 hover:!text-sky-100"
+                        }`}
                       >
                         <ArrowLeftRight className="h-3.5 w-3.5" />
                         {isLiveMarket ? "Switch to listed market" : "Switch to live market"}
                       </Button>
+                      {/* Mobile: Show view all button */}
+                      {showViewAllButton && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => navigate("/assets/all")}
+                          className="sm:hidden rounded-md px-3 py-1 text-xs font-semibold bg-muted hover:bg-muted/80"
+                        >
+                          View all tokens
+                        </Button>
+                      )}
                       {isLiveMarket && (
-                        <span className="relative flex h-4 w-4 items-center justify-center" aria-hidden="true">
+                        <span className="relative hidden sm:flex h-4 w-4 items-center justify-center" aria-hidden="true">
                           <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400/40 blur-sm animate-ping" />
                           <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
                         </span>
@@ -650,9 +663,9 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
                         <Button
                           type="button"
                           size="sm"
-                          variant="outline"
+                          variant="ghost"
                           onClick={() => navigate("/assets/all")}
-                          className="rounded-2xl px-3 py-1 text-xs font-semibold"
+                          className="rounded-md px-3 py-1 text-xs font-semibold bg-muted hover:bg-muted/80"
                         >
                           View all tokens
                         </Button>
@@ -665,25 +678,16 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
                       <h1 className="text-3xl font-bold">Assets</h1>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={handleToggleMarket}
-                        className={
-                          isLiveMarket
-                            ? "inline-flex items-center gap-2 rounded-full border-emerald-500/50 !bg-emerald-950/80 px-3 py-1 text-xs uppercase tracking-wide !text-emerald-200 hover:!bg-emerald-900/70 hover:!text-emerald-100"
-                            : "inline-flex items-center gap-2 rounded-full border-sky-400/50 !bg-sky-950/80 px-3 py-1 text-xs uppercase tracking-wide !text-sky-200 hover:!bg-sky-900/70 hover:!text-sky-100"
-                        }
-                      >
-                        <ArrowLeftRight className="h-3.5 w-3.5" />
-                        {isLiveMarket ? "Switch to listed market" : "Switch to live market"}
-                      </Button>
-                      {isLiveMarket && (
-                        <span className="relative flex h-4 w-4 items-center justify-center" aria-hidden="true">
-                          <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400/40 blur-sm animate-ping" />
-                          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
-                        </span>
+                      {showViewAllButton && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => navigate("/assets/all")}
+                          className="rounded-md px-3 py-1 text-xs font-semibold bg-muted hover:bg-muted/80"
+                        >
+                          View all tokens
+                        </Button>
                       )}
                     </div>
                     {/* Desktop view controls */}
@@ -699,9 +703,9 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
                         <Button
                           type="button"
                           size="sm"
-                          variant="outline"
+                          variant="ghost"
                           onClick={() => navigate("/assets/all")}
-                          className="rounded-2xl px-3 py-1 text-xs font-semibold"
+                          className="rounded-md px-3 py-1 text-xs font-semibold bg-muted hover:bg-muted/80"
                         >
                           View all tokens
                         </Button>
@@ -745,7 +749,7 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
 
         {/* Mobile view controls - Fixed at bottom */}
         <div className="fixed inset-x-0 bottom-0 z-40 sm:hidden">
-          <div className="border-t border-border/40 bg-background/95 backdrop-blur-sm px-4 py-3 shadow-lg">
+          <div className="bg-background/95 backdrop-blur-sm px-4 py-3 shadow-lg">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span className={!gridView ? "text-foreground font-semibold" : undefined}>{listLabel}</span>
@@ -756,17 +760,28 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
                 />
                 <span className={gridView ? "text-foreground font-semibold" : undefined}>{gridLabel}</span>
               </div>
-              {showViewAllButton && (
+              <div className="flex items-center gap-2">
                 <Button
                   type="button"
                   size="sm"
-                  variant="outline"
-                  onClick={() => navigate("/assets/all")}
-                  className="rounded-2xl px-3 py-1 text-xs font-semibold"
+                  variant="ghost"
+                  onClick={handleToggleMarket}
+                  className={
+                    isLiveMarket
+                      ? "inline-flex items-center gap-2 rounded-full border-emerald-500/50 !bg-emerald-950/80 px-3 py-1 text-xs uppercase tracking-wide !text-emerald-200"
+                      : "inline-flex items-center gap-2 rounded-full border-sky-400/50 !bg-sky-950/80 px-3 py-1 text-xs uppercase tracking-wide !text-sky-200"
+                  }
                 >
-                  View all tokens
+                  <ArrowLeftRight className="h-3.5 w-3.5" />
+                  {isLiveMarket ? "Switch to listed market" : "Switch to live market"}
                 </Button>
-              )}
+                {isLiveMarket && (
+                  <span className="relative flex h-4 w-4 items-center justify-center">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
