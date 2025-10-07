@@ -501,7 +501,7 @@ export default function AssetDetail() {
           <div className="fixed inset-x-0 bottom-0 z-40 px-4 pb-5">
             <Button
               onClick={() => setMobileBuyOpen(true)}
-              className="w-full rounded-2xl bg-emerald-500/90 py-3 text-base font-semibold text-background shadow-lg"
+              className="w-full rounded-2xl bg-lime-400 py-3 text-base font-semibold text-gray-900 shadow-lg hover:bg-lime-500"
             >
               Tap to buy tag
             </Button>

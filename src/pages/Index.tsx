@@ -7,87 +7,94 @@ import { useNavigate } from "react-router-dom";
 const onboardingScreens = [
   {
     id: 1,
-    badge: "WHAT ARE LFTs?",
-    title: "A Revolutionary Digital Asset Class",
-    description: "Liquidity Funded Tokens (LFTs) represent a groundbreaking new category of digital assets—combining the collectibility of NFTs, the liquidity backing of bonds, and the engagement mechanics of skill-based gaming. Unlike anything you've seen before.",
+    badge: "WELCOME TO THE FUTURE",
+    title: "Introducing Liquidity Funded Tokens (LFTs)",
+    description: "Welcome to a new era of digital ownership. LFTs are revolutionizing how we think about value, combining the best of NFTs, bonds, and interactive gaming into one innovative asset class. Discover assets that can't lose value, appreciate automatically, and reward you for participating.",
     image: "/_ (14).jpeg",
   },
   {
     id: 2,
-    badge: "THE PROBLEM",
-    title: "Traditional Digital Assets Are Broken",
-    description: "Meme coins crash to zero overnight. NFTs have no guaranteed value—you could lose everything. Standard tokens promise utility that never materializes. All suffer from one fatal flaw: no intrinsic value floor and no sustainable growth mechanism.",
+    badge: "WHAT ARE LFTs?",
+    title: "A Revolutionary Digital Asset Class",
+    description: "Liquidity Funded Tokens (LFTs) represent a groundbreaking new category of digital assets—combining the collectibility of NFTs, the liquidity backing of bonds, and the engagement mechanics of skill-based gaming. Unlike anything you've seen before.",
     image: "/k1.jpeg",
   },
   {
     id: 3,
-    badge: "LFTs VS TRADITIONAL ASSETS",
-    title: "LFTs: Backed by Real Liquidity from Day One",
-    description: "While stocks represent company ownership and bonds represent debt, LFTs represent redeemable liquidity reserves that grow in real-time. Every token is backed by locked funds—your floor value can only go up, never down during active cycles.",
+    badge: "THE PROBLEM",
+    title: "Traditional Digital Assets Are Broken",
+    description: "Meme coins crash to zero overnight. NFTs have no guaranteed value—you could lose everything. Standard tokens promise utility that never materializes. All suffer from one fatal flaw: no intrinsic value floor and no sustainable growth mechanism.",
     image: "/_ (17).jpeg",
   },
   {
     id: 4,
-    badge: "THE INNOVATION",
-    title: "Self-Appreciating Liquidity That Grows Automatically",
-    description: "Here's the magic: 10% of every purchase flows directly into the liquidity pool. If you discover an LFT early and hold it, you literally watch your guaranteed redemption value increase as others join the hunt. No action required—just hold and appreciate.",
+    badge: "LFTs VS TRADITIONAL ASSETS",
+    title: "LFTs: Backed by Real Liquidity from Day One",
+    description: "While stocks represent company ownership and bonds represent debt, LFTs represent redeemable liquidity reserves that grow in real-time. Every token is backed by locked funds—your floor value can only go up, never down during active cycles.",
     image: "/k2.jpeg",
   },
   {
     id: 5,
-    badge: "HOW IT WORKS",
-    title: "Step 1: Creator Locks Initial Liquidity",
-    description: "An artist or developer locks real funds ($10,000) to create 100 LFTs. Each starts with a base Liquidity Per Unit (LPU) of $100. These reserves are verifiable on-chain and cannot be withdrawn—guaranteed backing from launch.",
+    badge: "THE INNOVATION",
+    title: "Self-Appreciating Liquidity That Grows Automatically",
+    description: "Here's the magic: 10% of every purchase flows directly into the liquidity pool. If you discover an LFT early and hold it, you literally watch your guaranteed redemption value increase as others join the hunt. No action required—just hold and appreciate.",
     image: "/_ (18).jpeg",
   },
   {
     id: 6,
     badge: "HOW IT WORKS",
-    title: "Step 2: Hunt and Discover Through Skill",
-    description: "LFTs are hidden across an interactive coordinate grid. Purchase CoinTags ($25 each) or earn them free through content creation, social sharing, and challenges. Use strategy, community hints, and creator clues to discover hidden tokens. It's treasure hunting meets digital collecting.",
+    title: "Step 1: Creator Locks Initial Liquidity",
+    description: "An artist or developer locks real funds ($10,000) to create 100 LFTs. Each starts with a base Liquidity Per Unit (LPU) of $100. These reserves are verifiable on-chain and cannot be withdrawn—guaranteed backing from launch.",
     image: "/k3.jpeg",
   },
   {
     id: 7,
     badge: "HOW IT WORKS",
-    title: "Step 3: Watch Your Value Grow in Real-Time",
-    description: "As the community hunts, 10% of every CoinTag purchase tops up the liquidity pool. Early discoverers at $100 LPU watch it climb to $107, $115, $125 as activity increases. Your asset literally appreciates while you hold it—backed by real, locked liquidity.",
+    title: "Step 2: Hunt and Discover Through Skill",
+    description: "LFTs are hidden across an interactive coordinate grid. Purchase CoinTags ($25 each) or earn them free through content creation, social sharing, and challenges. Use strategy, community hints, and creator clues to discover hidden tokens. It's treasure hunting meets digital collecting.",
     image: "/_ (19).jpeg",
   },
   {
     id: 8,
     badge: "HOW IT WORKS",
-    title: "Step 4: Redeem or Hold for Passive Income",
-    description: "Exchange your LFT for current LPU value anytime—guaranteed redemption. Or keep holding to earn 5% of all ongoing CoinTag revenue as passive rewards. Plus, holders benefit as others redeem (fewer LFTs = higher LPU for remaining holders).",
+    title: "Step 3: Watch Your Value Grow in Real-Time",
+    description: "As the community hunts, 10% of every CoinTag purchase tops up the liquidity pool. Early discoverers at $100 LPU watch it climb to $107, $115, $125 as activity increases. Your asset literally appreciates while you hold it—backed by real, locked liquidity.",
     image: "/k5.jpeg",
   },
   {
     id: 9,
-    badge: "SUSTAINABLE ECONOMICS",
-    title: "Revenue Model That Benefits Everyone",
-    description: "From each $25 CoinTag: 50% to creators (sustainable income), 20% seeds next cycle (compounding growth), 15% platform operations, 10% current liquidity pool (your appreciation), 5% holder rewards (passive income). Transparent, sustainable, aligned.",
+    badge: "HOW IT WORKS",
+    title: "Step 4: Redeem or Hold for Passive Income",
+    description: "Exchange your LFT for current LPU value anytime—guaranteed redemption. Or keep holding to earn 5% of all ongoing CoinTag revenue as passive rewards. Plus, holders benefit as others redeem (fewer LFTs = higher LPU for remaining holders).",
     image: "/k6.jpeg",
   },
   {
     id: 10,
-    badge: "SELF-REINFORCING CYCLES",
-    title: "Each Cycle Launches Stronger Than the Last",
-    description: "Cycle 1 starts at $10,000 liquidity. Activity generates $1,500 reserve for Cycle 2, which launches at $11,500 (+15% larger). Cycle 3 at $13,300. The ecosystem compounds strength without requiring exponential user growth—built for long-term sustainability.",
+    badge: "SUSTAINABLE ECONOMICS",
+    title: "Revenue Model That Benefits Everyone",
+    description: "From each $25 CoinTag: 50% to creators (sustainable income), 20% seeds next cycle (compounding growth), 15% platform operations, 10% current liquidity pool (your appreciation), 5% holder rewards (passive income). Transparent, sustainable, aligned.",
     image: "/alios.jpeg",
   },
   {
     id: 11,
-    badge: "WHY THIS MATTERS",
-    title: "The Future of Value-Backed Digital Assets",
-    description: "LFTs solve the core problem plaguing digital assets: no guaranteed value. Your tokens can't go to zero. Creators earn sustainable income. Holders get passive rewards. Community activity benefits everyone. It's not speculation—it's mathematical, guaranteed appreciation from ecosystem engagement.",
+    badge: "SELF-REINFORCING CYCLES",
+    title: "Each Cycle Launches Stronger Than the Last",
+    description: "Cycle 1 starts at $10,000 liquidity. Activity generates $1,500 reserve for Cycle 2, which launches at $11,500 (+15% larger). Cycle 3 at $13,300. The ecosystem compounds strength without requiring exponential user growth—built for long-term sustainability.",
     image: "/Mr_Booo - Collection _ OpenSea.jpeg",
   },
   {
     id: 12,
+    badge: "WHY THIS MATTERS",
+    title: "The Future of Value-Backed Digital Assets",
+    description: "LFTs solve the core problem plaguing digital assets: no guaranteed value. Your tokens can't go to zero. Creators earn sustainable income. Holders get passive rewards. Community activity benefits everyone. It's not speculation—it's mathematical, guaranteed appreciation from ecosystem engagement.",
+    image: "/doodles.jpeg",
+  },
+  {
+    id: 13,
     badge: "GET STARTED",
     title: "Join the LFT Revolution Today",
     description: "Transform digital ownership forever. Discover value-backed tokens through skill-based treasure hunts. Watch your assets appreciate in real-time. Earn passive rewards. Build sustainable communities. This is the future—where skill meets value, and everyone wins.",
-    image: "/doodles.jpeg",
+    image: "/cool-ape.jpeg",
   },
 ];
 
@@ -107,10 +114,8 @@ export default function Index() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Scroll reveal effect for desktop
+  // Scroll reveal effect for both desktop and mobile
   useEffect(() => {
-    if (isMobile) return;
-
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -187,7 +192,7 @@ export default function Index() {
         {/* Fixed Header */}
         <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
           <div className="flex justify-between items-center px-6 py-4">
-            <div className="text-base font-semibold">Yield</div>
+            <div className="text-2xl font-bold">Yield</div>
             <Button
               onClick={handleSkip}
               size="sm"
@@ -202,10 +207,11 @@ export default function Index() {
           {onboardingScreens.map((screen, index) => (
             <section 
               key={screen.id} 
-              className="min-h-screen flex flex-col justify-center px-6 py-12"
+              className="min-h-screen flex flex-col justify-center px-6 py-12 scroll-reveal"
+              data-index={index}
             >
               {/* Text content */}
-              <div className="space-y-4 mb-8">
+              <div className="space-y-4 mb-8 scroll-content">
                 <Badge className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 text-xs font-semibold uppercase tracking-wide">
                   {screen.badge}
                 </Badge>
@@ -220,7 +226,7 @@ export default function Index() {
               </div>
 
               {/* Image */}
-              <div className="w-full flex items-center justify-center">
+              <div className="w-full flex items-center justify-center scroll-image">
                 <div className="relative w-full h-[300px] sm:h-[350px] flex items-center justify-center">
                   {/* Gradient glow effect behind image */}
                   <div className="absolute inset-0 rounded-3xl blur-3xl opacity-40" 

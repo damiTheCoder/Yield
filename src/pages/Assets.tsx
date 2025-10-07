@@ -199,8 +199,8 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
   const currentAssets = isLiveMarket ? liveAssets : listedAssets;
   const displayListedAssets = !isLiveMarket && listedLimit ? currentAssets.slice(0, listedLimit) : currentAssets;
 
-  const listLabel = isLiveMarket ? "Live List" : "Listed List";
-  const gridLabel = isLiveMarket ? "Live Grid" : "Listed Grid";
+  const listLabel = "List";
+  const gridLabel = "Grid";
 
   const cardBorderClass = "";
   const cardMediaBorderClass = "";
@@ -429,10 +429,10 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
         <TableHeader>
           <TableRow>
             <TableHead className="sticky left-0 z-20 min-w-[200px] bg-background text-left">Collection</TableHead>
-            <TableHead className="min-w-[140px] text-center">Liquidity</TableHead>
-            <TableHead className="min-w-[140px] text-center">LPU</TableHead>
-            <TableHead className="min-w-[140px] text-center">CoinTag</TableHead>
-            <TableHead className="min-w-[160px] text-center">Backing Reserve</TableHead>
+            <TableHead className="min-w-[140px] text-right">Liquidity</TableHead>
+            <TableHead className="min-w-[140px] text-right">LPU</TableHead>
+            <TableHead className="min-w-[140px] text-right">CoinTag</TableHead>
+            <TableHead className="min-w-[160px] text-right">Backing Reserve</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -459,10 +459,10 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="min-w-[140px] text-center font-mono text-xs px-2">{formatCurrencyK(asset.cycle.reserve)}</TableCell>
-                <TableCell className="min-w-[140px] text-center font-mono text-xs px-2">{formatCurrency(asset.cycle.lpu)}</TableCell>
-                <TableCell className="min-w-[140px] text-center font-mono text-xs px-2">{formatCurrency(coinTagPrice)}</TableCell>
-                <TableCell className="min-w-[160px] text-center font-mono text-xs px-2">
+                <TableCell className="min-w-[140px] text-right font-mono text-sm px-2">{formatCurrencyK(asset.cycle.reserve)}</TableCell>
+                <TableCell className="min-w-[140px] text-right font-mono text-sm px-2">{formatCurrency(asset.cycle.lpu)}</TableCell>
+                <TableCell className="min-w-[140px] text-right font-mono text-sm px-2">{formatCurrency(coinTagPrice)}</TableCell>
+                <TableCell className="min-w-[160px] text-right font-mono text-sm px-2">
                   {formatCurrencyK(asset.params.initialReserve)}
                 </TableCell>
               </TableRow>
@@ -509,19 +509,17 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
               </div>
             </div>
             <div className="flex flex-1 flex-col gap-3 px-3 py-3 sm:px-5 sm:py-5">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex min-w-0 flex-col">
-                  <div className="flex items-center gap-2">
-                    <h2 className="truncate text-sm font-semibold text-foreground transition-colors group-hover:text-foreground/90 sm:text-base">
-                      {asset.name}
-                    </h2>
-                    <img src="/checklist.png" className="h-3.5 w-3.5 opacity-80 sm:h-4 sm:w-4" alt="verified" />
-                  </div>
-                  <span className={`text-xs font-semibold ${changeClass}`}>{changeText}</span>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <h2 className="truncate text-sm font-semibold text-foreground transition-colors group-hover:text-foreground/90 sm:text-base">
+                    {asset.name}
+                  </h2>
+                  <img src="/checklist.png" className="h-3.5 w-3.5 opacity-80 sm:h-4 sm:w-4" alt="verified" />
                 </div>
-                <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${badgeClass}`}>
-                  {formatChange(change)}
-                </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className={`text-sm font-semibold ${changeClass}`}>{changeText}</span>
+                  <span className="font-mono text-base font-semibold text-foreground">{formatCurrency(asset.cycle.lpu)}</span>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-2 text-[10px] sm:grid-cols-4 sm:gap-3 sm:text-xs">
                 <LiveMarketStat label="Liquidity" value={formatCurrencyK(asset.cycle.reserve)} />
@@ -613,8 +611,8 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
                   )}
 
                   {/* Asset control section - below trending with Assets title */}
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-3">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-3">
+                    <div className="flex items-center gap-3 sm:w-auto">
                       <h1 className="text-3xl font-bold">Assets</h1>
                       {/* Desktop: Show switch market button */}
                       <Button
@@ -622,11 +620,7 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
                         size="sm"
                         variant="ghost"
                         onClick={handleToggleMarket}
-                        className={`hidden sm:inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs uppercase tracking-wide ${
-                          isLiveMarket
-                            ? "border-emerald-500/50 !bg-emerald-950/80 !text-emerald-200 hover:!bg-emerald-900/70 hover:!text-emerald-100"
-                            : "border-sky-400/50 !bg-sky-950/80 !text-sky-200 hover:!bg-sky-900/70 hover:!text-sky-100"
-                        }`}
+                        className="hidden sm:inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs uppercase tracking-wide font-semibold bg-muted hover:bg-muted/80 transition-colors"
                       >
                         <ArrowLeftRight className="h-3.5 w-3.5" />
                         {isLiveMarket ? "Switch to listed market" : "Switch to live market"}
@@ -638,7 +632,7 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
                           size="sm"
                           variant="ghost"
                           onClick={() => navigate("/assets/all")}
-                          className="sm:hidden rounded-md px-3 py-1 text-xs font-semibold bg-muted hover:bg-muted/80"
+                          className="sm:hidden text-xs font-semibold text-primary hover:text-primary hover:bg-transparent ml-auto"
                         >
                           View all tokens
                         </Button>
@@ -766,11 +760,7 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
                   size="sm"
                   variant="ghost"
                   onClick={handleToggleMarket}
-                  className={
-                    isLiveMarket
-                      ? "inline-flex items-center gap-2 rounded-full border-emerald-500/50 !bg-emerald-950/80 px-3 py-1 text-xs uppercase tracking-wide !text-emerald-200"
-                      : "inline-flex items-center gap-2 rounded-full border-sky-400/50 !bg-sky-950/80 px-3 py-1 text-xs uppercase tracking-wide !text-sky-200"
-                  }
+                  className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs uppercase tracking-wide font-semibold bg-muted hover:bg-muted/80 transition-colors"
                 >
                   <ArrowLeftRight className="h-3.5 w-3.5" />
                   {isLiveMarket ? "Switch to listed market" : "Switch to live market"}
