@@ -600,8 +600,11 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
                   )}
 
                   {trendingTokens.length > 0 && (
-                    <section className="space-y-1 -mb-2">
-                      <h2 className="text-xl font-semibold text-foreground">Trending Tokens</h2>
+                    <section className="space-y-2 -mb-3">
+                      <div className="hidden md:flex items-center gap-2">
+                        <span className="text-2xl">🔥</span>
+                        <h2 className="text-xl font-semibold text-foreground">Trending Tokens</h2>
+                      </div>
                       <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 no-scrollbar">
                         {trendingTokens.map(({ asset, change }) => (
                           <TrendingTokenCard key={`trending-${asset.id}`} asset={asset} change={change} />
@@ -613,14 +616,14 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
                   {/* Asset control section - below trending with Assets title */}
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-3">
                     <div className="flex items-center gap-3 sm:w-auto">
-                      <h1 className="text-3xl font-bold">Assets</h1>
+                      <h1 className="text-2xl font-bold">Assets</h1>
                       {/* Desktop: Show switch market button */}
                       <Button
                         type="button"
                         size="sm"
                         variant="ghost"
                         onClick={handleToggleMarket}
-                        className="hidden sm:inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs uppercase tracking-wide font-semibold bg-muted hover:bg-muted/80 transition-colors"
+                        className="hidden sm:inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs uppercase tracking-wide font-semibold bg-slate-700 text-white hover:bg-slate-600 transition-colors"
                       >
                         <ArrowLeftRight className="h-3.5 w-3.5" />
                         {isLiveMarket ? "Switch to listed market" : "Switch to live market"}
@@ -745,22 +748,13 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
         <div className="fixed inset-x-0 bottom-0 z-40 sm:hidden">
           <div className="bg-background/95 backdrop-blur-sm px-4 py-3 shadow-lg">
             <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className={!gridView ? "text-foreground font-semibold" : undefined}>{listLabel}</span>
-                <Switch
-                  checked={gridView}
-                  onCheckedChange={handleGridToggle}
-                  aria-label="Toggle grid view"
-                />
-                <span className={gridView ? "text-foreground font-semibold" : undefined}>{gridLabel}</span>
-              </div>
               <div className="flex items-center gap-2">
                 <Button
                   type="button"
                   size="sm"
                   variant="ghost"
                   onClick={handleToggleMarket}
-                  className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs uppercase tracking-wide font-semibold bg-muted hover:bg-muted/80 transition-colors"
+                  className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs uppercase tracking-wide font-semibold bg-gray-800 text-white hover:bg-gray-700 transition-colors"
                 >
                   <ArrowLeftRight className="h-3.5 w-3.5" />
                   {isLiveMarket ? "Switch to listed market" : "Switch to live market"}
@@ -771,6 +765,15 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
                     <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
                   </span>
                 )}
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span className={!gridView ? "text-foreground font-semibold" : undefined}>{listLabel}</span>
+                <Switch
+                  checked={gridView}
+                  onCheckedChange={handleGridToggle}
+                  aria-label="Toggle grid view"
+                />
+                <span className={gridView ? "text-foreground font-semibold" : undefined}>{gridLabel}</span>
               </div>
             </div>
           </div>

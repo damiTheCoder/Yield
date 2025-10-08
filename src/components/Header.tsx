@@ -296,9 +296,8 @@ const Header = () => {
             <a
               href="/"
               className="text-xl font-bold text-foreground hover:text-foreground/80 transition-smooth"
-              style={{ fontFamily: '"Glacial Indifference", "Nasalization", sans-serif' }}
             >
-              YIELD
+              Openyield
             </a>
             <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
               {NAV_LINKS.map((link) => (

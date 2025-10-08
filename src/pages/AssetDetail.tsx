@@ -337,18 +337,35 @@ export default function AssetDetail() {
                   className={`absolute inset-0 transition-opacity duration-500 ${isImageMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
                 >
                   <ChartContainer config={chartConfig} className="flex h-full w-full items-center">
-                    <RechartsLineChart data={chartData} margin={{ left: 0, right: 0, top: 0, bottom: 16 }}>
+                    <RechartsLineChart data={chartData} margin={{ left: 0, right: 0, top: 20, bottom: 20 }}>
+                      <defs>
+                        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#facc15" stopOpacity={0.3}/>
+                          <stop offset="100%" stopColor="#facc15" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
                       <XAxis dataKey="label" hide />
                       <YAxis
                         orientation="right"
                         axisLine={false}
                         tickLine={false}
-                        width={50}
+                        width={60}
                         tickFormatter={formatChartPriceTick}
-                        tick={{ fill: "var(--muted-foreground)" }}
+                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                        domain={['auto', 'auto']}
+                        padding={{ top: 10, bottom: 10 }}
                       />
                       <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                      <Line type="linear" dataKey="value" stroke="#facc15" strokeWidth={3} dot={false} strokeLinejoin="round" />
+                      <Line 
+                        type="monotone" 
+                        dataKey="value" 
+                        stroke="#facc15" 
+                        strokeWidth={2.5} 
+                        dot={false} 
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        fill="url(#colorValue)"
+                      />
                     </RechartsLineChart>
                   </ChartContainer>
                 </div>
@@ -512,7 +529,7 @@ export default function AssetDetail() {
           <div className="fixed inset-0 z-50">
             <div className="absolute inset-0 bg-black/60" onClick={() => setMobileBuyOpen(false)} />
             <div className="absolute inset-x-0 bottom-0 transform transition-transform duration-300 translate-y-0">
-              <div className="rounded-t-3xl border border-border/40 border-b-0 bg-background/95 px-4 pb-6 pt-3 text-foreground shadow-2xl backdrop-blur">
+              <div className="rounded-t-3xl border border-border/40 border-b-0 bg-background px-4 pb-6 pt-3 text-foreground shadow-2xl backdrop-blur">
                 <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-border/60" />
                 <div className="max-h-[70vh] overflow-y-auto pb-2 no-scrollbar">
                   <BuyTagSectionContent className="rounded-none border-0 bg-transparent p-0 shadow-none" />
