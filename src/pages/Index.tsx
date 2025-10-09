@@ -98,11 +98,78 @@ const onboardingScreens = [
   },
 ];
 
+type HeaderNavProps = {
+  navItems: { label: string; href: string }[];
+  navOpen: boolean;
+  setNavOpen: (open: boolean) => void;
+  desktop?: boolean;
+};
+
+const HeaderNav = ({ navItems, navOpen, setNavOpen, desktop }: HeaderNavProps) => {
+  const padding = desktop ? "px-4 pt-5 pb-3 sm:px-8" : "px-4 pt-5 pb-3";
+
+  return (
+    <header className={padding}>
+      <div className="mx-auto flex max-w-6xl items-center justify-between">
+        <a
+          href="#hero"
+          className="flex items-center gap-3 text-left text-foreground transition-colors hover:text-foreground/80"
+          onClick={() => setNavOpen(false)}
+        >
+          <img
+            src="/Line icon for eos coin.jpeg"
+            alt="Openyield logo"
+            className="h-7 w-7 rounded-full object-cover"
+          />
+          <span className="text-xl font-semibold tracking-tight">Openyield</span>
+        </a>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setNavOpen(!navOpen)}
+            aria-label="Toggle navigation"
+            className="flex h-10 w-10 items-center justify-center"
+          >
+            <span className="flex flex-col items-center justify-center space-y-1.5">
+              <span
+                className={`block h-[2px] w-6 bg-foreground transition-transform ${navOpen ? "translate-y-[4px]" : ""}`}
+              />
+              <span
+                className={`block h-[2px] w-6 bg-foreground transition-transform ${navOpen ? "-translate-y-[4px]" : ""}`}
+              />
+            </span>
+          </button>
+          {navOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setNavOpen(false)} />
+              <nav className="absolute right-0 top-full z-50 mt-3 w-56 rounded-2xl border border-border/60 bg-card/95 p-4 text-left shadow-2xl backdrop-blur">
+                <div className="space-y-2 text-sm font-medium text-muted-foreground">
+                  {navItems.map((item) => (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setNavOpen(false)}
+                      className="block rounded-xl px-3 py-2 text-foreground/80 transition hover:bg-muted/40 hover:text-foreground"
+                    >
+                      {item.label}
+                    </a>
+                  ))}
+                </div>
+              </nav>
+            </>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+};
+
 export default function Index() {
   const [currentScreen, setCurrentScreen] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
+  const [navOpen, setNavOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -184,31 +251,61 @@ export default function Index() {
   };
 
   const currentData = onboardingScreens[currentScreen];
+  const navItems = [
+    { label: "Hero", href: "#hero" },
+    { label: "Overview", href: "#section-2" },
+    { label: "How It Works", href: "#section-6" },
+    { label: "Economics", href: "#section-10" },
+    { label: "Get Started", href: "#cta" },
+  ];
 
   // Mobile layout (scrollable landing page)
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-        {/* Fixed Header */}
-        <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
-          <div className="flex justify-between items-center px-6 py-4">
-            <div className="text-2xl font-bold">Yield</div>
-            <Button
-              onClick={handleSkip}
-              size="sm"
-            >
-              Start Hunting
-            </Button>
-          </div>
-        </div>
+      <div className="relative min-h-screen bg-background font-sans">
+        <div className="relative">
+          <HeaderNav navItems={navItems} navOpen={navOpen} setNavOpen={setNavOpen} />
 
-        {/* Scrollable sections */}
-        <div className="w-full">
-          {onboardingScreens.map((screen, index) => (
-            <section 
-              key={screen.id} 
-              className="min-h-screen flex flex-col justify-center px-6 py-12 scroll-reveal"
-              data-index={index}
+          {/* Hero Section */}
+          <section id="hero" className="px-6 pt-8 pb-10">
+            <div className="space-y-5 text-center">
+              <h1 className="text-2xl font-semibold text-foreground sm:text-4xl">
+                Hello <span className="text-purple-400">Tolu</span>
+              </h1>
+              <p className="mx-auto max-w-3xl text-base text-muted-foreground">
+                Tolu, thank you so much for giving me the opportunity to reach you. I just wanted to take a look at my project so you can see the honesty I'm trying to give and what I'm trying to do. Alright, thank you so much.
+              </p>
+            </div>
+            <div className="mt-6 w-full overflow-hidden rounded-2xl border border-border/60 bg-card shadow-2xl sm:mt-8 sm:rounded-3xl">
+              <img
+                src="/hero Image.png"
+                alt="Hero visual showcasing Liquidity Funded Tokens"
+                className="w-full object-cover"
+              />
+            </div>
+            <div className="mt-5 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+              <Button onClick={handleSkip} size="lg" className="w-full rounded-full sm:w-auto">
+                Explore the Market
+              </Button>
+              <Button
+                onClick={() => setCurrentScreen(0)}
+                size="lg"
+                variant="outline"
+                className="w-full rounded-full border-border/60 sm:w-auto"
+              >
+                Learn the Playbook
+              </Button>
+            </div>
+          </section>
+
+          {/* Scrollable sections */}
+          <div className="w-full">
+            {onboardingScreens.map((screen, index) => (
+              <section 
+                key={screen.id} 
+                id={`section-${screen.id}`}
+                className="min-h-screen flex flex-col justify-center px-6 py-12 scroll-reveal"
+                data-index={index}
             >
               {/* Text content */}
               <div className="space-y-4 mb-8 scroll-content">
@@ -246,10 +343,11 @@ export default function Index() {
               </div>
             </section>
           ))}
+          </div>
         </div>
-
+      
         {/* Footer CTA */}
-        <div className="py-12 px-6 bg-background/50">
+        <div id="cta" className="py-12 px-6 bg-background/50">
           <div className="max-w-2xl mx-auto text-center space-y-6">
             <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
               Ready to Start Your Journey?
@@ -302,14 +400,14 @@ export default function Index() {
             {/* Disclaimer */}
             <div className="border-t border-border pt-6 pb-4">
               <p className="text-xs text-muted-foreground text-center leading-relaxed">
-                <strong className="text-foreground">Disclaimer:</strong> Nothing on this site is investment advice. All information is for informational purposes only. All images displayed on this platform are used for illustrative purposes only and do not belong to us. All intellectual property rights remain with their respective owners. Nothing contained on our site constitutes a solicitation, recommendation, endorsement, or offer by Forge Art Hub or any third party service provider to buy or sell any assets, digital coins and tokens, securities or other financial instruments in this or in any other jurisdiction. Please view our{" "}
+                <strong className="text-foreground">Disclaimer:</strong> Nothing on this site is investment advice. All information is for informational purposes only. All images displayed on this platform are used for illustrative purposes only and do not belong to us. All intellectual property rights remain with their respective owners. Nothing contained on our site constitutes a solicitation, recommendation, endorsement, or offer by Paradigm or any third party service provider to buy or sell any assets, digital coins and tokens, securities or other financial instruments in this or in any other jurisdiction. Please view our{" "}
                 <button className="underline hover:text-foreground transition-colors">Terms of Use</button> for more information.
               </p>
             </div>
 
             {/* Copyright */}
             <div className="text-center text-xs text-muted-foreground pt-4">
-              © {new Date().getFullYear()} Forge Art Hub. All rights reserved.
+              © {new Date().getFullYear()} Paradigm. All rights reserved.
             </div>
           </div>
         </footer>
@@ -317,21 +415,44 @@ export default function Index() {
     );
   }
 
-  // Desktop layout (scrollable landing page with all sections)
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      {/* Fixed Header */}
-      <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
-        <div className="flex justify-between items-center px-12 py-4">
-          <div className="text-lg font-semibold">Liquidity Funded Tokens</div>
-          <Button
-            onClick={handleSkip}
-            size="lg"
-          >
-            Start Hunting
-          </Button>
+    <div className="relative min-h-screen bg-background font-sans">
+      <HeaderNav navItems={navItems} navOpen={navOpen} setNavOpen={setNavOpen} desktop />
+
+      {/* Hero introduction */}
+      <section id="hero" className="px-6 pb-16 sm:px-12">
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-10 text-center">
+          <div className="space-y-4">
+              <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+                Hello <span className="text-purple-400">Tolu</span>
+              </h1>
+            <p className="mx-auto max-w-3xl text-base text-muted-foreground sm:text-lg">
+              Tolu, thank you so much for giving me the opportunity to reach you. I just wanted to take a look at my project so you can see the honesty I'm trying to give and what I'm trying to do. Alright, thank you so much.
+            </p>
+          </div>
+
+          <div className="w-full max-w-5xl overflow-hidden rounded-[1.75rem] border border-border/60 bg-card shadow-2xl sm:max-w-6xl sm:rounded-[2.5rem] lg:max-w-7xl">
+            <img
+              src="/hero Image.png"
+              alt="Hero visual showcasing Liquidity Funded Tokens"
+              className="w-full h-auto object-cover"
+            />
+          </div>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Button size="lg" onClick={handleSkip} className="rounded-full px-8">
+              Explore the Market
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="rounded-full border-border/60 px-8"
+              onClick={() => setCurrentScreen(0)}
+            >
+              Learn the Playbook
+            </Button>
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* Scrollable sections */}
       <div className="w-full">
@@ -340,7 +461,8 @@ export default function Index() {
           return (
             <section 
               key={screen.id} 
-              className="min-h-screen flex items-center justify-center px-12 py-20 scroll-reveal"
+              id={`section-${screen.id}`}
+              className="min-h-screen flex items-center justify-center px-6 py-20 scroll-reveal sm:px-12"
               data-index={index}
             >
               <div className={`w-full max-w-7xl mx-auto grid grid-cols-2 gap-16 items-center`}>
@@ -441,7 +563,7 @@ export default function Index() {
       `}</style>
 
       {/* Footer CTA */}
-      <div className="py-20 px-12 bg-background/50">
+      <div id="cta" className="py-20 px-12 bg-background/50">
         <div className="max-w-4xl mx-auto text-center space-y-8">
           <h2 className="text-4xl font-bold text-foreground">
             Ready to Start Your Journey?

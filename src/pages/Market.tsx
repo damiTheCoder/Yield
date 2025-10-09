@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import Header from "@/components/Header";
 import { useApp } from "@/lib/app-state";
 import type { Asset } from "@/lib/app-state";
 import { formatCurrency, formatCurrencyK } from "@/lib/utils";
@@ -18,7 +17,6 @@ export default function Market() {
 
   return (
     <div className="min-h-screen">
-      <Header />
       <main className="container mx-auto px-4 py-8 space-y-10">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>

@@ -1,17 +1,27 @@
-import Header from "@/components/Header";
 import { useApp } from "@/lib/app-state";
 import type { Asset } from "@/lib/app-state";
 import { useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatCurrency, formatCurrencyK } from "@/lib/utils";
+import { cn, formatCurrency, formatCurrencyK } from "@/lib/utils";
 import { useEffect, useMemo, useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { ArrowLeftRight, ChevronDown } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/input";
+import Web3News from "@/components/Web3News";
 
 const MAX_TRENDING = 10;
+
+type Network = "all" | "bitcoin" | "ethereum" | "solana" | "eos";
+
+const NETWORKS = [
+  { id: "all" as const, name: "All networks", icon: "⚡", image: "/_ (22).jpeg" },
+  { id: "bitcoin" as const, name: "Bitcoin", icon: "₿", image: "/Bitcoin HD wallpaper _ ✨𝘽𝙞𝙩𝘽𝙮𝙯.jpeg" },
+  { id: "ethereum" as const, name: "Ethereum", icon: "Ξ", image: "/Ethereum ETH Round Logo Icon PNG.jpeg" },
+  { id: "solana" as const, name: "Solana", icon: "◎", image: "/_Solana Logo_ Poster for Sale by StepupDesign.jpeg" },
+  { id: "eos" as const, name: "EOS", icon: "E", image: "/EOS Logo (EOS).jpeg" },
+];
 
 type AssetsPageProps = {
   showTrending?: boolean;
@@ -166,29 +176,45 @@ function useAverageColor(src: string, id: string): RGBColor {
   return color;
 }
 
-function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit, showSearchBar = false }: AssetsPageProps) {
+export function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit, showSearchBar = false }: AssetsPageProps) {
   const { assets } = useApp();
   const { theme } = useTheme();
   const isDarkTheme = theme === "dark";
   const navigate = useNavigate();
   const [marketMode, setMarketMode] = useState<"listed" | "live">("listed");
-  const [gridViewListed, setGridViewListed] = useState(false);
-  const [gridViewLive, setGridViewLive] = useState(false);
+  const [selectedNetwork, setSelectedNetwork] = useState<Network>("all");
+  const [showNetworkDropdown, setShowNetworkDropdown] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [gridView, setGridView] = useState(false);
 
   const isLiveMarket = marketMode === "live";
-  const gridView = isLiveMarket ? gridViewLive : gridViewListed;
   const normalizedSearch = searchTerm.trim().toLowerCase();
 
   const filteredAssets = useMemo(() => {
-    if (!normalizedSearch) return assets;
-    return assets.filter((asset) => {
-      const name = asset.name.toLowerCase();
-      const ticker = asset.ticker?.toLowerCase() ?? "";
-      const id = asset.id.toLowerCase();
-      return name.includes(normalizedSearch) || ticker.includes(normalizedSearch) || id.includes(normalizedSearch);
-    });
-  }, [assets, normalizedSearch]);
+    let filtered = assets;
+    
+    // Filter by network (assign chains based on asset ID hash for demo)
+    if (selectedNetwork !== "all") {
+      filtered = filtered.filter((asset) => {
+        const hash = asset.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const networks: Network[] = ["bitcoin", "ethereum", "solana", "eos"];
+        const assignedNetwork = networks[hash % networks.length];
+        return assignedNetwork === selectedNetwork;
+      });
+    }
+    
+    // Filter by search term
+    if (normalizedSearch) {
+      filtered = filtered.filter((asset) => {
+        const name = asset.name.toLowerCase();
+        const ticker = asset.ticker?.toLowerCase() ?? "";
+        const id = asset.id.toLowerCase();
+        return name.includes(normalizedSearch) || ticker.includes(normalizedSearch) || id.includes(normalizedSearch);
+      });
+    }
+    
+    return filtered;
+  }, [assets, normalizedSearch, selectedNetwork]);
 
   const liveAssets = useMemo(
     () => [...filteredAssets].sort((a, b) => b.cycle.totalSales - a.cycle.totalSales),
@@ -198,31 +224,17 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
   const listedAssets = filteredAssets;
   const currentAssets = isLiveMarket ? liveAssets : listedAssets;
   const displayListedAssets = !isLiveMarket && listedLimit ? currentAssets.slice(0, listedLimit) : currentAssets;
-
-  const listLabel = "List";
-  const gridLabel = "Grid";
+  const totalVisibleAssets = currentAssets.length;
 
   const cardBorderClass = "";
   const cardMediaBorderClass = "";
   const liveCardBorderClass = "";
   const liveCardMediaBorderClass = "";
 
-  const handleGridToggle = (checked: boolean) => {
-    if (isLiveMarket) {
-      setGridViewLive(Boolean(checked));
-    } else {
-      setGridViewListed(Boolean(checked));
-    }
-  };
+  const selectedNetworkInfo = NETWORKS.find(n => n.id === selectedNetwork) || NETWORKS[0];
 
   const handleToggleMarket = () => {
-    setMarketMode((prev) => {
-      const next = prev === "listed" ? "live" : "listed";
-      if (next === "live") {
-        setGridViewLive(false);
-      }
-      return next;
-    });
+    setMarketMode((prev) => (prev === "listed" ? "live" : "listed"));
   };
 
   const getAssetChange = (asset: Asset) => {
@@ -353,8 +365,8 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
   );
 
   const renderListedGrid = (items: Asset[]) => (
-    <div className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-4">
-      {items.map((a, index) => {
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6">
+      {items.map((a) => {
         const change = getAssetChange(a);
         const changeText = formatChange(change);
         const changeClass = changeColorClass(change);
@@ -481,7 +493,7 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
   );
 
   const renderLiveGrid = (items: Asset[]) => (
-    <section className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-4">
+    <section className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6">
       {items.map((asset) => {
         const coinTagPrice = Math.max(4.2, asset.cycle.lpu * 0.4);
         const change = getAssetChange(asset);
@@ -581,29 +593,131 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
 
   return (
     <div className="min-h-screen">
-      <Header />
       <main className="container mx-auto px-4 pt-4 pb-6">
         <div className="flex flex-col gap-5">
           <div className="space-y-6">
             <div className="space-y-5 px-0">
+              {showTrending && (
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h1 className="text-3xl font-bold">Live Market</h1>
+                    <p className="text-sm text-muted-foreground">
+                      Watch every live LFT drop, inspect on-chain liquidity, and jump into a treasure hunt to find tokens in real time.
+                    </p>
+                  </div>
+                  <div className="flex w-full items-center gap-3 text-xs text-muted-foreground sm:w-auto sm:justify-end">
+                    <div className="hidden items-center gap-1 sm:flex">
+                      <span className={!gridView ? "text-foreground font-semibold" : undefined}>List</span>
+                      <Switch checked={gridView} onCheckedChange={(checked) => setGridView(Boolean(checked))} aria-label="Toggle grid view" />
+                      <span className={gridView ? "text-foreground font-semibold" : undefined}>Grid</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Mobile search removed per updated layout */}
+
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-3">
+                  <div className="flex w-full items-center gap-3 sm:w-auto">
+                    <span className="text-xl font-semibold text-foreground sm:hidden dark:text-white">Asset</span>
+                    {/* Desktop: Show switch market button */}
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleToggleMarket}
+                      className="hidden sm:inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs uppercase tracking-wide font-semibold bg-slate-700 text-white hover:bg-slate-600 transition-colors"
+                    >
+                      <ArrowLeftRight className="h-3.5 w-3.5" />
+                      {isLiveMarket ? "Switch to listed market" : "Switch to live market"}
+                    </Button>
+                    {/* Mobile: Show view all button */}
+                    {showViewAllButton && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => navigate("/assets/all")}
+                        className="sm:hidden text-xs font-semibold text-primary hover:text-primary hover:bg-transparent ml-auto"
+                      >
+                        View all tokens
+                      </Button>
+                    )}
+                    {isLiveMarket && (
+                      <span className="relative hidden sm:flex h-4 w-4 items-center justify-center" aria-hidden="true">
+                        <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400/40 blur-sm animate-ping" />
+                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                      </span>
+                    )}
+                  </div>
+                  {/* Desktop network selector */}
+                  <div className="hidden sm:flex items-center gap-2">
+                    <div className="relative">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setShowNetworkDropdown(!showNetworkDropdown)}
+                        className="inline-flex items-center gap-2 rounded-full border border-border/60 px-4 py-2 text-sm font-semibold bg-muted/70 text-foreground transition-colors hover:bg-muted dark:border-transparent dark:bg-neutral-950/80 dark:hover:bg-neutral-900"
+                      >
+                        {selectedNetworkInfo.image ? (
+                          <img src={selectedNetworkInfo.image} alt={selectedNetworkInfo.name} className="h-5 w-5 rounded-full object-cover" />
+                        ) : (
+                          <span>{selectedNetworkInfo.icon}</span>
+                        )}
+                        <span>{selectedNetworkInfo.name}</span>
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                      
+                      {showNetworkDropdown && (
+                        <>
+                          <div 
+                            className="fixed inset-0 z-40" 
+                            onClick={() => setShowNetworkDropdown(false)}
+                          />
+                          <div className="absolute top-full right-0 mt-2 w-56 rounded-2xl border border-border/60 bg-card shadow-xl z-50 overflow-hidden dark:border-transparent dark:bg-neutral-950/95">
+                            {NETWORKS.map((network) => (
+                              <button
+                                key={network.id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedNetwork(network.id);
+                                  setShowNetworkDropdown(false);
+                                }}
+                                className={cn(
+                                  "w-full flex items-center gap-3 px-4 py-3 text-left transition-colors",
+                                  selectedNetwork === network.id
+                                    ? "bg-muted/70 text-foreground font-semibold dark:bg-neutral-900"
+                                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground dark:hover:bg-neutral-900/80",
+                                )}
+                              >
+                                {network.image ? (
+                                  <img src={network.image} alt={network.name} className="h-6 w-6 rounded-full object-cover" />
+                                ) : (
+                                  <span className="text-xl">{network.icon}</span>
+                                )}
+                                <span>{network.name}</span>
+                                {selectedNetwork === network.id && (
+                                  <span className="ml-auto text-primary">✓</span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  </div>
+
               {showTrending ? (
                 <>
-                  {showSearchBar && (
-                    <div className="px-0">
-                      <Input
-                        value={searchTerm}
-                        onChange={(event) => setSearchTerm(event.target.value)}
-                        placeholder="Search tokens, tickers, or IDs"
-                        className="h-11 w-full rounded-2xl border border-border/40 bg-background/80 px-4 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0"
-                      />
-                    </div>
-                  )}
-
                   {trendingTokens.length > 0 && (
                     <section className="space-y-2 -mb-3">
-                      <div className="hidden md:flex items-center gap-2">
-                        <span className="text-2xl">🔥</span>
+                      <div className="hidden md:flex items-center justify-between gap-2">
                         <h2 className="text-xl font-semibold text-foreground">Trending Tokens</h2>
+                        <a href="/assets/all" className="text-sm font-medium text-gray-400 hover:text-gray-300 transition-colors">
+                          View All
+                        </a>
                       </div>
                       <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 no-scrollbar">
                         {trendingTokens.map(({ asset, change }) => (
@@ -612,101 +726,32 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
                       </div>
                     </section>
                   )}
-
-                  {/* Asset control section - below trending with Assets title */}
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-3">
-                    <div className="flex items-center gap-3 sm:w-auto">
-                      <h1 className="text-2xl font-bold">Assets</h1>
-                      {/* Desktop: Show switch market button */}
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={handleToggleMarket}
-                        className="hidden sm:inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs uppercase tracking-wide font-semibold bg-slate-700 text-white hover:bg-slate-600 transition-colors"
-                      >
-                        <ArrowLeftRight className="h-3.5 w-3.5" />
-                        {isLiveMarket ? "Switch to listed market" : "Switch to live market"}
-                      </Button>
-                      {/* Mobile: Show view all button */}
-                      {showViewAllButton && (
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => navigate("/assets/all")}
-                          className="sm:hidden text-xs font-semibold text-primary hover:text-primary hover:bg-transparent ml-auto"
-                        >
-                          View all tokens
-                        </Button>
-                      )}
-                      {isLiveMarket && (
-                        <span className="relative hidden sm:flex h-4 w-4 items-center justify-center" aria-hidden="true">
-                          <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400/40 blur-sm animate-ping" />
-                          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
-                        </span>
-                      )}
-                    </div>
-                    {/* Desktop view controls */}
-                    <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className={!gridView ? "text-foreground font-semibold" : undefined}>{listLabel}</span>
-                      <Switch
-                        checked={gridView}
-                        onCheckedChange={handleGridToggle}
-                        aria-label="Toggle grid view"
-                      />
-                      <span className={gridView ? "text-foreground font-semibold" : undefined}>{gridLabel}</span>
-                      {showViewAllButton && (
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => navigate("/assets/all")}
-                          className="rounded-md px-3 py-1 text-xs font-semibold bg-muted hover:bg-muted/80"
-                        >
-                          View all tokens
-                        </Button>
-                      )}
-                    </div>
-                  </div>
                 </>
               ) : (
                 <>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-3">
-                      <h1 className="text-3xl font-bold">Assets</h1>
-                      {showViewAllButton && (
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => navigate("/assets/all")}
-                          className="rounded-md px-3 py-1 text-xs font-semibold bg-muted hover:bg-muted/80"
-                        >
-                          View all tokens
-                        </Button>
-                      )}
-                    </div>
-                    {/* Desktop view controls */}
-                    <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className={!gridView ? "text-foreground font-semibold" : undefined}>{listLabel}</span>
-                      <Switch
-                        checked={gridView}
-                        onCheckedChange={handleGridToggle}
-                        aria-label="Toggle grid view"
-                      />
-                      <span className={gridView ? "text-foreground font-semibold" : undefined}>{gridLabel}</span>
-                      {showViewAllButton && (
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => navigate("/assets/all")}
-                          className="rounded-md px-3 py-1 text-xs font-semibold bg-muted hover:bg-muted/80"
-                        >
-                          View all tokens
-                        </Button>
-                      )}
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+                      <div className="flex items-center gap-3">
+                        <h1 className="text-3xl font-bold">Assets</h1>
+                        {showViewAllButton && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => navigate("/assets/all")}
+                            className="rounded-md px-3 py-1 text-xs font-semibold bg-muted hover:bg-muted/80"
+                          >
+                            View all tokens
+                          </Button>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <div className="hidden items-center gap-1 sm:flex">
+                          <span className={!gridView ? "text-foreground font-semibold" : undefined}>List</span>
+                          <Switch checked={gridView} onCheckedChange={(checked) => setGridView(Boolean(checked))} aria-label="Toggle grid view" />
+                          <span className={gridView ? "text-foreground font-semibold" : undefined}>Grid</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -716,26 +761,36 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
                         value={searchTerm}
                         onChange={(event) => setSearchTerm(event.target.value)}
                         placeholder="Search tokens, tickers, or IDs"
-                        className="h-11 w-full rounded-2xl border border-border/40 bg-background/80 px-4 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0"
+                        className="hidden sm:block h-11 w-full rounded-2xl border border-border/40 bg-background/80 px-4 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0"
                       />
                     </div>
                   )}
                 </>
               )}
 
-              {!gridView &&
-                (displayListedAssets.length > 0
-                  ? isLiveMarket
-                    ? renderLiveList(displayListedAssets)
-                    : renderListedList(displayListedAssets)
-                  : renderEmptyState())}
+              {!showTrending && showSearchBar && (
+                <div className="sm:hidden">
+                  <Input
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    placeholder="Search tokens, tickers, or IDs"
+                    className="mt-3 h-11 w-full rounded-3xl border border-border/40 bg-muted/40 px-4 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0"
+                  />
+                </div>
+              )}
 
-              {gridView &&
-                (displayListedAssets.length > 0
-                  ? isLiveMarket
+              {/* Always render list view */}
+              {displayListedAssets.length > 0
+                ? isLiveMarket
+                  ? gridView
                     ? renderLiveGrid(displayListedAssets)
-                    : renderListedGrid(displayListedAssets)
-                  : renderEmptyState())}
+                    : renderLiveList(displayListedAssets)
+                  : gridView
+                    ? renderListedGrid(displayListedAssets)
+                    : renderListedList(displayListedAssets)
+                : renderEmptyState()}
+
+              {showTrending && <Web3News variant="mobile" className="mt-6 sm:hidden" />}
               
               {/* Spacer for mobile fixed bottom controls */}
               <div className="h-20 sm:hidden" />
@@ -766,14 +821,59 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className={!gridView ? "text-foreground font-semibold" : undefined}>{listLabel}</span>
-                <Switch
-                  checked={gridView}
-                  onCheckedChange={handleGridToggle}
-                  aria-label="Toggle grid view"
-                />
-                <span className={gridView ? "text-foreground font-semibold" : undefined}>{gridLabel}</span>
+              {/* Network selector */}
+              <div className="relative">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setShowNetworkDropdown(!showNetworkDropdown)}
+                  className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold bg-neutral-800 text-white hover:bg-neutral-700 transition-colors"
+                >
+                  {selectedNetworkInfo.image ? (
+                    <img src={selectedNetworkInfo.image} alt={selectedNetworkInfo.name} className="h-4 w-4 rounded-full object-cover" />
+                  ) : (
+                    <span>{selectedNetworkInfo.icon}</span>
+                  )}
+                  <span>{selectedNetworkInfo.name}</span>
+                  <ChevronDown className="h-3.5 w-3.5" />
+                </Button>
+                
+                {showNetworkDropdown && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-40" 
+                      onClick={() => setShowNetworkDropdown(false)}
+                    />
+                    <div className="absolute bottom-full right-0 mb-2 w-48 rounded-2xl bg-neutral-900 border border-neutral-800 shadow-xl z-50 overflow-hidden">
+                      {NETWORKS.map((network) => (
+                        <button
+                          key={network.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedNetwork(network.id);
+                            setShowNetworkDropdown(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm transition-colors ${
+                            selectedNetwork === network.id
+                              ? "bg-neutral-800 text-white font-semibold"
+                              : "text-gray-300 hover:bg-neutral-800/50"
+                          }`}
+                        >
+                          {network.image ? (
+                            <img src={network.image} alt={network.name} className="h-5 w-5 rounded-full object-cover" />
+                          ) : (
+                            <span className="text-lg">{network.icon}</span>
+                          )}
+                          <span>{network.name}</span>
+                          {selectedNetwork === network.id && (
+                            <span className="ml-auto text-primary">✓</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -785,8 +885,4 @@ function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit
 
 export default function Assets() {
   return <AssetsPage showTrending showViewAllButton listedLimit={10} />;
-}
-
-export function ViewAllAssets() {
-  return <AssetsPage showTrending={false} showViewAllButton={false} showSearchBar />;
 }

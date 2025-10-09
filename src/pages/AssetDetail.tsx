@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +22,6 @@ export default function AssetDetail() {
   if (!asset) {
     return (
       <div className="min-h-screen">
-        <Header />
         <main className="container mx-auto px-4 py-8 space-y-6">
           <p className="text-muted-foreground">Asset not found.</p>
           <Button variant="secondary" onClick={() => navigate("/assets")}>Back to Assets</Button>
@@ -289,7 +287,6 @@ export default function AssetDetail() {
 
   return (
     <div className="min-h-screen">
-      <Header />
       <main className="container mx-auto px-4 pt-4 pb-24 sm:pb-8">
         <div className="space-y-10 lg:grid lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)] lg:gap-10 lg:space-y-0">
           <div className="space-y-8 md:space-y-10">
@@ -407,6 +404,10 @@ export default function AssetDetail() {
               </div>
             </section>
 
+            <section className="hidden sm:block">
+              <BuyTagSectionContent />
+            </section>
+
             <section className="sm:hidden space-y-4 pb-4">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -505,10 +506,6 @@ export default function AssetDetail() {
             </section>
 
             <TransactionHistorySection className="hidden lg:block" />
-
-            <section className="hidden sm:block">
-              <BuyTagSectionContent />
-            </section>
           </div>
         </div>
       </main>

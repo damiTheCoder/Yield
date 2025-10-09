@@ -1,4 +1,3 @@
-import Header from "@/components/Header";
 import { useApp } from "@/lib/app-state";
 import { formatCurrency, formatCurrencyK } from "@/lib/utils";
 import { useMemo } from "react";
@@ -20,7 +19,6 @@ export default function Notifications() {
 
   return (
     <div className="min-h-screen">
-      <Header />
       <main className="container mx-auto px-4 py-8 space-y-6">
         <div className="flex items-center gap-3">
           <div className="rounded-full border border-border/40 bg-surface/40 p-2 text-foreground">

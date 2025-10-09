@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Menu, Gift, Sun, Moon, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem, CommandSeparator } from "@/components/ui/command";
 import { useApp } from "@/lib/app-state";
@@ -40,7 +40,7 @@ const NAV_LINKS = [
 const Header = () => {
   const { assets } = useApp();
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme, toggleTheme } = useTheme();
   const isDarkTheme = theme === "dark";
   const { toast } = useToast();
   const [searchOpen, setSearchOpen] = useState(false);
@@ -48,6 +48,7 @@ const Header = () => {
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
   const [connectingWallet, setConnectingWallet] = useState<string | null>(null);
   const [connectedWallet, setConnectedWallet] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const staticPages = useMemo<SearchResult[]>(
     () => [
@@ -290,34 +291,24 @@ const Header = () => {
         </CommandList>
       </CommandDialog>
 
-      <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto flex items-center justify-between gap-3 px-4 py-2">
+      <header className="sticky top-0 z-50 w-full">
+        <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="flex w-full items-center justify-between gap-3 px-4 py-2 md:pl-[19rem] md:pr-6">
           <div className="flex items-center gap-6">
             <a
               href="/"
-              className="text-xl font-bold text-foreground hover:text-foreground/80 transition-smooth"
+              className="text-xl font-bold text-foreground hover:text-foreground/80 transition-smooth md:hidden"
             >
               Openyield
             </a>
-            <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-              {NAV_LINKS.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  className="text-foreground hover:text-foreground/80 transition-smooth"
-                >
-                  {link.label}
-                </a>
-              ))}
-            </nav>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 md:flex-1 md:gap-3">
             <Button
               type="button"
               variant="outline"
               onClick={() => setSearchOpen(true)}
-              className="hidden md:inline-flex items-center gap-2 rounded-full border-border/60 bg-surface/60 px-3 py-1 text-sm font-medium text-foreground"
+              className="hidden md:inline-flex items-center gap-2 rounded-full border-border/60 bg-surface/60 px-3 py-1 text-sm font-medium text-foreground md:mr-auto"
             >
               <Search className="h-4 w-4" />
               <span>Search</span>
@@ -336,18 +327,44 @@ const Header = () => {
               <Search className="h-4 w-4" />
             </Button>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              aria-label="Toggle theme"
-            >
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
+            <div className="flex items-center gap-0 rounded-full bg-neutral-800 dark:bg-neutral-800 p-0.5">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme("system")}
+                aria-label="System theme"
+                className={`h-7 w-7 rounded-full hover:bg-transparent p-0 transition-all ${theme === "system" ? "!bg-white text-black" : "bg-transparent text-gray-400"}`}
+              >
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <rect x="3" y="3" width="18" height="14" rx="2" strokeWidth="2" />
+                  <line x1="3" y1="20" x2="21" y2="20" strokeWidth="2" />
+                  <line x1="8" y1="17" x2="8" y2="20" strokeWidth="2" />
+                  <line x1="16" y1="17" x2="16" y2="20" strokeWidth="2" />
+                </svg>
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme("dark")}
+                aria-label="Dark theme"
+                className={`h-7 w-7 rounded-full hover:bg-transparent p-0 transition-all ${theme === "dark" ? "!bg-white text-black" : "bg-transparent text-gray-400"}`}
+              >
+                <Moon className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme("light")}
+                aria-label="Light theme"
+                className={`h-7 w-7 rounded-full hover:bg-transparent p-0 transition-all ${theme === "light" ? "!bg-white text-black" : "bg-transparent text-gray-400"}`}
+              >
+                <Sun className="h-3.5 w-3.5" />
+              </Button>
+            </div>
 
             <Dialog open={walletDialogOpen} onOpenChange={setWalletDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="default" size="sm" className="hidden md:inline-flex min-w-[120px] justify-center">
+                <Button variant="default" size="sm" className="hidden md:inline-flex min-w-[120px] justify-center h-8 rounded-full">
                   {connectedWallet ? (
                     <span className="flex items-center gap-1">
                       <Check className="h-4 w-4 text-emerald-300" />
@@ -359,7 +376,7 @@ const Header = () => {
                 </Button>
               </DialogTrigger>
               <DialogTrigger asChild>
-                <Button variant="default" size="sm" className="md:hidden rounded-lg px-4 py-1 text-sm font-semibold">
+                <Button variant="default" size="sm" className="md:hidden rounded-full h-8 px-4 text-sm font-semibold">
                   {connectedWallet ? "Wallet" : "Connect"}
                 </Button>
               </DialogTrigger>
@@ -429,30 +446,40 @@ const Header = () => {
               </DialogContent>
             </Dialog>
 
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden bg-muted/60 hover:bg-muted text-foreground">
+            <div className="relative md:hidden">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="bg-neutral-800 hover:bg-neutral-700 text-white h-8 w-8 rounded-full"
+              >
                 <Menu className="h-4 w-4" />
               </Button>
-            </SheetTrigger>
-            <SheetContent side="top" className="w-full bg-background/95 backdrop-blur border-b border-border/50">
-              <SheetHeader className="mb-8 text-left">
-                <SheetTitle className="text-2xl font-semibold text-foreground">Menu</SheetTitle>
-              </SheetHeader>
-              <nav className="flex flex-col space-y-6 text-3xl font-semibold">
-                {NAV_LINKS.map((link) => (
-                  <SheetClose asChild key={link.href}>
-                    <a href={link.href} className="transition-smooth hover:text-foreground/80">
-                      {link.label}
-                    </a>
-                  </SheetClose>
-                ))}
-              </nav>
-            </SheetContent>
-          </Sheet>
+              
+              {mobileMenuOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setMobileMenuOpen(false)} />
+                  <div className="absolute top-full right-0 mt-2 w-56 rounded-2xl bg-neutral-900 border border-neutral-800 shadow-xl z-50 overflow-hidden">
+                    <nav className="flex flex-col">
+                      {NAV_LINKS.map((link) => (
+                        <a
+                          key={link.href}
+                          href={link.href}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm transition-colors text-gray-300 hover:bg-neutral-800/50"
+                        >
+                          {link.label}
+                        </a>
+                      ))}
+                    </nav>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
     </>
   );
 };

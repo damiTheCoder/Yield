@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import Header from "@/components/Header";
 import { useApp } from "@/lib/app-state";
 import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -85,7 +84,6 @@ export default function HuntPage() {
   if (!asset) {
     return (
       <div className="min-h-screen">
-        <Header />
         <main className="container mx-auto px-4 py-20 text-center space-y-4">
           <h1 className="text-2xl font-semibold">Asset not found</h1>
           <p className="text-muted-foreground">Redirecting you back to the market…</p>
@@ -265,7 +263,6 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, lpu, pricePer
   return (
     <div className="min-h-screen bg-background">
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
-        <Header />
         <div className="container mx-auto px-2 sm:px-4 pt-3 pb-4 sm:pt-4 sm:pb-6 space-y-3 sm:space-y-4 font-mono">
           {/* Header Section - Mobile-first layout */}
           <div className="flex items-start gap-3 sm:gap-4">
