@@ -16,8 +16,8 @@ const MAX_TRENDING = 10;
 type Network = "all" | "bitcoin" | "ethereum" | "solana" | "eos";
 
 const NETWORKS = [
-  { id: "all" as const, name: "All networks", icon: "⚡", image: "/_ (22).jpeg" },
-  { id: "bitcoin" as const, name: "Bitcoin", icon: "₿", image: "/Bitcoin HD wallpaper _ ✨𝘽𝙞𝙩𝘽𝙮𝙯.jpeg" },
+  { id: "all" as const, name: "All networks", icon: "⚡", image: "/_ (22).png" },
+  { id: "bitcoin" as const, name: "Bitcoin", icon: "₿", image: "/Bitcoin.jpeg" },
   { id: "ethereum" as const, name: "Ethereum", icon: "Ξ", image: "/Ethereum ETH Round Logo Icon PNG.jpeg" },
   { id: "solana" as const, name: "Solana", icon: "◎", image: "/_Solana Logo_ Poster for Sale by StepupDesign.jpeg" },
   { id: "eos" as const, name: "EOS", icon: "E", image: "/EOS Logo (EOS).jpeg" },
@@ -279,14 +279,14 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   const renderListedList = (items: Asset[]) => (
     <>
       <div className="hidden overflow-x-auto md:block">
-        <Table className="min-w-full text-sm border-separate border-spacing-y-0 [&_th:first-child]:pl-0 [&_td:first-child]:pl-0">
+        <Table className="min-w-full text-sm border-separate border-spacing-y-0 [&_td:first-child]:pl-0">
           <TableHeader className="[&_th]:border-b-transparent" style={{ borderBottom: "none" }}>
             <TableRow className="border-b-transparent" style={{ borderBottom: "none" }}>
               <TableHead className="text-left">Collection</TableHead>
-              <TableHead className="text-center">Backing</TableHead>
-              <TableHead className="text-center">Current</TableHead>
-              <TableHead className="text-center">LPU</TableHead>
-              <TableHead className="text-center">CoinTag</TableHead>
+              <TableHead className="text-right">Backing</TableHead>
+              <TableHead className="text-right">Current</TableHead>
+              <TableHead className="text-right">LPU</TableHead>
+              <TableHead className="text-right">CoinTag</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="divide-y divide-border/40 [&>tr:first-child]:border-t-0 [&>tr]:border-b-0">
@@ -312,10 +312,10 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-center font-mono text-xs">{formatCurrencyK(a.params.initialReserve)}</TableCell>
-                  <TableCell className="text-center font-mono text-xs">{formatCurrencyK(a.cycle.reserve)}</TableCell>
-                  <TableCell className="text-center font-mono text-xs">${a.cycle.lpu.toFixed(6)}</TableCell>
-                  <TableCell className="text-center font-mono text-xs">${Math.max(4.2, a.cycle.lpu * 0.4).toFixed(2)}</TableCell>
+                  <TableCell className="text-right font-mono text-xs">{formatCurrencyK(a.params.initialReserve)}</TableCell>
+                  <TableCell className="text-right font-mono text-xs">{formatCurrencyK(a.cycle.reserve)}</TableCell>
+                  <TableCell className="text-right font-mono text-xs">${a.cycle.lpu.toFixed(6)}</TableCell>
+                  <TableCell className="text-right font-mono text-xs">${Math.max(4.2, a.cycle.lpu * 0.4).toFixed(2)}</TableCell>
                 </TableRow>
               );
             })}
@@ -594,9 +594,9 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   return (
     <div className="min-h-screen">
       <main className="container mx-auto px-4 pt-4 pb-6">
-        <div className="flex flex-col gap-5">
-          <div className="space-y-6">
-            <div className="space-y-5 px-0">
+        <div className="flex flex-col gap-3">
+          <div className="space-y-3">
+            <div className="space-y-3 px-0">
               {showTrending && (
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
@@ -626,7 +626,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       size="sm"
                       variant="ghost"
                       onClick={handleToggleMarket}
-                      className="hidden sm:inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs uppercase tracking-wide font-semibold bg-slate-700 text-white hover:bg-slate-600 transition-colors"
+                      className="hidden sm:inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs uppercase tracking-wide font-semibold bg-gray-200 text-gray-900 hover:bg-gray-300 transition-colors dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800"
                     >
                       <ArrowLeftRight className="h-3.5 w-3.5" />
                       {isLiveMarket ? "Switch to listed market" : "Switch to live market"}
@@ -665,7 +665,11 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                         ) : (
                           <span>{selectedNetworkInfo.icon}</span>
                         )}
-                        <span>{selectedNetworkInfo.name}</span>
+                        <span>
+                          {selectedNetwork === "all"
+                            ? selectedNetworkInfo.name.toUpperCase()
+                            : selectedNetworkInfo.name}
+                        </span>
                         <ChevronDown className="h-4 w-4" />
                       </Button>
                       
@@ -675,7 +679,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                             className="fixed inset-0 z-40" 
                             onClick={() => setShowNetworkDropdown(false)}
                           />
-                          <div className="absolute top-full right-0 mt-2 w-56 rounded-2xl border border-border/60 bg-card shadow-xl z-50 overflow-hidden dark:border-transparent dark:bg-neutral-950/95">
+                          <div className="absolute top-full right-0 mt-2 w-56 rounded-2xl bg-card shadow-xl z-50 overflow-hidden dark:bg-neutral-950/95">
                             {NETWORKS.map((network) => (
                               <button
                                 key={network.id}
@@ -803,24 +807,6 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
         <div className="fixed inset-x-0 bottom-0 z-40 sm:hidden">
           <div className="bg-background/95 backdrop-blur-sm px-4 py-3 shadow-lg">
             <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  onClick={handleToggleMarket}
-                  className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs uppercase tracking-wide font-semibold bg-gray-800 text-white hover:bg-gray-700 transition-colors"
-                >
-                  <ArrowLeftRight className="h-3.5 w-3.5" />
-                  {isLiveMarket ? "Switch to listed market" : "Switch to live market"}
-                </Button>
-                {isLiveMarket && (
-                  <span className="relative flex h-4 w-4 items-center justify-center">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
-                  </span>
-                )}
-              </div>
               {/* Network selector */}
               <div className="relative">
                 <Button
@@ -831,11 +817,15 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                   className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold bg-neutral-800 text-white hover:bg-neutral-700 transition-colors"
                 >
                   {selectedNetworkInfo.image ? (
-                    <img src={selectedNetworkInfo.image} alt={selectedNetworkInfo.name} className="h-4 w-4 rounded-full object-cover" />
+                    <img src={selectedNetworkInfo.image} alt={selectedNetworkInfo.name} className="h-5 w-5 rounded-full object-cover" />
                   ) : (
-                    <span>{selectedNetworkInfo.icon}</span>
+                    <span className="text-base">{selectedNetworkInfo.icon}</span>
                   )}
-                  <span>{selectedNetworkInfo.name}</span>
+                  <span>
+                    {selectedNetwork === "all"
+                      ? selectedNetworkInfo.name.toUpperCase()
+                      : selectedNetworkInfo.name}
+                  </span>
                   <ChevronDown className="h-3.5 w-3.5" />
                 </Button>
                 
@@ -845,7 +835,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       className="fixed inset-0 z-40" 
                       onClick={() => setShowNetworkDropdown(false)}
                     />
-                    <div className="absolute bottom-full right-0 mb-2 w-48 rounded-2xl bg-neutral-900 border border-neutral-800 shadow-xl z-50 overflow-hidden">
+                    <div className="absolute bottom-full left-0 mb-3 w-48 rounded-2xl bg-neutral-900 shadow-xl z-50 overflow-hidden max-h-60 overflow-y-auto">
                       {NETWORKS.map((network) => (
                         <button
                           key={network.id}
@@ -873,6 +863,27 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       ))}
                     </div>
                   </>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Listed
+                  </span>
+                  <Switch
+                    checked={isLiveMarket}
+                    onCheckedChange={handleToggleMarket}
+                    style={{ backgroundColor: isLiveMarket ? '#00ff4f' : undefined }}
+                  />
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Live
+                  </span>
+                </div>
+                {isLiveMarket && (
+                  <span className="relative flex h-4 w-4 items-center justify-center">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ backgroundColor: '#00ff4f' }}></span>
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full" style={{ backgroundColor: '#00ff4f' }}></span>
+                  </span>
                 )}
               </div>
             </div>

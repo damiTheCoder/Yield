@@ -244,7 +244,8 @@ export default function AssetDetail() {
         </div>
       </div>
       <Button
-        className="h-12 w-full rounded-full text-base font-semibold"
+        className="h-12 w-full rounded-full text-base font-semibold text-black"
+        style={{ backgroundColor: '#00ff4f' }}
         disabled={user.usd < huntFee || ua.coinTags >= 1}
         onClick={() => {
           if (ua.coinTags >= 1) {
@@ -337,8 +338,8 @@ export default function AssetDetail() {
                     <RechartsLineChart data={chartData} margin={{ left: 0, right: 0, top: 20, bottom: 20 }}>
                       <defs>
                         <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#facc15" stopOpacity={0.3}/>
-                          <stop offset="100%" stopColor="#facc15" stopOpacity={0}/>
+                          <stop offset="0%" stopColor="#84cc16" stopOpacity={0.3}/>
+                          <stop offset="100%" stopColor="#84cc16" stopOpacity={0}/>
                         </linearGradient>
                       </defs>
                       <XAxis dataKey="label" hide />
@@ -356,7 +357,7 @@ export default function AssetDetail() {
                       <Line 
                         type="monotone" 
                         dataKey="value" 
-                        stroke="#facc15" 
+                        stroke="#84cc16" 
                         strokeWidth={2.5} 
                         dot={false} 
                         strokeLinecap="round"
@@ -409,26 +410,6 @@ export default function AssetDetail() {
             </section>
 
             <section className="sm:hidden space-y-4 pb-4">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium">Discovery Progress</div>
-                  <div className="text-[11px] text-muted-foreground">
-                    {discovered} / {totalSupply} units • {discoveryPercent.toFixed(1)}% discovered
-                  </div>
-                </div>
-                <div className="relative h-2 w-full overflow-hidden rounded-full border border-border/60">
-                  <div className="absolute inset-y-0 left-0 w-[10%] rounded-l-full bg-amber-300" />
-                  <div className="absolute inset-y-0 left-[10%] w-[10%] bg-fuchsia-300" />
-                  <div className="absolute inset-y-0 left-[20%] w-[10%] bg-pink-300" />
-                  <div className="absolute inset-y-0 left-[30%] w-[10%] bg-sky-300" />
-                  <div className="absolute inset-y-0 left-[40%] w-[10%] bg-indigo-300" />
-                  <div className="absolute inset-y-0 left-[50%] w-[50%] bg-muted/40" />
-                  <div
-                    className="absolute inset-y-0 left-0 rounded-full bg-emerald-400 transition-all"
-                    style={{ width: `${Math.min(100, discoveryProgress)}%` }}
-                  />
-                </div>
-              </div>
               <div className="grid grid-cols-2 gap-x-3 gap-y-4">
                 <div className="space-y-1">
                   <div className="text-[10px] text-muted-foreground">current liquidity</div>
@@ -449,6 +430,26 @@ export default function AssetDetail() {
                   <div className="text-[10px] text-muted-foreground">price per unit</div>
                   <div className="font-mono text-xl font-semibold">{formatPrimaryValue(lpu)}</div>
                   <div className="text-[10px] text-muted-foreground">Redeemable floor</div>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium">Discovery Progress</div>
+                  <div className="text-[11px] text-muted-foreground">
+                    {discovered} / {totalSupply} units • {discoveryPercent.toFixed(1)}% discovered
+                  </div>
+                </div>
+                <div className="relative h-2 w-full overflow-hidden rounded-full border border-border/60">
+                  <div className="absolute inset-y-0 left-0 w-[10%] rounded-l-full bg-amber-300" />
+                  <div className="absolute inset-y-0 left-[10%] w-[10%] bg-fuchsia-300" />
+                  <div className="absolute inset-y-0 left-[20%] w-[10%] bg-pink-300" />
+                  <div className="absolute inset-y-0 left-[30%] w-[10%] bg-sky-300" />
+                  <div className="absolute inset-y-0 left-[40%] w-[10%] bg-indigo-300" />
+                  <div className="absolute inset-y-0 left-[50%] w-[50%] bg-muted/40" />
+                  <div
+                    className="absolute inset-y-0 left-0 rounded-full bg-emerald-400 transition-all"
+                    style={{ width: `${Math.min(100, discoveryProgress)}%` }}
+                  />
                 </div>
               </div>
             </section>
@@ -515,7 +516,8 @@ export default function AssetDetail() {
           <div className="fixed inset-x-0 bottom-0 z-40 px-4 pb-5">
             <Button
               onClick={() => setMobileBuyOpen(true)}
-              className="w-full rounded-2xl bg-lime-400 py-3 text-base font-semibold text-gray-900 shadow-lg hover:bg-lime-500"
+              className="w-full rounded-2xl py-3 text-base font-semibold text-black shadow-lg"
+              style={{ backgroundColor: '#00ff4f' }}
             >
               Tap to buy tag
             </Button>

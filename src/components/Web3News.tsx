@@ -38,7 +38,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
         {loading
           ? shimmerItems.map((index) => (
               <div key={index} className="w-56 shrink-0 animate-pulse">
-                <div className="h-28 w-full rounded-xl border border-border/40" />
+                <div className="h-28 w-full rounded-xl" />
                 <div className="mt-2 h-3 w-3/4 rounded bg-border/50" />
               </div>
             ))
@@ -48,7 +48,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
                 href={item.url}
                 target="_blank"
                 rel="noreferrer"
-                className="group block w-72 shrink-0 overflow-hidden rounded-xl border border-border/50 transition-transform hover:-translate-y-0.5"
+                className="group block w-72 shrink-0 overflow-hidden rounded-xl transition-transform hover:-translate-y-0.5"
               >
                 <div className="relative h-28 w-full overflow-hidden">
                   <img

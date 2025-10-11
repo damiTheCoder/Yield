@@ -263,34 +263,48 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, lpu, pricePer
   return (
     <div className="min-h-screen bg-background">
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
-        <div className="container mx-auto px-2 sm:px-4 pt-3 pb-4 sm:pt-4 sm:pb-6 space-y-3 sm:space-y-4 font-mono">
-          {/* Header Section - Mobile-first layout */}
-          <div className="flex items-start gap-3 sm:gap-4">
-            <img src={image} alt={assetName} className="h-10 w-10 sm:h-14 sm:w-14 rounded-full border border-border/50 object-cover" />
-            <div className="flex-1 space-y-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-lg font-semibold text-foreground sm:text-2xl">{assetName}</h1>
-                {ticker && <span className="rounded-full border border-border/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground sm:text-xs">{ticker}</span>}
+        <div className="container mx-auto px-2 sm:px-4 pt-3 pb-4 sm:pt-4 sm:pb-6 space-y-3 font-mono">
+          {/* Header Section */}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3 sm:gap-4">
+              <img src={image} alt={assetName} className="h-10 w-10 sm:h-14 sm:w-14 rounded-full border border-border/50 object-cover" />
+              <div className="flex-1 space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="text-lg font-semibold text-foreground sm:text-2xl">{assetName}</h1>
+                  {ticker && <span className="rounded-full border border-border/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground sm:text-xs">{ticker}</span>}
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground sm:text-sm">
+                  <span className="flex items-center gap-1">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400" />Live Hunt
+                  </span>
+                  <span className="hidden text-xs text-muted-foreground sm:inline">•</span>
+                  <span>Cycle {cycleNumber}</span>
+                  <span className="hidden text-xs text-muted-foreground sm:inline">•</span>
+                  <span className="text-muted-foreground">{foundTokens} tokens claimed</span>
+                </div>
               </div>
-              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground sm:text-sm">
-                <span className="flex items-center gap-1">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400" />Live Hunt
-                </span>
-                <span className="hidden text-xs text-muted-foreground sm:inline">•</span>
-                <span>Cycle {cycleNumber}</span>
-                <span className="hidden text-xs text-muted-foreground sm:inline">•</span>
-                <span className="text-muted-foreground">{foundTokens} tokens claimed</span>
+            </div>
+            <div className="hidden sm:flex sm:items-center sm:gap-4">
+              <div className="rounded-xl border border-border/40 bg-muted/30 px-4 py-3 text-left shadow-sm sm:min-w-[200px] dark:bg-neutral-900/70">
+                <span className="text-[10px] uppercase tracking-wide text-muted-foreground sm:text-xs">Wallet value</span>
+                <div className="text-xl font-semibold text-emerald-400 sm:text-3xl">{formatCurrency(walletValue)}</div>
+              </div>
+              <div className="rounded-xl border border-border/40 bg-muted/30 px-4 py-3 text-left shadow-sm sm:min-w-[200px] dark:bg-neutral-900/70">
+                <span className="text-[10px] uppercase tracking-wide text-muted-foreground sm:text-xs">Tokens found</span>
+                <div className="text-xl font-semibold text-emerald-400 sm:text-3xl">
+                  {foundTokens}/{maxTokens}
+                </div>
               </div>
             </div>
           </div>
-          <div className="flex flex-wrap gap-6 sm:gap-10">
+          <div className="flex flex-wrap gap-6 sm:hidden">
             <div className="space-y-0.5">
-              <span className="text-[10px] uppercase tracking-wide text-muted-foreground sm:text-xs">Wallet value</span>
-              <div className="text-xl font-semibold text-emerald-400 sm:text-3xl">{formatCurrency(walletValue)}</div>
+              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Wallet value</span>
+              <div className="text-xl font-semibold text-emerald-400">{formatCurrency(walletValue)}</div>
             </div>
             <div className="space-y-0.5">
-              <span className="text-[10px] uppercase tracking-wide text-muted-foreground sm:text-xs">Tokens found</span>
-              <div className="text-xl font-semibold text-emerald-400 sm:text-3xl">
+              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Tokens found</span>
+              <div className="text-xl font-semibold text-emerald-400">
                 {foundTokens}/{maxTokens}
               </div>
             </div>

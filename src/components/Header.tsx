@@ -297,9 +297,14 @@ const Header = () => {
           <div className="flex items-center gap-6">
             <a
               href="/"
-              className="text-xl font-bold text-foreground hover:text-foreground/80 transition-smooth md:hidden"
+              className="flex items-center gap-2 hover:opacity-80 transition-smooth md:hidden"
             >
-              Openyield
+              <img 
+                src="/OPY.png" 
+                alt="Openyield" 
+                className="h-8 w-8 rounded-lg object-cover"
+              />
+              <span className="text-xl font-bold text-foreground">OPY</span>
             </a>
           </div>
 
@@ -364,7 +369,7 @@ const Header = () => {
 
             <Dialog open={walletDialogOpen} onOpenChange={setWalletDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="default" size="sm" className="hidden md:inline-flex min-w-[120px] justify-center h-8 rounded-full">
+                <Button variant="default" size="sm" className="hidden md:inline-flex min-w-[120px] justify-center h-8 rounded-full text-black" style={{ backgroundColor: '#00ff4f' }}>
                   {connectedWallet ? (
                     <span className="flex items-center gap-1">
                       <Check className="h-4 w-4 text-emerald-300" />
@@ -376,7 +381,7 @@ const Header = () => {
                 </Button>
               </DialogTrigger>
               <DialogTrigger asChild>
-                <Button variant="default" size="sm" className="md:hidden rounded-full h-8 px-4 text-sm font-semibold">
+                <Button variant="default" size="sm" className="md:hidden rounded-full h-8 px-4 text-sm font-semibold text-black" style={{ backgroundColor: '#00ff4f' }}>
                   {connectedWallet ? "Wallet" : "Connect"}
                 </Button>
               </DialogTrigger>

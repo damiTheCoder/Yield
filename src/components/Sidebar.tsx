@@ -25,7 +25,7 @@ const Sidebar = () => {
   return (
     <aside className="hidden md:block fixed left-6 top-6 w-64 z-50">
       <div className="space-y-5">
-        <nav className="rounded-2xl border border-border/50 bg-card p-5 shadow-none dark:border-none dark:bg-[#0a0a0f]/95">
+        <nav className="rounded-2xl bg-card p-5 shadow-none dark:bg-[#0a0a0f]/95">
           <div className="flex flex-col space-y-1">
             {NAV_LINKS.map((link) => {
               const isActive =
@@ -56,10 +56,20 @@ const Sidebar = () => {
           </div>
         </nav>
         <Web3News variant="sidebar" className="md:w-64" />
-        <div className="rounded-2xl border border-border/50 bg-card/80 px-5 py-4 text-sm font-semibold text-muted-foreground dark:border-none dark:bg-[#0a0a0f]/90">
+        <a
+          href="/"
+          className="block rounded-2xl bg-card/80 px-5 py-4 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40 dark:bg-[#0a0a0f]/90"
+        >
           <span className="block text-xs uppercase tracking-wide text-muted-foreground/70">Platform</span>
-          <span className="mt-1 block text-lg font-semibold text-foreground">Openyield</span>
-        </div>
+          <div className="mt-1 flex items-center gap-2">
+            <img 
+              src="/OPY.png" 
+              alt="Openyield" 
+              className="h-6 w-6 rounded-md object-cover"
+            />
+            <span className="text-lg font-semibold text-foreground">OPY</span>
+          </div>
+        </a>
       </div>
     </aside>
   );
