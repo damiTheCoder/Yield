@@ -302,7 +302,7 @@ const Header = () => {
               <img 
                 src="/OPY.png" 
                 alt="Openyield" 
-                className="h-8 w-8 rounded-lg object-cover"
+                className="h-7 w-7 rounded-lg object-cover"
               />
               <span className="text-xl font-bold text-foreground">OPY</span>
             </a>

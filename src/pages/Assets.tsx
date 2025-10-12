@@ -735,20 +735,6 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                 <>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
-                      <div className="flex items-center gap-3">
-                        <h1 className="text-3xl font-bold">Assets</h1>
-                        {showViewAllButton && (
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => navigate("/assets/all")}
-                            className="rounded-md px-3 py-1 text-xs font-semibold bg-muted hover:bg-muted/80"
-                          >
-                            View all tokens
-                          </Button>
-                        )}
-                      </div>
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
                         <div className="hidden items-center gap-1 sm:flex">
                           <span className={!gridView ? "text-foreground font-semibold" : undefined}>List</span>

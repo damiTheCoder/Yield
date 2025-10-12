@@ -130,7 +130,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     makeAsset("mu", "Mu Collective", { ...DEFAULT_PARAMS, initialReserve: 1650, initialSupply: 123 }, 410, "/k3.jpeg"),
     makeAsset("nu", "Nu Labs", { ...DEFAULT_PARAMS, initialReserve: 890, initialSupply: 84 }, 150, "/_ (14).jpeg"),
     makeAsset("omicron", "Omicron Vault", { ...DEFAULT_PARAMS, initialReserve: 1850, initialSupply: 132 }, 480, "/k5.jpeg"),
-    makeAsset("pi", "Pi Forge", { ...DEFAULT_PARAMS, initialReserve: 1180, initialSupply: 97 }, 230, "/k6.jpeg"),
+    makeAsset("pi", "Pi Forge", { ...DEFAULT_PARAMS, initialReserve: 1180, initialSupply: 97 }, 230, "/digital-art.jpeg"),
     makeAsset("rho", "Rho Gallery", { ...DEFAULT_PARAMS, initialSupply: 108, initialReserve: 1420 }, 320, "/_ (5).jpeg"),
     makeAsset("tau", "Tau Vision", { ...DEFAULT_PARAMS, initialReserve: 1010, initialSupply: 90 }, 190, "/_ (6).jpeg"),
     ];
@@ -205,7 +205,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       makeAsset("mu", "Mu Collective", { ...DEFAULT_PARAMS, initialReserve: 1650, initialSupply: 123 }, 410, "/k3.jpeg"),
       makeAsset("nu", "Nu Labs", { ...DEFAULT_PARAMS, initialReserve: 890, initialSupply: 84 }, 150, "/_ (14).jpeg"),
       makeAsset("omicron", "Omicron Vault", { ...DEFAULT_PARAMS, initialReserve: 1850, initialSupply: 132 }, 480, "/k5.jpeg"),
-      makeAsset("pi", "Pi Forge", { ...DEFAULT_PARAMS, initialReserve: 1180, initialSupply: 97 }, 230, "/k6.jpeg"),
+      makeAsset("pi", "Pi Forge", { ...DEFAULT_PARAMS, initialReserve: 1180, initialSupply: 97 }, 230, "/digital-art.jpeg"),
       makeAsset("rho", "Rho Gallery", { ...DEFAULT_PARAMS, initialSupply: 108, initialReserve: 1420 }, 320, "/_ (5).jpeg"),
       makeAsset("tau", "Tau Vision", { ...DEFAULT_PARAMS, initialReserve: 1010, initialSupply: 90 }, 190, "/_ (6).jpeg"),
     ];
