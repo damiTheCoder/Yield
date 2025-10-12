@@ -726,6 +726,14 @@
   }
   .no-scrollbar::-webkit-scrollbar {
     display: none; /* Chrome, Safari */
+    width: 0px;
+    background: transparent;
+  }
+  .no-scrollbar::-webkit-scrollbar-thumb {
+    display: none;
+  }
+  .no-scrollbar::-webkit-scrollbar-track {
+    display: none;
   }
 
   @keyframes fade-up {

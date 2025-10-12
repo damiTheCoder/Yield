@@ -223,7 +223,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 
   const listedAssets = filteredAssets;
   const currentAssets = isLiveMarket ? liveAssets : listedAssets;
-  const displayListedAssets = !isLiveMarket && listedLimit ? currentAssets.slice(0, listedLimit) : currentAssets;
+  const displayListedAssets = listedLimit ? currentAssets.slice(0, listedLimit) : currentAssets;
   const totalVisibleAssets = currentAssets.length;
 
   const cardBorderClass = "";
@@ -277,91 +277,53 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   );
 
   const renderListedList = (items: Asset[]) => (
-    <>
-      <div className="hidden overflow-x-auto md:block">
-        <Table className="min-w-full text-sm border-separate border-spacing-y-0 [&_td:first-child]:pl-0">
-          <TableHeader className="[&_th]:border-b-transparent" style={{ borderBottom: "none" }}>
-            <TableRow className="border-b-transparent" style={{ borderBottom: "none" }}>
-              <TableHead className="text-left">Collection</TableHead>
-              <TableHead className="text-right">Backing</TableHead>
-              <TableHead className="text-right">Current</TableHead>
-              <TableHead className="text-right">LPU</TableHead>
-              <TableHead className="text-right">CoinTag</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody className="divide-y divide-border/40 [&>tr:first-child]:border-t-0 [&>tr]:border-b-0">
-            {items.map((a) => {
-              const change = getAssetChange(a);
-              const changeText = formatChange(change);
-              const changeClass = changeColorClass(change);
-              return (
-                <TableRow
-                  key={a.id}
-                  className="cursor-pointer transition-colors hover:bg-surface/60 [&>td]:py-4"
-                  onClick={() => navigate(`/assets/${a.id}`)}
-                >
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-3 text-sm">
-                      <img src={a.image} alt={a.name} className="h-8 w-8 rounded-xl" />
-                      <div className="flex flex-col leading-tight">
-                        <div className="flex items-center gap-1">
-                          <span className="font-medium text-foreground">{a.name}</span>
-                          <img src="/checklist.png" alt="verified" className="h-4 w-4 opacity-80" />
-                        </div>
-                        <span className={`text-xs font-semibold ${changeClass}`}>{changeText}</span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right font-mono text-xs">{formatCurrencyK(a.params.initialReserve)}</TableCell>
-                  <TableCell className="text-right font-mono text-xs">{formatCurrencyK(a.cycle.reserve)}</TableCell>
-                  <TableCell className="text-right font-mono text-xs">${a.cycle.lpu.toFixed(6)}</TableCell>
-                  <TableCell className="text-right font-mono text-xs">${Math.max(4.2, a.cycle.lpu * 0.4).toFixed(2)}</TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </div>
-
-      <div className="md:hidden">
-        <div className="grid grid-cols-[1fr_5.5rem_5rem] items-center px-2 pb-3 text-[10px] uppercase tracking-wide text-muted-foreground">
-          <div>Collection</div>
-          <div className="text-right">Current</div>
-          <div className="text-right">CoinTag</div>
-        </div>
-        <div className="flex flex-col gap-4">
-          {items.map((a) => {
-            const change = getAssetChange(a);
+    <div className="overflow-x-auto no-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <Table className="min-w-[720px] text-sm">
+        <TableHeader>
+          <TableRow>
+            <TableHead className="sticky left-0 z-20 min-w-[200px] bg-background text-left pl-2">Collection</TableHead>
+            <TableHead className="min-w-[140px] text-right">Liquidity</TableHead>
+            <TableHead className="min-w-[140px] text-right">LPU</TableHead>
+            <TableHead className="min-w-[140px] text-right">CoinTag</TableHead>
+            <TableHead className="min-w-[160px] text-right">Backing Reserve</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {items.map((asset) => {
+            const coinTagPrice = Math.max(4.2, asset.cycle.lpu * 0.4);
+            const change = getAssetChange(asset);
             const changeText = formatChange(change);
             const changeClass = changeColorClass(change);
             return (
-              <button
-                key={a.id}
-                onClick={() => navigate(`/assets/${a.id}`)}
-                className="grid grid-cols-[1fr_5.5rem_5rem] items-start gap-3 border-b border-border/40 px-1.5 pb-3 text-left text-[13px] last:border-b-0"
+              <TableRow
+                key={asset.id}
+                className="cursor-pointer text-sm transition-colors hover:bg-surface/30"
+                onClick={() => navigate(`/assets/${asset.id}`)}
               >
-                <div className="min-w-0 flex items-center gap-3">
-                  <img src={a.image} alt={a.name} className="h-9 w-9 rounded-lg" />
-                  <div className="min-w-0 flex flex-col leading-tight">
-                    <div className="flex items-center gap-1 text-[13px] font-medium">
-                      <span className="max-w-[12ch] truncate">{a.name}</span>
-                      <img src="/checklist.png" alt="verified" className="h-3 w-3 flex-shrink-0 opacity-80" />
+                <TableCell className="sticky left-0 z-10 min-w-[200px] bg-background px-2">
+                  <div className="flex items-center gap-3 text-sm">
+                    <img src={asset.image} alt={asset.name} className="h-9 w-9 rounded-xl object-cover" />
+                    <div className="flex flex-col min-w-0">
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium text-foreground truncate">{asset.name}</span>
+                        <img src="/checklist.png" alt="verified" className="h-4 w-4 opacity-80 flex-shrink-0" />
+                      </div>
+                      <span className={`text-xs font-semibold ${changeClass}`}>{changeText}</span>
                     </div>
-                    <span className={`text-[11px] font-semibold ${changeClass}`}>{changeText}</span>
                   </div>
-                </div>
-                <div className="flex min-w-[5.5rem] flex-col items-end text-xs font-mono tabular-nums">
-                  <span className="text-sm">{formatCurrencyK(a.cycle.reserve)}</span>
-                </div>
-                <div className="flex min-w-[5rem] flex-col items-end text-xs font-mono tabular-nums">
-                  <span className="text-sm">{formatCurrency(Math.max(4.2, a.cycle.lpu * 0.4))}</span>
-                </div>
-              </button>
+                </TableCell>
+                <TableCell className="min-w-[140px] text-right font-mono text-sm px-2">{formatCurrencyK(asset.cycle.reserve)}</TableCell>
+                <TableCell className="min-w-[140px] text-right font-mono text-sm px-2">{formatCurrency(asset.cycle.lpu)}</TableCell>
+                <TableCell className="min-w-[140px] text-right font-mono text-sm px-2">{formatCurrency(coinTagPrice)}</TableCell>
+                <TableCell className="min-w-[160px] text-right font-mono text-sm px-2">
+                  {formatCurrencyK(asset.params.initialReserve)}
+                </TableCell>
+              </TableRow>
             );
           })}
-        </div>
-      </div>
-    </>
+        </TableBody>
+      </Table>
+    </div>
   );
 
   const renderListedGrid = (items: Asset[]) => (
@@ -436,11 +398,11 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   );
 
   const renderLiveList = (items: Asset[]) => (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto no-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
       <Table className="min-w-[720px] text-sm">
         <TableHeader>
           <TableRow>
-            <TableHead className="sticky left-0 z-20 min-w-[200px] bg-background text-left">Collection</TableHead>
+            <TableHead className="sticky left-0 z-20 min-w-[200px] bg-background text-left pl-2">Collection</TableHead>
             <TableHead className="min-w-[140px] text-right">Liquidity</TableHead>
             <TableHead className="min-w-[140px] text-right">LPU</TableHead>
             <TableHead className="min-w-[140px] text-right">CoinTag</TableHead>
@@ -598,11 +560,30 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
           <div className="space-y-3">
             <div className="space-y-3 px-0">
               {showTrending && (
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <h1 className="text-3xl font-bold">Live Market</h1>
-                    <p className="text-sm text-muted-foreground">
-                      Watch every live LFT drop, inspect on-chain liquidity, and jump into a treasure hunt to find tokens in real time.
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <h1 className="text-2xl sm:text-3xl font-bold">
+                        {isLiveMarket ? "Live" : "Listed"} <span className="bg-gradient-to-r from-green-400 via-emerald-500 to-teal-600 bg-clip-text text-transparent">Market</span>
+                      </h1>
+                      {/* Mobile: Show view all button adjacent to title */}
+                      {showViewAllButton && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => navigate("/assets/all")}
+                          className="sm:hidden text-xs font-semibold text-primary hover:text-primary hover:bg-transparent px-2"
+                        >
+                          View all tokens
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {isLiveMarket 
+                        ? "Watch every live LFT drop, inspect on-chain liquidity, and jump into a treasure hunt to find tokens in real time."
+                        : "Browse listed LFT assets, analyze their performance, and discover investment opportunities."
+                      }
                     </p>
                   </div>
                   <div className="flex w-full items-center gap-3 text-xs text-muted-foreground sm:w-auto sm:justify-end">
@@ -617,111 +598,95 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 
               {/* Mobile search removed per updated layout */}
 
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-3">
-                  <div className="flex w-full items-center gap-3 sm:w-auto">
-                    <span className="text-xl font-semibold text-foreground sm:hidden dark:text-white">Asset</span>
-                    {/* Desktop: Show switch market button */}
+              {/* Desktop controls and network selector */}
+              <div className="hidden sm:flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex w-full items-center gap-3 sm:w-auto">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleToggleMarket}
+                    className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs uppercase tracking-wide font-semibold bg-gray-200 text-gray-900 hover:bg-gray-300 transition-colors dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800"
+                  >
+                    <ArrowLeftRight className="h-3.5 w-3.5" />
+                    {isLiveMarket ? "Switch to listed market" : "Switch to live market"}
+                  </Button>
+                  {isLiveMarket && (
+                    <span className="relative flex h-4 w-4 items-center justify-center" aria-hidden="true">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400/40 blur-sm animate-ping" />
+                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="relative">
                     <Button
                       type="button"
                       size="sm"
                       variant="ghost"
-                      onClick={handleToggleMarket}
-                      className="hidden sm:inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs uppercase tracking-wide font-semibold bg-gray-200 text-gray-900 hover:bg-gray-300 transition-colors dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800"
+                      onClick={() => setShowNetworkDropdown(!showNetworkDropdown)}
+                      className="inline-flex items-center gap-2 rounded-full border border-border/60 px-4 py-2 text-sm font-semibold bg-muted/70 text-foreground transition-colors hover:bg-muted dark:border-transparent dark:bg-neutral-950/80 dark:hover:bg-neutral-900"
                     >
-                      <ArrowLeftRight className="h-3.5 w-3.5" />
-                      {isLiveMarket ? "Switch to listed market" : "Switch to live market"}
-                    </Button>
-                    {/* Mobile: Show view all button */}
-                    {showViewAllButton && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => navigate("/assets/all")}
-                        className="sm:hidden text-xs font-semibold text-primary hover:text-primary hover:bg-transparent ml-auto"
-                      >
-                        View all tokens
-                      </Button>
-                    )}
-                    {isLiveMarket && (
-                      <span className="relative hidden sm:flex h-4 w-4 items-center justify-center" aria-hidden="true">
-                        <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400/40 blur-sm animate-ping" />
-                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
-                      </span>
-                    )}
-                  </div>
-                  {/* Desktop network selector */}
-                  <div className="hidden sm:flex items-center gap-2">
-                    <div className="relative">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setShowNetworkDropdown(!showNetworkDropdown)}
-                        className="inline-flex items-center gap-2 rounded-full border border-border/60 px-4 py-2 text-sm font-semibold bg-muted/70 text-foreground transition-colors hover:bg-muted dark:border-transparent dark:bg-neutral-950/80 dark:hover:bg-neutral-900"
-                      >
-                        {selectedNetworkInfo.image ? (
-                          <img src={selectedNetworkInfo.image} alt={selectedNetworkInfo.name} className="h-5 w-5 rounded-full object-cover" />
-                        ) : (
-                          <span>{selectedNetworkInfo.icon}</span>
-                        )}
-                        <span>
-                          {selectedNetwork === "all"
-                            ? selectedNetworkInfo.name.toUpperCase()
-                            : selectedNetworkInfo.name}
-                        </span>
-                        <ChevronDown className="h-4 w-4" />
-                      </Button>
-                      
-                      {showNetworkDropdown && (
-                        <>
-                          <div 
-                            className="fixed inset-0 z-40" 
-                            onClick={() => setShowNetworkDropdown(false)}
-                          />
-                          <div className="absolute top-full right-0 mt-2 w-56 rounded-2xl bg-card shadow-xl z-50 overflow-hidden dark:bg-neutral-950/95">
-                            {NETWORKS.map((network) => (
-                              <button
-                                key={network.id}
-                                type="button"
-                                onClick={() => {
-                                  setSelectedNetwork(network.id);
-                                  setShowNetworkDropdown(false);
-                                }}
-                                className={cn(
-                                  "w-full flex items-center gap-3 px-4 py-3 text-left transition-colors",
-                                  selectedNetwork === network.id
-                                    ? "bg-muted/70 text-foreground font-semibold dark:bg-neutral-900"
-                                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground dark:hover:bg-neutral-900/80",
-                                )}
-                              >
-                                {network.image ? (
-                                  <img src={network.image} alt={network.name} className="h-6 w-6 rounded-full object-cover" />
-                                ) : (
-                                  <span className="text-xl">{network.icon}</span>
-                                )}
-                                <span>{network.name}</span>
-                                {selectedNetwork === network.id && (
-                                  <span className="ml-auto text-primary">✓</span>
-                                )}
-                              </button>
-                            ))}
-                          </div>
-                        </>
+                      {selectedNetworkInfo.image ? (
+                        <img src={selectedNetworkInfo.image} alt={selectedNetworkInfo.name} className="h-5 w-5 rounded-full object-cover" />
+                      ) : (
+                        <span>{selectedNetworkInfo.icon}</span>
                       )}
-                    </div>
+                      <span>
+                        {selectedNetwork === "all"
+                          ? selectedNetworkInfo.name.toUpperCase()
+                          : selectedNetworkInfo.name}
+                      </span>
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                    
+                    {showNetworkDropdown && (
+                      <>
+                        <div 
+                          className="fixed inset-0 z-40" 
+                          onClick={() => setShowNetworkDropdown(false)}
+                        />
+                        <div className="absolute top-full right-0 mt-2 w-56 rounded-2xl bg-card shadow-xl z-50 overflow-hidden dark:bg-neutral-950/95">
+                          {NETWORKS.map((network) => (
+                            <button
+                              key={network.id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedNetwork(network.id);
+                                setShowNetworkDropdown(false);
+                              }}
+                              className={cn(
+                                "w-full flex items-center gap-3 px-4 py-3 text-left transition-colors",
+                                selectedNetwork === network.id
+                                  ? "bg-muted/70 text-foreground font-semibold dark:bg-neutral-900"
+                                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground dark:hover:bg-neutral-900/80",
+                              )}
+                            >
+                              {network.image ? (
+                                <img src={network.image} alt={network.name} className="h-6 w-6 rounded-full object-cover" />
+                              ) : (
+                                <span className="text-xl">{network.icon}</span>
+                              )}
+                              <span>{network.name}</span>
+                              {selectedNetwork === network.id && (
+                                <span className="ml-auto text-primary">✓</span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </div>
-                  </div>
+                </div>
+              </div>
 
               {showTrending ? (
                 <>
+                  {/* Desktop Trending Section */}
                   {trendingTokens.length > 0 && (
-                    <section className="space-y-2 -mb-3">
-                      <div className="hidden md:flex items-center justify-between gap-2">
+                    <section className="space-y-2 -mb-3 hidden md:block">
+                      <div className="flex items-center gap-2">
                         <h2 className="text-xl font-semibold text-foreground">Trending Tokens</h2>
-                        <a href="/assets/all" className="text-sm font-medium text-gray-400 hover:text-gray-300 transition-colors">
-                          View All
-                        </a>
                       </div>
                       <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 no-scrollbar">
                         {trendingTokens.map(({ asset, change }) => (
@@ -779,6 +744,20 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                     ? renderListedGrid(displayListedAssets)
                     : renderListedList(displayListedAssets)
                 : renderEmptyState()}
+
+              {/* Mobile Trending Section - Below Listed Assets */}
+              {showTrending && trendingTokens.length > 0 && (
+                <section className="space-y-3 mt-6 md:hidden">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl font-semibold text-foreground">Trending Tokens</h2>
+                  </div>
+                  <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 no-scrollbar">
+                    {trendingTokens.map(({ asset, change }) => (
+                      <TrendingTokenCard key={`mobile-trending-${asset.id}`} asset={asset} change={change} />
+                    ))}
+                  </div>
+                </section>
+              )}
 
               {showTrending && <Web3News variant="mobile" className="mt-6 sm:hidden" />}
               
@@ -881,5 +860,5 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 }
 
 export default function Assets() {
-  return <AssetsPage showTrending showViewAllButton listedLimit={10} />;
+  return <AssetsPage showTrending showViewAllButton listedLimit={12} />;
 }
