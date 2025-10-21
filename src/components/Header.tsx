@@ -399,7 +399,7 @@ const Header = () => {
                 {mobileNetworkOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setMobileNetworkOpen(false)} />
-                    <div className="absolute top-full right-0 mt-2 w-44 rounded-3xl bg-background text-foreground shadow-xl z-50 overflow-hidden">
+                    <div className="absolute top-full right-0 mt-2 w-44 rounded-3xl bg-muted text-foreground shadow-xl z-50 overflow-hidden">
                       {MOBILE_NETWORK_OPTIONS.map((option) => (
                         <button
                           key={option.code}
@@ -422,7 +422,20 @@ const Header = () => {
                             <span className="text-lg">⚡</span>
                           )}
                           <span>{option.name}</span>
-                          {selectedHeaderNetwork === option.code && <span className="ml-auto text-primary">✓</span>}
+                          {selectedHeaderNetwork === option.code && (
+                            <span className="ml-auto text-emerald-400">
+                              <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+                                <path
+                                  d="M20 6L9 17l-5-5"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </span>
+                          )}
                         </button>
                       ))}
                     </div>
