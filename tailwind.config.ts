@@ -12,6 +12,16 @@ export default {
         "2xl": "1400px",
       },
     },
+    fontFamily: {
+      sans: [
+        "Glacial Indifference",
+        "system-ui",
+        "-apple-system",
+        "BlinkMacSystemFont",
+        "Segoe UI",
+        "sans-serif",
+      ],
+    },
     extend: {
       colors: {
         border: "hsl(var(--border))",

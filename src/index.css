@@ -1,10 +1,48 @@
-@tailwind base;
-  @tailwind components;
-  @tailwind utilities;
+/* Removed DM Sans import, using Glacial Indifference as default font */
 
-  @import url("https://fonts.cdnfonts.com/css/nasalization");
-  @import url("https://fonts.cdnfonts.com/css/glacial-indifference-2");
-  /* Removed heavy-weight font import to keep body typography light and system-native */
+@font-face {
+  font-family: "Glacial Indifference";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/GlacialIndifference-Regular.woff") format("woff");
+}
+
+/* Mobile full-bleed divider utility
+   Use by adding .full-bleed-divider-mobile to the row element.
+   On small screens the pseudo-element draws a 1px divider that stretches to the viewport edges. */
+.full-bleed-divider-mobile {
+  position: relative;
+}
+.full-bleed-divider-mobile::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  bottom: 0;
+  display: block;
+}
+@media (min-width: 640px) {
+  .full-bleed-divider-mobile::after {
+    display: none;
+  }
+}
+
+
+@font-face {
+  font-family: "Glacial Indifference";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/GlacialIndifference-Bold.woff") format("woff");
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
   @keyframes float-soft {
     0%, 100% {
@@ -15,11 +53,68 @@
     }
   }
 
+@keyframes marquee-slide {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee-slide 36s linear infinite;
+}
+
+.animate-marquee2 {
+  animation: marquee-slide 36s linear infinite;
+  animation-delay: -18s;
+}
+
+@keyframes marquee-slide-alt {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.animate-marquee-alt {
+  animation: marquee-slide-alt 36s linear infinite;
+}
+
+.animate-marquee-alt2 {
+  animation: marquee-slide-alt 36s linear infinite;
+  animation-delay: -18s;
+}
+
+.font-glacial,
+.font-landing {
+  font-family: "Glacial Indifference", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-weight: 400;
+}
+
 /* Black and White NFT Marketplace Design System */
 
 @layer base {
+  html {
+    font-family: "Glacial Indifference", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  }
   body {
-    @apply font-sans text-white font-normal;
+    font-family: inherit !important;
+    font-weight: 300;
+    color: hsl(var(--foreground));
+    background-color: hsl(var(--background));
+  }
+
+  /* Reduce font weight for all except headings */
+  :not(h1):not(h2):not(h3):not(h4):not(h5):not(h6) {
+    font-weight: 300 !important;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700 !important;
   }
 
   :root {
@@ -112,8 +207,16 @@
 
     --shadow-card: 0 8px 24px hsl(0 0% 0% / 0.08);
     --shadow-hover: 0 12px 32px hsl(0 0% 0% / 0.12);
+    /* Force buttons to dark style in light mode */
+    --button-bg: 222 47% 11%; /* dark */
+    --button-foreground: 0 0% 100%;
+    /* Remove heavy shadows in light mode */
+    --shadow-card: none;
+    --shadow-hover: none;
   }
 }
+
+
 
 @layer components {
   .hunt-spreadsheet-wrap {
@@ -640,18 +743,18 @@
     background: hsl(var(--background));
     min-height: 100vh;
     overflow-x: hidden;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Glacial Indifference', 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-weight: 700;
   }
   
-  /* Apply Inter Bold to all text elements including numbers */
+  /* Apply Glacial Indifference Bold to all text elements including numbers */
   *,
   h1, h2, h3, h4, h5, h6,
   p, span, div, a, button, label, input, textarea, select,
   th, td, li,
   .font-mono,
   [class*="font-mono"] {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    font-family: 'Glacial Indifference', 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
     font-weight: 700 !important;
   }
 
@@ -678,6 +781,18 @@
 
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-accent/80;
+  }
+
+  @media (max-width: 768px) {
+    body {
+      scrollbar-width: none;
+    }
+
+    body::-webkit-scrollbar {
+      display: none;
+      width: 0;
+      height: 0;
+    }
   }
 }
 
@@ -721,20 +836,49 @@
 
   /* Hide scrollbars utility */
   .no-scrollbar {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none !important; /* IE and Edge */
+    scrollbar-width: none !important; /* Firefox */
   }
-  .no-scrollbar::-webkit-scrollbar {
-    display: none; /* Chrome, Safari */
-    width: 0px;
-    background: transparent;
+  .no-scrollbar::-webkit-scrollbar,
+  .no-scrollbar *::-webkit-scrollbar {
+    display: none !important; /* Chrome, Safari */
+    width: 0px !important;
+    height: 0px !important;
+    background: transparent !important;
   }
-  .no-scrollbar::-webkit-scrollbar-thumb {
-    display: none;
+  .no-scrollbar::-webkit-scrollbar-thumb,
+  .no-scrollbar *::-webkit-scrollbar-thumb {
+    display: none !important;
   }
-  .no-scrollbar::-webkit-scrollbar-track {
-    display: none;
+  .no-scrollbar::-webkit-scrollbar-track,
+  .no-scrollbar *::-webkit-scrollbar-track {
+    display: none !important;
   }
+
+  /* Stronger mobile rule to hide horizontal scrollbars on containers (preserve touch) */
+  @media (max-width: 768px) {
+    .overflow-x-auto.no-scrollbar {
+      -webkit-overflow-scrolling: touch; /* smooth native scrolling */
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+    .overflow-x-auto.no-scrollbar::-webkit-scrollbar {
+      display: none !important;
+      height: 0px !important;
+    }
+    .overflow-x-auto.no-scrollbar::-webkit-scrollbar-thumb {
+      display: none !important;
+    }
+  }
+
+  /* Prevent page-level horizontal scrolling on very small screens */
+  @media (max-width: 640px) {
+    html, body {
+      overflow-x: hidden !important;
+    }
+  }
+
+  
 
   @keyframes fade-up {
     from {

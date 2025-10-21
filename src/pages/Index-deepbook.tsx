@@ -65,10 +65,10 @@ const Navigation = () => {
           <div className="flex items-center gap-3">
             <img
               src="/OPY.png"
-              alt="Openyield logo"
+              alt="Trone logo"
               className="h-8 w-8 rounded-lg object-cover border border-gray-500"
             />
-            <span className="text-xl font-bold tracking-tight">OPY</span>
+            <span className="text-xl font-bold tracking-tight">Trone</span>
           </div>
 
           {/* Desktop Navigation */}
@@ -272,10 +272,10 @@ export default function Index() {
               <div className="flex items-center gap-3">
                 <img
                   src="/OPY.png"
-                  alt="Openyield logo"
+                  alt="Trone logo"
                   className="h-8 w-8 rounded-lg object-cover border border-gray-500"
                 />
-                <span className="text-xl font-bold">OPY</span>
+                <span className="text-xl font-bold">Trone</span>
               </div>
               <p className="text-muted-foreground">
                 The future of digital asset ownership with guaranteed value floors and automatic appreciation.

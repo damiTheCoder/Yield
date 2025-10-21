@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import { Search, Menu, Gift, Sun, Moon, Check, Loader2 } from "lucide-react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Search, Menu, Gift, Sun, Moon, Check, Loader2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
@@ -9,7 +9,7 @@ import { useApp } from "@/lib/app-state";
 import type { Asset } from "@/lib/app-state";
 import { useTheme } from "@/hooks/useTheme";
 import { useToast } from "@/hooks/use-toast";
-import { formatCurrency, formatCurrencyK } from "@/lib/utils";
+import { cn, formatCurrency, formatCurrencyK } from "@/lib/utils";
 
 type SearchResult = {
   type: "page" | "asset";
@@ -40,7 +40,7 @@ const NAV_LINKS = [
 const Header = () => {
   const { assets } = useApp();
   const navigate = useNavigate();
-  const { theme, setTheme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const isDarkTheme = theme === "dark";
   const { toast } = useToast();
   const [searchOpen, setSearchOpen] = useState(false);
@@ -49,6 +49,22 @@ const Header = () => {
   const [connectingWallet, setConnectingWallet] = useState<string | null>(null);
   const [connectedWallet, setConnectedWallet] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileNetworkOpen, setMobileNetworkOpen] = useState(false);
+  const location = useLocation();
+  const isMobileAssetsView = location.pathname.startsWith("/assets");
+
+  const MOBILE_NETWORK_OPTIONS = [
+    { code: "ALL", id: "all", buttonLabel: "Chains", name: "All chains", image: "/22.png" },
+    { code: "BTC", id: "bitcoin", buttonLabel: "Bitcoin", name: "Bitcoin", image: "/bitcoin.jpeg" },
+    { code: "ETH", id: "ethereum", buttonLabel: "Ethereum", name: "Ethereum", image: "/ethereum.jpeg" },
+    { code: "SOL", id: "solana", buttonLabel: "Solana", name: "Solana", image: "/solana.jpeg" },
+    { code: "EOS", id: "eos", buttonLabel: "EOS", name: "EOS", image: "/eos.jpeg" },
+  ] as const;
+
+  const networkIdToOption = (id: string) => MOBILE_NETWORK_OPTIONS.find((option) => option.id === id) ?? MOBILE_NETWORK_OPTIONS[0];
+  const networkCodeToOption = (code: string) => MOBILE_NETWORK_OPTIONS.find((option) => option.code === code) ?? MOBILE_NETWORK_OPTIONS[0];
+
+  const [selectedHeaderNetwork, setSelectedHeaderNetwork] = useState<string>("ALL");
 
   const staticPages = useMemo<SearchResult[]>(
     () => [
@@ -70,6 +86,12 @@ const Header = () => {
   const orderedAssets = useMemo(() => {
     return [...assets].sort((a, b) => a.name.localeCompare(b.name));
   }, [assets]);
+
+  useEffect(() => {
+    if (!isMobileAssetsView && mobileNetworkOpen) {
+      setMobileNetworkOpen(false);
+    }
+  }, [isMobileAssetsView, mobileNetworkOpen]);
 
   const walletOptions = useMemo<WalletOption[]>(() => {
     const win = typeof window === "undefined" ? undefined : (window as any);
@@ -219,6 +241,27 @@ const Header = () => {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<string>).detail;
+      setSelectedHeaderNetwork(networkIdToOption(detail).code);
+    };
+    window.addEventListener("trone-network-sync", handler as EventListener);
+    return () => window.removeEventListener("trone-network-sync", handler as EventListener);
+  }, []);
+
+  const handleMobileNetworkSelect = (code: string) => {
+    const option = networkCodeToOption(code);
+    setSelectedHeaderNetwork(option.code);
+    setMobileNetworkOpen(false);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("trone-network-change", { detail: option.id }));
+    }
+  };
+
+  const selectedMobileOption = networkCodeToOption(selectedHeaderNetwork);
+
   return (
     <>
       <CommandDialog
@@ -295,20 +338,20 @@ const Header = () => {
         <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex w-full items-center justify-between gap-3 px-4 py-2 md:pl-[19rem] md:pr-6">
           <div className="flex items-center gap-6">
-            <a
-              href="/"
+            <Link
+              to="/"
               className="flex items-center gap-2 hover:opacity-80 transition-smooth md:hidden"
             >
               <img 
                 src="/OPY.png" 
-                alt="Openyield" 
+                alt="Trone" 
                 className="h-7 w-7 rounded-lg object-cover"
               />
-              <span className="text-xl font-bold text-foreground">OPY</span>
-            </a>
+              <span className="text-xl font-bold text-foreground">Trone</span>
+            </Link>
           </div>
 
-          <div className="flex items-center gap-2 md:flex-1 md:gap-3">
+          <div className="flex items-center gap-1 md:flex-1 md:gap-3">
             <Button
               type="button"
               variant="outline"
@@ -332,7 +375,63 @@ const Header = () => {
               <Search className="h-4 w-4" />
             </Button>
 
-            <div className="flex items-center gap-0 rounded-full bg-neutral-800 dark:bg-neutral-800 p-0.5">
+            {isMobileAssetsView && (
+              <div className="relative md:hidden">
+                <Button
+                  variant="ghost"
+                  onClick={() => setMobileNetworkOpen((prev) => !prev)}
+                  className="inline-flex h-10 items-center gap-2 rounded-full bg-muted/70 px-3 text-xs font-semibold text-foreground transition-colors hover:bg-muted/40"
+                >
+                  {selectedMobileOption.image ? (
+                    <img
+                      src={selectedMobileOption.image}
+                      alt={selectedMobileOption.name}
+                      className="h-5 w-5 rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-lg">⚡</span>
+                  )}
+                  <span className="uppercase tracking-wide">
+                    {selectedMobileOption.buttonLabel.toUpperCase()}
+                  </span>
+                  <ChevronDown className="h-3.5 w-3.5" />
+                </Button>
+                {mobileNetworkOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setMobileNetworkOpen(false)} />
+                    <div className="absolute top-full right-0 mt-2 w-44 rounded-3xl bg-background text-foreground shadow-xl z-50 overflow-hidden">
+                      {MOBILE_NETWORK_OPTIONS.map((option) => (
+                        <button
+                          key={option.code}
+                          type="button"
+                          onClick={() => handleMobileNetworkSelect(option.code)}
+                          className={cn(
+                            "flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors",
+                            selectedHeaderNetwork === option.code
+                              ? "bg-muted/70 font-semibold text-foreground"
+                              : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                          )}
+                        >
+                          {option.image ? (
+                            <img
+                              src={option.image}
+                              alt={option.name}
+                              className="h-6 w-6 rounded-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-lg">⚡</span>
+                          )}
+                          <span>{option.name}</span>
+                          {selectedHeaderNetwork === option.code && <span className="ml-auto text-primary">✓</span>}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            <div className="hidden md:flex items-center gap-0 rounded-full bg-neutral-800 dark:bg-neutral-800 p-0.5">
               <Button
                 variant="ghost"
                 size="icon"
@@ -467,26 +566,65 @@ const Header = () => {
                   <div className="absolute top-full right-0 mt-2 w-56 rounded-2xl bg-neutral-900 border border-neutral-800 shadow-xl z-50 overflow-hidden">
                     <nav className="flex flex-col">
                       {NAV_LINKS.map((link) => (
-                        <a
+                        <Link
                           key={link.href}
-                          href={link.href}
-                          onClick={() => setMobileMenuOpen(false)}
+                          to={link.href}
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                          }}
                           className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm transition-colors text-gray-300 hover:bg-neutral-800/50"
                         >
                           {link.label}
-                        </a>
+                        </Link>
                       ))}
                     </nav>
+                    <div className="border-t border-neutral-800 px-4 py-3 text-sm text-gray-300">
+                      <div className="mb-2 font-semibold uppercase tracking-wide text-xs text-gray-400">Appearance</div>
+                      <div className="flex items-center gap-2 rounded-full bg-neutral-800 p-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setTheme("system")}
+                          aria-label="System theme"
+                          className={`h-7 w-7 rounded-full hover:bg-transparent p-0 transition-all ${theme === "system" ? "!bg-white text-black" : "bg-transparent text-gray-400"}`}
+                        >
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <rect x="3" y="3" width="18" height="14" rx="2" strokeWidth="2" />
+                            <line x1="3" y1="20" x2="21" y2="20" strokeWidth="2" />
+                            <line x1="8" y1="17" x2="8" y2="20" strokeWidth="2" />
+                            <line x1="16" y1="17" x2="16" y2="20" strokeWidth="2" />
+                          </svg>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setTheme("dark")}
+                          aria-label="Dark theme"
+                          className={`h-7 w-7 rounded-full hover:bg-transparent p-0 transition-all ${theme === "dark" ? "!bg-white text-black" : "bg-transparent text-gray-400"}`}
+                        >
+                          <Moon className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setTheme("light")}
+                          aria-label="Light theme"
+                          className={`h-7 w-7 rounded-full hover:bg-transparent p-0 transition-all ${theme === "light" ? "!bg-white text-black" : "bg-transparent text-gray-400"}`}
+                        >
+                          <Sun className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </>
               )}
             </div>
           </div>
-          </div>
         </div>
-      </header>
-    </>
-  );
+      </div>
+    </header>
+  </>
+);
 };
 
 export default Header;

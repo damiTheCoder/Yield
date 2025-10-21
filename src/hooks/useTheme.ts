@@ -21,6 +21,7 @@ const getPreferredTheme = (): ThemeMode => {
 const applyTheme = (theme: ThemeMode) => {
   if (typeof document === "undefined") return;
   const actualTheme = theme === "system" ? getSystemTheme() : theme;
+  // Apply the theme directly: 'dark' => dark visuals, 'light' => light visuals
   document.documentElement.setAttribute("data-theme", actualTheme);
   document.documentElement.style.colorScheme = actualTheme;
 };

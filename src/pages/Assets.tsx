@@ -1,6 +1,6 @@
 import { useApp } from "@/lib/app-state";
 import type { Asset } from "@/lib/app-state";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn, formatCurrency, formatCurrencyK } from "@/lib/utils";
 import { useEffect, useMemo, useState } from "react";
@@ -16,11 +16,11 @@ const MAX_TRENDING = 10;
 type Network = "all" | "bitcoin" | "ethereum" | "solana" | "eos";
 
 const NETWORKS = [
-  { id: "all" as const, name: "All networks", icon: "⚡", image: "/_ (22).png" },
-  { id: "bitcoin" as const, name: "Bitcoin", icon: "₿", image: "/Bitcoin.jpeg" },
-  { id: "ethereum" as const, name: "Ethereum", icon: "Ξ", image: "/Ethereum ETH Round Logo Icon PNG.jpeg" },
-  { id: "solana" as const, name: "Solana", icon: "◎", image: "/_Solana Logo_ Poster for Sale by StepupDesign.jpeg" },
-  { id: "eos" as const, name: "EOS", icon: "E", image: "/EOS Logo (EOS).jpeg" },
+  { id: "all" as const, name: "All networks", icon: "⚡", image: "/22.png" },
+  { id: "bitcoin" as const, name: "Bitcoin", icon: "₿", image: "/bitcoin.jpeg" },
+  { id: "ethereum" as const, name: "Ethereum", icon: "Ξ", image: "/ethereum.jpeg" },
+  { id: "solana" as const, name: "Solana", icon: "◎", image: "/solana.jpeg" },
+  { id: "eos" as const, name: "EOS", icon: "E", image: "/eos.jpeg" },
 ];
 
 type AssetsPageProps = {
@@ -181,11 +181,81 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   const { theme } = useTheme();
   const isDarkTheme = theme === "dark";
   const navigate = useNavigate();
+  const location = useLocation();
   const [marketMode, setMarketMode] = useState<"listed" | "live">("listed");
   const [selectedNetwork, setSelectedNetwork] = useState<Network>("all");
   const [showNetworkDropdown, setShowNetworkDropdown] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [gridView, setGridView] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<Network>).detail;
+      if (!detail) return;
+      setSelectedNetwork(detail);
+      setShowNetworkDropdown(false);
+    };
+    window.addEventListener("trone-network-change", handler as EventListener);
+    return () => window.removeEventListener("trone-network-change", handler as EventListener);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.dispatchEvent(new CustomEvent("trone-network-sync", { detail: selectedNetwork }));
+  }, [selectedNetwork]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const marketParam = params.get("market");
+    if (marketParam === "live" || marketParam === "listed") {
+      setMarketMode(marketParam);
+    }
+  }, [location.search]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleToggle = () => {
+      setMarketMode((prev) => (prev === "listed" ? "live" : "listed"));
+    };
+    const handleSet = (event: Event) => {
+      const detail = (event as CustomEvent<"listed" | "live">).detail;
+      if (detail === "live" || detail === "listed") {
+        setMarketMode(detail);
+      }
+    };
+    window.addEventListener("trone-market-toggle", handleToggle);
+    window.addEventListener("trone-market-set", handleSet as EventListener);
+    return () => {
+      window.removeEventListener("trone-market-toggle", handleToggle);
+      window.removeEventListener("trone-market-set", handleSet as EventListener);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.dispatchEvent(new CustomEvent("trone-market-mode", { detail: marketMode }));
+  }, [marketMode]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const current = params.get("market");
+    if (marketMode === "listed" && current) {
+      params.delete("market");
+      const search = params.toString();
+      navigate(
+        { pathname: location.pathname, search: search ? `?${search}` : "" },
+        { replace: true },
+      );
+    } else if (marketMode === "live" && current !== "live") {
+      params.set("market", "live");
+      const search = params.toString();
+      navigate(
+        { pathname: location.pathname, search: search ? `?${search}` : "" },
+        { replace: true },
+      );
+    }
+  }, [marketMode, location.pathname, location.search, navigate]);
 
   const isLiveMarket = marketMode === "live";
   const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -772,84 +842,23 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
         <div className="fixed inset-x-0 bottom-0 z-40 sm:hidden">
           <div className="bg-background/95 backdrop-blur-sm px-4 py-3 shadow-lg">
             <div className="flex items-center justify-between gap-3">
-              {/* Network selector */}
-              <div className="relative">
+              <div className="flex items-center gap-2">
+                <span className={gridView ? "text-muted-foreground" : "text-foreground font-semibold"}>List</span>
+                <Switch checked={gridView} onCheckedChange={(checked) => setGridView(Boolean(checked))} aria-label="Toggle grid view" />
+                <span className={gridView ? "text-foreground font-semibold" : "text-muted-foreground"}>Grid</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{isLiveMarket ? "Live" : "Listed"}</span>
                 <Button
                   type="button"
-                  size="sm"
+                  size="icon"
                   variant="ghost"
-                  onClick={() => setShowNetworkDropdown(!showNetworkDropdown)}
-                  className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold bg-neutral-800 text-white hover:bg-neutral-700 transition-colors"
+                  onClick={handleToggleMarket}
+                  className="h-8 w-8 rounded-full border border-border/50"
+                  style={{ backgroundColor: isLiveMarket ? '#00ff4f' : undefined }}
                 >
-                  {selectedNetworkInfo.image ? (
-                    <img src={selectedNetworkInfo.image} alt={selectedNetworkInfo.name} className="h-5 w-5 rounded-full object-cover" />
-                  ) : (
-                    <span className="text-base">{selectedNetworkInfo.icon}</span>
-                  )}
-                  <span>
-                    {selectedNetwork === "all"
-                      ? selectedNetworkInfo.name.toUpperCase()
-                      : selectedNetworkInfo.name}
-                  </span>
-                  <ChevronDown className="h-3.5 w-3.5" />
+                  <ArrowLeftRight className="h-4 w-4" />
                 </Button>
-                
-                {showNetworkDropdown && (
-                  <>
-                    <div 
-                      className="fixed inset-0 z-40" 
-                      onClick={() => setShowNetworkDropdown(false)}
-                    />
-                    <div className="absolute bottom-full left-0 mb-3 w-48 rounded-2xl bg-neutral-900 shadow-xl z-50 overflow-hidden max-h-60 overflow-y-auto">
-                      {NETWORKS.map((network) => (
-                        <button
-                          key={network.id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedNetwork(network.id);
-                            setShowNetworkDropdown(false);
-                          }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm transition-colors ${
-                            selectedNetwork === network.id
-                              ? "bg-neutral-800 text-white font-semibold"
-                              : "text-gray-300 hover:bg-neutral-800/50"
-                          }`}
-                        >
-                          {network.image ? (
-                            <img src={network.image} alt={network.name} className="h-5 w-5 rounded-full object-cover" />
-                          ) : (
-                            <span className="text-lg">{network.icon}</span>
-                          )}
-                          <span>{network.name}</span>
-                          {selectedNetwork === network.id && (
-                            <span className="ml-auto text-primary">✓</span>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    Listed
-                  </span>
-                  <Switch
-                    checked={isLiveMarket}
-                    onCheckedChange={handleToggleMarket}
-                    style={{ backgroundColor: isLiveMarket ? '#00ff4f' : undefined }}
-                  />
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    Live
-                  </span>
-                </div>
-                {isLiveMarket && (
-                  <span className="relative flex h-4 w-4 items-center justify-center">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ backgroundColor: '#00ff4f' }}></span>
-                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full" style={{ backgroundColor: '#00ff4f' }}></span>
-                  </span>
-                )}
               </div>
             </div>
           </div>

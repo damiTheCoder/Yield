@@ -3,8 +3,10 @@
  * Allows data to persist across page refreshes
  */
 
+import { HybridDexState } from "./hybrid-dex";
+
 const STORAGE_KEY = 'forge-art-hub-state';
-const STORAGE_VERSION = '1.0';
+const STORAGE_VERSION = '1.1';
 
 export interface HuntProgress {
   revealed: string[]; // coordinates that have been opened
@@ -20,6 +22,7 @@ export interface StoredState {
     usd: number;
     coinTags: number;
     lfts: number;
+    clft: number;
     yieldUnits: number;
     realizedRewards: number;
   };
@@ -35,6 +38,7 @@ export interface StoredState {
   assetAvailable: Record<string, number>;
   userAssets: Record<string, { coinTags: number; lfts: number }>;
   huntProgress: Record<string, HuntProgress>; // per-asset hunt progress
+  hybridDex: HybridDexState;
 }
 
 /**
@@ -45,11 +49,17 @@ export function saveState(state: Partial<StoredState>): void {
     const dataToStore: StoredState = {
       version: STORAGE_VERSION,
       timestamp: Date.now(),
-      user: state.user || { usd: 1000, coinTags: 0, lfts: 0, yieldUnits: 0, realizedRewards: 0 },
+      user: state.user || { usd: 1000, coinTags: 0, lfts: 0, clft: 0, yieldUnits: 0, realizedRewards: 0 },
       assets: state.assets || [],
       assetAvailable: state.assetAvailable || {},
       userAssets: state.userAssets || {},
       huntProgress: state.huntProgress || {},
+      hybridDex: state.hybridDex || {
+        currentPrice: 13.13,
+        tradingFee: 0.002,
+        sellers: [],
+        transactions: [],
+      },
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToStore));
   } catch (error) {
@@ -72,6 +82,22 @@ export function loadState(): StoredState | null {
       console.warn('Storage version mismatch, clearing old data');
       clearState();
       return null;
+    }
+
+    if (typeof parsed.user?.clft !== 'number') {
+      parsed.user = {
+        ...parsed.user,
+        clft: parsed.user?.clft ?? 0,
+      };
+    }
+
+    if (!parsed.hybridDex) {
+      parsed.hybridDex = {
+        currentPrice: 13.13,
+        tradingFee: 0.002,
+        sellers: [],
+        transactions: [],
+      };
     }
 
     return parsed;

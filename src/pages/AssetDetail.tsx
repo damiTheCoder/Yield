@@ -8,7 +8,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { useApp } from "@/lib/app-state";
 import { cn, formatCurrency, formatCurrencyK } from "@/lib/utils";
 import { Dot, Image as ImageIcon, LineChart as LineChartIcon } from "lucide-react";
-import { Line, LineChart as RechartsLineChart, XAxis, YAxis } from "recharts";
+import { Bar, BarChart as RechartsBarChart, Cell, Line, LineChart as RechartsLineChart, XAxis, YAxis } from "recharts";
 
 export default function AssetDetail() {
   const { id } = useParams();
@@ -113,6 +113,66 @@ export default function AssetDetail() {
     return mapped;
   }, [asset.id, asset.ticker, currentLiquidity]);
 
+  const analyticsData = useMemo(() => {
+    const totalCycles = Math.max(asset.cycle.cycle, 1);
+    const targetRevenue = Math.max(0, Number(asset.cycle.totalSales.toFixed(2)));
+    const targetPayout = Math.max(0, Number(asset.cycle.accrued.holderRewards.toFixed(2)));
+    const targetLftPerUnit = Number(asset.cycle.lpu.toFixed(2));
+    const safeHuntFee = Math.max(huntFee, 1);
+    const estimatedUsers = targetRevenue > 0 ? Math.max(1, Math.round(targetRevenue / safeHuntFee)) : 0;
+
+    const buildTrend = (target: number, minRatio: number) => {
+      if (totalCycles === 1) return [Number(target.toFixed(2))];
+      const clampedMin = Math.max(0, Math.min(minRatio, 0.95));
+      return Array.from({ length: totalCycles }, (_, index) => {
+        if (index === totalCycles - 1) return Number(target.toFixed(2));
+        const progress = index / (totalCycles - 1);
+        const eased = clampedMin + (1 - clampedMin) * Math.pow(progress, 1.2);
+        return Number((target * eased).toFixed(2));
+      });
+    };
+
+    const revenueTrend = buildTrend(targetRevenue, 0.55);
+    const payoutTrend = buildTrend(targetPayout, 0.4);
+    const lftTrend = buildTrend(targetLftPerUnit, 0.75);
+    const usersTrend =
+      totalCycles === 1
+        ? [estimatedUsers]
+        : Array.from({ length: totalCycles }, (_, index) => {
+            if (index === totalCycles - 1) return estimatedUsers;
+            const progress = index / (totalCycles - 1);
+            const eased = 0.45 + (1 - 0.45) * Math.pow(progress, 1.1);
+            return Math.max(0, Math.round(estimatedUsers * eased));
+          });
+
+    return Array.from({ length: totalCycles }, (_, index) => {
+      const cycle = index + 1;
+      return {
+        cycle,
+        label: `C${cycle}`,
+        users: usersTrend[index] ?? estimatedUsers,
+        revenue: revenueTrend[index] ?? targetRevenue,
+        payout: payoutTrend[index] ?? targetPayout,
+        lftPerUnit: Number((lftTrend[index] ?? targetLftPerUnit).toFixed(2)),
+        volume: revenueTrend[index] ?? targetRevenue,
+      };
+    });
+  }, [asset.cycle.accrued.holderRewards, asset.cycle.cycle, asset.cycle.lpu, asset.cycle.totalSales, huntFee]);
+
+  const [selectedCycleIndex, setSelectedCycleIndex] = useState(0);
+
+  useEffect(() => {
+    if (analyticsData.length > 0) {
+      setSelectedCycleIndex(analyticsData.length - 1);
+    }
+  }, [analyticsData.length]);
+
+  const selectedCycle = analyticsData[selectedCycleIndex] ?? analyticsData[analyticsData.length - 1];
+  const analyticsChartData = analyticsData.map((entry, index) => ({ ...entry, isActive: index === selectedCycleIndex }));
+  const analyticsChartConfig = {
+    volume: { label: "Cycle Revenue", color: "hsl(268 90% 65%)" },
+  } as const;
+
   const formatChartPriceTick = (value: number) => {
     const abs = Math.abs(value);
     if (abs >= 1000) {
@@ -184,6 +244,84 @@ export default function AssetDetail() {
           ))}
         </div>
       </div>
+    </section>
+  );
+
+  const AnalyticsSection = ({ className }: { className?: string }) => (
+    <section className={cn("space-y-4", className)}>
+      <div className="space-y-1">
+        <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Cycle Analytics</h3>
+        <p className="text-xs text-muted-foreground/70">Tap a cycle bar to inspect demand, revenue, and payouts.</p>
+      </div>
+      <div className="rounded-2xl border border-border/40 bg-surface/60 p-3 sm:p-4">
+        <ChartContainer config={analyticsChartConfig} className="h-56 w-full">
+          <RechartsBarChart data={analyticsChartData} margin={{ top: 8, right: 6, left: -12, bottom: 0 }}>
+            <XAxis
+              dataKey="label"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+            />
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              width={42}
+              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+              tickFormatter={(value: number) => formatCurrencyK(value)}
+            />
+            <ChartTooltip
+              cursor={{ fill: "hsl(var(--muted)/20)" }}
+              content={
+                <ChartTooltipContent
+                  labelFormatter={(label) => `Cycle ${label?.toString().replace("C", "")}`}
+                  formatter={(value) => [formatCurrency(Number(value)), "Revenue"]}
+                />
+              }
+            />
+            <Bar
+              dataKey="volume"
+              radius={[8, 8, 6, 6]}
+              onClick={(_, index) => {
+                if (typeof index === "number" && index >= 0) {
+                  setSelectedCycleIndex(Math.min(index, analyticsChartData.length - 1));
+                }
+              }}
+            >
+              {analyticsChartData.map((entry, index) => (
+                <Cell
+                  key={entry.cycle}
+                  cursor="pointer"
+                  fill={entry.isActive ? "hsl(268 90% 65%)" : "hsl(268 46% 32%)"}
+                  opacity={entry.isActive ? 1 : 0.45}
+                />
+              ))}
+            </Bar>
+          </RechartsBarChart>
+        </ChartContainer>
+      </div>
+      {selectedCycle && (
+        <div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
+          <div className="rounded-xl border border-border/40 bg-background/70 p-3">
+            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Cycle</div>
+            <div className="mt-1 text-lg font-semibold text-foreground">#{selectedCycle.cycle}</div>
+          </div>
+          <div className="rounded-xl border border-border/40 bg-background/70 p-3">
+            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Active Users</div>
+            <div className="mt-1 text-lg font-semibold text-foreground">{selectedCycle.users.toLocaleString()}</div>
+          </div>
+          <div className="rounded-xl border border-border/40 bg-background/70 p-3">
+            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Revenue</div>
+            <div className="mt-1 text-lg font-semibold text-emerald-300">{formatCurrency(selectedCycle.revenue)}</div>
+          </div>
+          <div className="rounded-xl border border-border/40 bg-background/70 p-3 sm:col-span-2 lg:col-span-1">
+            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Payout</div>
+            <div className="mt-1 text-lg font-semibold text-foreground">{formatCurrency(selectedCycle.payout)}</div>
+            <div className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground/70">
+              {selectedCycle.lftPerUnit} LFT / unit
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 
@@ -347,9 +485,10 @@ export default function AssetDetail() {
                         orientation="right"
                         axisLine={false}
                         tickLine={false}
-                        width={60}
+                        width={44}
                         tickFormatter={formatChartPriceTick}
-                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12, dx: 6 }}
+                        tickMargin={6}
                         domain={['auto', 'auto']}
                         padding={{ top: 10, bottom: 10 }}
                       />
@@ -408,6 +547,7 @@ export default function AssetDetail() {
             <section className="hidden sm:block">
               <BuyTagSectionContent />
             </section>
+            <AnalyticsSection className="hidden lg:block" />
 
             <section className="sm:hidden space-y-4 pb-4">
               <div className="grid grid-cols-2 gap-x-3 gap-y-4">
@@ -416,7 +556,7 @@ export default function AssetDetail() {
                   <div className="font-mono text-xl font-semibold">{formatPrimaryValue(currentLiquidity)}</div>
                   <div className="text-[10px] text-muted-foreground">Total value</div>
                 </div>
-                <div className="space-y-1">
+                <div className="flex flex-col items-center space-y-1 text-center">
                   <div className="text-[10px] text-muted-foreground">backing reserve</div>
                   <div className="font-mono text-xl font-semibold text-emerald-400">{formatPrimaryValue(backingReserve)}</div>
                   <div className="text-[10px] text-muted-foreground">Seeded liquidity</div>
@@ -426,7 +566,7 @@ export default function AssetDetail() {
                   <div className="font-mono text-xl font-semibold text-blue-400">{formatPrimaryValue(huntFee)}</div>
                   <div className="text-[10px] text-muted-foreground">Hunt entry fee</div>
                 </div>
-                <div className="space-y-1">
+                <div className="flex flex-col items-center space-y-1 text-center">
                   <div className="text-[10px] text-muted-foreground">price per unit</div>
                   <div className="font-mono text-xl font-semibold">{formatPrimaryValue(lpu)}</div>
                   <div className="text-[10px] text-muted-foreground">Redeemable floor</div>
@@ -455,6 +595,7 @@ export default function AssetDetail() {
             </section>
 
             <TransactionHistorySection className="lg:hidden" />
+            <AnalyticsSection className="lg:hidden" />
           </div>
 
           <div className="space-y-6 lg:pt-2">
@@ -465,7 +606,7 @@ export default function AssetDetail() {
                   <div className="font-mono text-2xl font-semibold">{formatPrimaryValue(currentLiquidity)}</div>
                   <div className="text-xs text-muted-foreground">Total value</div>
                 </div>
-                <div className="rounded-2xl border-none bg-transparent p-0 md:border md:border-border/40 md:bg-surface/40 md:p-4">
+                <div className="rounded-2xl border-none bg-transparent p-0 text-center md:border md:border-border/40 md:bg-surface/40 md:p-4 flex flex-col items-center space-y-1">
                   <div className="text-[11px] text-muted-foreground sm:text-xs">backing reserve</div>
                   <div className="font-mono text-2xl font-semibold text-emerald-400">{formatPrimaryValue(backingReserve)}</div>
                   <div className="text-xs text-muted-foreground">Seeded liquidity</div>
@@ -475,7 +616,7 @@ export default function AssetDetail() {
                   <div className="font-mono text-2xl font-semibold text-blue-400">{formatPrimaryValue(huntFee)}</div>
                   <div className="text-xs text-muted-foreground">Hunt entry fee</div>
                 </div>
-                <div className="rounded-2xl border-none bg-transparent p-0 md:border md:border-border/40 md:bg-surface/40 md:p-4">
+                <div className="rounded-2xl border-none bg-transparent p-0 text-center md:border md:border-border/40 md:bg-surface/40 md:p-4 flex flex-col items-center space-y-1">
                   <div className="text-[11px] text-muted-foreground sm:text-xs">price per unit</div>
                   <div className="font-mono text-2xl font-semibold">{formatPrimaryValue(lpu)}</div>
                   <div className="text-xs text-muted-foreground">Redeemable floor</div>
@@ -513,7 +654,7 @@ export default function AssetDetail() {
 
       <div className="sm:hidden">
         {!mobileBuyOpen && (
-          <div className="fixed inset-x-0 bottom-0 z-40 px-4 pb-5">
+          <div className="fixed inset-x-0 bottom-16 z-40 px-4 pb-5">
             <Button
               onClick={() => setMobileBuyOpen(true)}
               className="w-full rounded-2xl py-3 text-base font-semibold text-black shadow-lg"

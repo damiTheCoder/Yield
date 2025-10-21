@@ -12,11 +12,22 @@ import {
   DEFAULT_SPLIT,
 } from "@/domain/tokenomics";
 import { saveState, loadState, clearState, hasStoredState, HuntProgress } from "@/lib/storage";
+import {
+  OrderSide,
+  HybridDexMetrics,
+  HybridDexOrder,
+  HybridDexState,
+  HybridDexTransaction,
+  computeHybridDexMetrics,
+  isPriceWithinFairWindow,
+  seedAggregatedSellers,
+} from "@/lib/hybrid-dex";
 
 type User = {
   usd: number;
   coinTags: number;
   lfts: number; // units held by the user in current cycle
+  clft: number; // converted HybridDEX trading units
   yieldUnits: number; // units in the consolidated index
   realizedRewards: number; // total claimed rewards
 };
@@ -41,7 +52,18 @@ type AppState = {
   assetAvailable: Record<string, number>; // per-asset findable units
   userAssets: Record<string, { coinTags: number; lfts: number }>;
   huntProgress: Record<string, HuntProgress>; // per-asset hunt progress
+  hybridDex: HybridDexState;
+  hybridDexMetrics: HybridDexMetrics;
 };
+
+type PlaceHybridDexLimitOrderResult =
+  | { ok: true; order: HybridDexOrder }
+  | {
+      ok: false;
+      reason: "invalid_order" | "insufficient_clft" | "outside_spwl";
+      lowerBound?: number;
+      upperBound?: number;
+    };
 
 type AppActions = {
   reset: () => void;
@@ -49,6 +71,8 @@ type AppActions = {
   openCoinTags: (count: number, discoveryRate?: number) => { found: number; opened: number };
   redeemFinders: (count: number) => { redeemed: number; payout: number };
   convertToYield: (units: number) => { converted: number };
+  convertLftsToClft: (units: number) => { converted: number };
+  convertAssetLftsToClft: (assetId: string, count: number) => { converted: number };
   endCycle: () => void;
   buyYield: (usdAmount: number) => { units: number };
   sellYield: (units: number) => { usd: number };
@@ -73,6 +97,13 @@ type AppActions = {
   getHuntProgress: (assetId: string) => HuntProgress;
   updateHuntProgress: (assetId: string, progress: HuntProgress) => void;
   claimHuntToken: (assetId: string) => boolean;
+  placeHybridDexLimitOrder: (quantity: number, price: number) => PlaceHybridDexLimitOrderResult;
+  applyHybridDexMarketTrade: (params: {
+    side: OrderSide;
+    usdAmount: number;
+    clftAmount: number;
+    executionPrice: number;
+  }) => void;
 };
 
 const DEFAULT_PARAMS: CycleParams = {
@@ -83,6 +114,47 @@ const DEFAULT_PARAMS: CycleParams = {
 };
 
 const DEFAULT_INDEX: YieldIndex = { aggregatedLiquidity: 0, totalUnits: 0, price: 0 };
+
+const INITIAL_CLFT_PRICE = 13.13;
+const INITIAL_TRADING_FEE = 0.002;
+
+const createDefaultHybridDexState = (): HybridDexState => ({
+  currentPrice: INITIAL_CLFT_PRICE,
+  tradingFee: INITIAL_TRADING_FEE,
+  sellers: seedAggregatedSellers(),
+  transactions: [],
+});
+
+const sanitizeHybridDexState = (state?: Partial<HybridDexState>): HybridDexState => {
+  if (!state) return createDefaultHybridDexState();
+
+  const sellers =
+    Array.isArray(state.sellers) && state.sellers.length > 0
+      ? state.sellers.map<HybridDexOrder>((seller) => ({
+          id: seller.id,
+          owner: seller.owner === "user" ? "user" : "external",
+          source: seller.source ?? (seller.owner === "user" ? "limit" : "aggregated"),
+          type: "sell",
+          price: seller.price ?? INITIAL_CLFT_PRICE,
+          quantity: seller.quantity ?? seller.remaining ?? 0,
+          remaining:
+            typeof seller.remaining === "number"
+              ? seller.remaining
+              : seller.quantity ?? 0,
+          status: seller.status ?? "open",
+          createdAt: seller.createdAt ?? Date.now(),
+        }))
+      : seedAggregatedSellers();
+
+  return {
+    currentPrice:
+      typeof state.currentPrice === "number" ? state.currentPrice : INITIAL_CLFT_PRICE,
+    tradingFee:
+      typeof state.tradingFee === "number" ? state.tradingFee : INITIAL_TRADING_FEE,
+    sellers,
+    transactions: Array.isArray(state.transactions) ? state.transactions : [],
+  };
+};
 
 const AppCtx = createContext<(AppState & AppActions) | null>(null);
 
@@ -106,7 +178,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       const stored = loadState();
       if (stored?.user) return stored.user;
     }
-    return { usd: 1000, coinTags: 0, lfts: 0, yieldUnits: 0, realizedRewards: 0 };
+    return { usd: 1000000, coinTags: 0, lfts: 0, clft: 0, yieldUnits: 0, realizedRewards: 0 };
   });
 
   const [assets, setAssets] = useState<Asset[]>(() => {
@@ -160,6 +232,18 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     return {};
   });
 
+  const [hybridDex, setHybridDex] = useState<HybridDexState>(() => {
+    if (typeof window !== "undefined" && hasStoredState()) {
+      const stored = loadState();
+      if (stored?.hybridDex) {
+        return sanitizeHybridDexState(stored.hybridDex);
+      }
+    }
+    return createDefaultHybridDexState();
+  });
+
+  const hybridDexMetrics = useMemo(() => computeHybridDexMetrics(hybridDex), [hybridDex]);
+
   // Save state to localStorage whenever it changes
   useEffect(() => {
     if (!initialized) {
@@ -172,8 +256,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       assetAvailable,
       userAssets,
       huntProgress,
+      hybridDex,
     });
-  }, [user, assets, assetAvailable, userAssets, huntProgress, initialized]);
+  }, [user, assets, assetAvailable, userAssets, huntProgress, hybridDex, initialized]);
 
   const slugify = useCallback((value: string) => {
     return value
@@ -212,10 +297,11 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setCycle(initializeCycle(DEFAULT_PARAMS, 1));
     setYieldIndex(DEFAULT_INDEX);
     setAvailableToFind(DEFAULT_PARAMS.initialSupply);
-    setUser({ usd: 1000, coinTags: 0, lfts: 0, yieldUnits: 0, realizedRewards: 0 });
+    setUser({ usd: 1000000, coinTags: 0, lfts: 0, clft: 0, yieldUnits: 0, realizedRewards: 0 });
     setAssets(defaultAssets);
     setAssetAvailable(Object.fromEntries(defaultAssets.map((a) => [a.id, a.params.initialSupply])));
     setUserAssets(Object.fromEntries(defaultAssets.map((a) => [a.id, { coinTags: 0, lfts: 0 }])));
+    setHybridDex(createDefaultHybridDexState());
   }, []);
 
   const buyCoinTags = useCallback(
@@ -276,6 +362,21 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       return { converted: toConvert };
     },
     [cycle, yieldIndex, user.lfts]
+  );
+
+  const convertLftsToClft = useCallback(
+    (units: number) => {
+      if (units <= 0 || user.lfts <= 0) return { converted: 0 };
+      const toConvert = Math.min(Math.floor(units), Math.floor(user.lfts));
+      if (toConvert <= 0) return { converted: 0 };
+      setUser((prev) => ({
+        ...prev,
+        lfts: prev.lfts - toConvert,
+        clft: prev.clft + toConvert,
+      }));
+      return { converted: toConvert };
+    },
+    [user.lfts]
   );
 
   const endCycle = useCallback(() => {
@@ -432,6 +533,31 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     [userAssets],
   );
 
+  const convertAssetLftsToClft = useCallback(
+    (assetId: string, count: number) => {
+      const owned = Math.floor(userAssets[assetId]?.lfts ?? 0);
+      const requested = Math.floor(count);
+      const toConvert = Math.min(requested, owned);
+      if (toConvert <= 0) return { converted: 0 };
+
+      setUserAssets((prev) => ({
+        ...prev,
+        [assetId]: {
+          coinTags: prev[assetId]?.coinTags ?? 0,
+          lfts: Math.max(0, (prev[assetId]?.lfts ?? 0) - toConvert),
+        },
+      }));
+
+      setUser((prev) => ({
+        ...prev,
+        clft: prev.clft + toConvert,
+      }));
+
+      return { converted: toConvert };
+    },
+    [userAssets]
+  );
+
   // Hunt-related functions
   const getHuntProgress = useCallback(
     (assetId: string): HuntProgress => {
@@ -478,6 +604,114 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     [assets, assetAvailable]
   );
 
+  const applyHybridDexMarketTrade = useCallback(
+    ({
+      side,
+      usdAmount,
+      clftAmount,
+      executionPrice,
+    }: {
+      side: OrderSide;
+      usdAmount: number;
+      clftAmount: number;
+      executionPrice: number;
+    }) => {
+      const sanitizedUsd = Number.isFinite(usdAmount) ? Math.max(0, usdAmount) : 0;
+      const sanitizedClft = Number.isFinite(clftAmount) ? Math.max(0, clftAmount) : 0;
+      const priceInput = Number.isFinite(executionPrice) ? executionPrice : undefined;
+      const timestamp = Date.now();
+
+      setUser((prev) => {
+        if (side === "buy") {
+          return {
+            ...prev,
+            usd: Math.max(0, prev.usd - sanitizedUsd),
+            clft: prev.clft + sanitizedClft,
+          };
+        }
+        return {
+          ...prev,
+          usd: prev.usd + sanitizedUsd,
+          clft: Math.max(0, prev.clft - sanitizedClft),
+        };
+      });
+
+      setHybridDex((prev) => {
+        const sanitizedPrice = priceInput !== undefined ? Math.max(0, priceInput) : prev.currentPrice;
+        const transaction: HybridDexTransaction = {
+          id: `tx-${timestamp}-${side}`,
+          timestamp,
+          type: side,
+          price: sanitizedPrice,
+          amount: sanitizedClft,
+          counterparty: "user",
+        };
+        const transactions = [...prev.transactions, transaction];
+        return {
+          ...prev,
+          currentPrice: sanitizedPrice,
+          transactions: transactions.slice(-100),
+        };
+      });
+    },
+    []
+  );
+
+  const placeHybridDexLimitOrder = useCallback(
+    (quantity: number, price: number): PlaceHybridDexLimitOrderResult => {
+      const normalizedQuantity = Number(quantity);
+      const normalizedPrice = Number(price);
+
+      if (
+        !Number.isFinite(normalizedQuantity) ||
+        !Number.isFinite(normalizedPrice) ||
+        normalizedQuantity <= 0 ||
+        normalizedPrice <= 0
+      ) {
+        return { ok: false, reason: "invalid_order" };
+      }
+
+      if (normalizedQuantity > user.clft) {
+        return { ok: false, reason: "insufficient_clft" };
+      }
+
+      if (!isPriceWithinFairWindow(normalizedPrice, hybridDexMetrics)) {
+        return {
+          ok: false,
+          reason: "outside_spwl",
+          lowerBound: hybridDexMetrics.lowerBound,
+          upperBound: hybridDexMetrics.upperBound,
+        };
+      }
+
+      const createdAt = Date.now();
+      const order: HybridDexOrder = {
+        id: `limit-${createdAt}`,
+        owner: "user",
+        source: "limit",
+        type: "sell",
+        price: normalizedPrice,
+        quantity: normalizedQuantity,
+        remaining: normalizedQuantity,
+        status: "open",
+        createdAt,
+      };
+
+      setHybridDex((prev) => ({
+        ...prev,
+        sellers: [...prev.sellers, order],
+      }));
+
+      setUser((prev) => ({
+        ...prev,
+        clft: Math.max(0, prev.clft - normalizedQuantity),
+      }));
+
+      return { ok: true, order };
+    },
+    [user.clft, hybridDexMetrics]
+  );
+
   const value = useMemo(
     () => ({
       params,
@@ -489,12 +723,15 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       assetAvailable,
       userAssets,
       huntProgress,
+      hybridDex,
+      hybridDexMetrics,
       // actions
       reset,
       buyCoinTags,
       openCoinTags,
       redeemFinders: redeemFindersAction,
       convertToYield,
+      convertLftsToClft,
       endCycle,
       buyYield,
       sellYield,
@@ -503,9 +740,12 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       openAssetCoinTags,
       discoverAssetLFTs,
       redeemAssetLFTs,
+      convertAssetLftsToClft,
       getHuntProgress,
       updateHuntProgress,
       claimHuntToken,
+      placeHybridDexLimitOrder,
+      applyHybridDexMarketTrade,
       launchAsset: ({ name, ticker, image, summary, params: launchParams, raise }) => {
         const safeName = name.trim() || "Untitled Asset";
         const baseSlug = slugify(ticker.trim() || safeName);
@@ -571,10 +811,16 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       openAssetCoinTags,
       discoverAssetLFTs,
       redeemAssetLFTs,
+      convertAssetLftsToClft,
       getHuntProgress,
       updateHuntProgress,
       claimHuntToken,
+      placeHybridDexLimitOrder,
       slugify,
+      hybridDex,
+      hybridDexMetrics,
+      convertLftsToClft,
+      applyHybridDexMarketTrade,
     ]
   );
 

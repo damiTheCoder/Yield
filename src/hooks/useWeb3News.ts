@@ -46,13 +46,14 @@ async function fetchWeb3News(forceRefresh = false): Promise<Web3NewsItem[]> {
           title: String(item.title),
           url: String(item.url),
           imageUrl: String(item.imageurl || ""),
-          source: String(item.source_info?.name || item.source || ""),
+          source: String((item.source_info?.name || item.source || "").toString()),
           publishedAt: new Date((item.published_on ?? 0) * 1000),
         }))
         .filter((item: Web3NewsItem) => {
           if (!item.imageUrl) return false;
           const source = item.source?.toLowerCase() ?? "";
-          const isSupportedSource = source === "coindesk" || source === "techcrunch";
+          // allow CoinDesk and Bloomberg (and keep TechCrunch as fallback)
+          const isSupportedSource = source.includes("coindesk") || source.includes("bloomberg") || source.includes("techcrunch");
           if (!isSupportedSource) return false;
           return now - item.publishedAt.getTime() <= STALE_THRESHOLD;
         })

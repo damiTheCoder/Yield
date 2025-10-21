@@ -434,7 +434,7 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, lpu, pricePer
             </div>
 
             {/* Input Section (mobile floating bar) */}
-            <div className="sm:hidden fixed inset-x-0 bottom-0 z-40 border-t border-border/40 bg-background/95 px-3 py-3 backdrop-blur-sm shadow-[0_-16px_32px_rgba(0,0,0,0.35)]">
+            <div className="sm:hidden fixed inset-x-0 bottom-12 z-40 border-t border-border/40 bg-background/95 px-3 py-3 backdrop-blur-sm shadow-[0_-16px_32px_rgba(0,0,0,0.35)]">
               <div className="container mx-auto px-0">
                 <div className="flex flex-col gap-2">
                   <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Enter coordinate</div>
