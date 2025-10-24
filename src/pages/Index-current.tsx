@@ -54,7 +54,6 @@ const Navigation = () => {
     { label: "Assets", href: "/assets" },
     { label: "LaunchPad", href: "/coin-tags" },
     { label: "Portfolio", href: "/portfolio" },
-    { label: "Market", href: "/market" },
   ];
 
   return (
@@ -286,7 +285,6 @@ export default function Index() {
               <h3 className="font-semibold text-foreground mb-4">Product</h3>
               <div className="space-y-2">
                 <button onClick={() => navigate('/assets')} className="block text-muted-foreground hover:text-foreground transition-colors">Assets</button>
-                <button onClick={() => navigate('/market')} className="block text-muted-foreground hover:text-foreground transition-colors">Market</button>
                 <button onClick={() => navigate('/portfolio')} className="block text-muted-foreground hover:text-foreground transition-colors">Portfolio</button>
               </div>
             </div>

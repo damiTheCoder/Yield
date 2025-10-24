@@ -9,11 +9,11 @@ import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound";
 import CoinTags from "./pages/CoinTags";
 import Portfolio from "./pages/Portfolio";
-import Market from "./pages/Market";
 import { AppStateProvider } from "@/lib/app-state";
 import Assets from "./pages/Assets";
 import ViewAllAssets from "./pages/ViewAllAssets";
 import AssetDetail from "./pages/AssetDetail";
+import AssetTokenTrading from "./pages/AssetTokenTrading";
 import Revenue from "./pages/Revenue";
 import HuntPage from "./pages/Hunt";
 import Notifications from "./pages/Notifications";
@@ -48,13 +48,13 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/coin-tags" element={<CoinTags />} />
               <Route path="/portfolio" element={<Portfolio />} />
-              <Route path="/market" element={<Market />} />
-              <Route path="/market/:id/hunt" element={<HuntPage />} />
               <Route path="/revenue" element={<Revenue />} />
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/assets" element={<Assets />} />
               <Route path="/assets/all" element={<ViewAllAssets />} />
               <Route path="/assets/:id" element={<AssetDetail />} />
+              <Route path="/assets/:id/token" element={<AssetTokenTrading />} />
+              <Route path="/assets/:id/hunt" element={<HuntPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

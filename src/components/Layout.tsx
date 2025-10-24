@@ -1,9 +1,9 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
-import { Layers, DollarSign, Store, ArrowLeftRight } from "lucide-react";
+import { Layers, DollarSign, Bell, ArrowLeftRight } from "lucide-react";
 
 interface LayoutProps {
   children: ReactNode;
@@ -12,47 +12,82 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const [isLiveMobileMarket, setIsLiveMobileMarket] = useState(false);
   const hideShell = pathname === "/";
-  const isAssetsRoute = pathname.startsWith("/assets");
-
-  const mobileNavLinks = [
-    { label: "Assets", href: "/assets", icon: Layers },
-    { label: "Portfolio", href: "/portfolio", icon: DollarSign },
-    { label: "Market", href: "/market", icon: Store },
-  ];
-
-  const isActivePath = (href: string) =>
-    pathname === href || (href !== "/" && pathname.startsWith(href));
+  const [assetsMarketMode, setAssetsMarketMode] = useState<"listed" | "live" | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const handleMarketModeUpdate = (event: Event) => {
+
+    const handleAssetsMarketMode = (event: Event) => {
       const detail = (event as CustomEvent<"listed" | "live">).detail;
-      if (detail === "live" || detail === "listed") {
-        setIsLiveMobileMarket(detail === "live");
-      }
+      if (!detail) return;
+      setAssetsMarketMode(detail);
     };
-    window.addEventListener("trone-market-mode", handleMarketModeUpdate as EventListener);
-    return () => window.removeEventListener("trone-market-mode", handleMarketModeUpdate as EventListener);
+
+    window.addEventListener("trone-assets-market-mode", handleAssetsMarketMode as EventListener);
+    return () => {
+      window.removeEventListener("trone-assets-market-mode", handleAssetsMarketMode as EventListener);
+    };
   }, []);
 
   useEffect(() => {
-    if (!isAssetsRoute) {
-      setIsLiveMobileMarket(false);
+    if (!pathname.startsWith("/assets")) {
+      setAssetsMarketMode(null);
     }
-  }, [isAssetsRoute]);
+  }, [pathname]);
 
-  const handleMobileMarketToggle = () => {
-    const nextMode: "live" | "listed" = isLiveMobileMarket ? "listed" : "live";
-    if (!isAssetsRoute) {
-      navigate(`/assets?market=${nextMode}`);
+  const handleToggleAssetsMarket = useCallback(() => {
+    if (typeof window === "undefined") return;
+    window.dispatchEvent(new CustomEvent("trone-assets-toggle-market"));
+  }, []);
+
+  const handleSwitchClick = useCallback(() => {
+    if (!pathname.startsWith("/assets")) {
+      navigate("/assets");
       return;
     }
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("trone-market-set", { detail: nextMode }));
-    }
-  };
+    handleToggleAssetsMarket();
+  }, [handleToggleAssetsMarket, navigate, pathname]);
+
+  const mobileNavLinks = useMemo(() => {
+    const links = [
+      { type: "link" as const, label: "Assets", href: "/assets", icon: Layers },
+      { type: "link" as const, label: "Portfolio", href: "/portfolio", icon: DollarSign },
+      { type: "link" as const, label: "Notifications", href: "/notifications", icon: Bell },
+      ({
+        type: "action" as const,
+        label:
+          assetsMarketMode === "live"
+            ? "Live"
+            : assetsMarketMode === "listed"
+              ? "Listed"
+              : "Switch",
+        icon: ArrowLeftRight,
+        active: pathname.startsWith("/assets") && assetsMarketMode === "live",
+        onClick: handleSwitchClick,
+      } satisfies {
+        type: "action";
+        label: string;
+        icon: typeof ArrowLeftRight;
+        active: boolean;
+        onClick: () => void;
+      }),
+    ];
+
+    return links as Array<
+      | { type: "link"; label: string; href: string; icon: typeof Layers }
+      | {
+          type: "action";
+          label: string;
+          icon: typeof ArrowLeftRight;
+          active: boolean;
+          onClick: () => void;
+        }
+    >;
+  }, [assetsMarketMode, handleSwitchClick, pathname]);
+
+  const isActivePath = (href: string) =>
+    pathname === href || (href !== "/" && pathname.startsWith(href));
 
   return (
     <div
@@ -70,16 +105,22 @@ const Layout = ({ children }: LayoutProps) => {
       <main
         className={cn(
           "transition-all duration-300",
-          hideShell ? "" : "md:ml-[19rem] md:mr-6",
-          !hideShell ? "pb-32 md:pb-8" : ""
+          hideShell ? "pb-24" : "md:ml-[19rem] md:mr-6 pb-32 md:pb-8"
         )}
       >
         {children}
       </main>
       {!hideShell && (
         <nav className="md:hidden fixed inset-x-0 bottom-0 z-40">
-          <div className="flex items-center justify-between gap-2 bg-background/95 px-3 py-1 backdrop-blur-lg">
-            {mobileNavLinks.map(({ label, href, icon: Icon }) => {
+          <div
+            className={cn(
+              "flex items-center justify-between gap-2 px-3 py-1 backdrop-blur-lg",
+              hideShell ? "bg-background/90" : "bg-background/95"
+            )}
+          >
+          {mobileNavLinks.map((item) => {
+            if (item.type === "link") {
+              const { label, href, icon: Icon } = item;
               const active = isActivePath(href);
               return (
                 <Link
@@ -92,31 +133,38 @@ const Layout = ({ children }: LayoutProps) => {
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  <Icon className={cn("h-4 w-4", active ? "text-emerald-400" : "text-muted-foreground")} />
+                  <Icon
+                    className={cn(
+                      "h-4 w-4",
+                      active ? "text-emerald-400" : "text-muted-foreground"
+                    )}
+                  />
                   <span>{label}</span>
                 </Link>
               );
-            })}
-            <button
-              type="button"
-              onClick={handleMobileMarketToggle}
-              className={cn(
-                "flex flex-1 flex-col items-center gap-1 px-2 py-1 text-[11px] font-semibold transition-colors",
-                isAssetsRoute && isLiveMobileMarket
-                  ? "text-emerald-400"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-              aria-pressed={isAssetsRoute && isLiveMobileMarket}
-              aria-label="Toggle market view"
-            >
-              <ArrowLeftRight
+            }
+
+            const { label, icon: Icon, active, onClick } = item;
+            return (
+              <button
+                key={`action-${label}`}
+                type="button"
+                onClick={onClick}
                 className={cn(
-                  "h-4 w-4",
-                  isAssetsRoute && isLiveMobileMarket ? "text-emerald-400" : "text-muted-foreground"
+                  "flex flex-1 flex-col items-center gap-1 px-2 py-1 text-[11px] font-semibold transition-colors",
+                  active ? "text-emerald-400" : "text-muted-foreground hover:text-foreground"
                 )}
-              />
-              <span>{isLiveMobileMarket ? "Live" : "Listed"}</span>
-            </button>
+              >
+                <Icon
+                  className={cn(
+                    "h-4 w-4",
+                    active ? "text-emerald-400" : "text-muted-foreground"
+                  )}
+                />
+                <span>{label}</span>
+              </button>
+            );
+          })}
           </div>
         </nav>
       )}

@@ -13,9 +13,10 @@ import { Bar, BarChart as RechartsBarChart, Cell, Line, LineChart as RechartsLin
 export default function AssetDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { assets, user, userAssets, assetAvailable, buyAssetCoinTags } = useApp();
+  const { assets, user, userAssets, assetAvailable, buyAssetCoinTags, getAssetTokenInfo } = useApp();
 
   const asset = useMemo(() => assets.find((a) => a.id === id), [assets, id]);
+  const tokenInfo = useMemo(() => (asset ? getAssetTokenInfo(asset.id) : null), [asset, getAssetTokenInfo]);
   const ua = userAssets[id ?? ""] || { coinTags: 0, lfts: 0 };
   const findable = assetAvailable[id ?? ""] ?? 0;
 
@@ -224,7 +225,7 @@ export default function AssetDetail() {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Transaction History</h3>
-          <p className="text-xs text-muted-foreground/70">Latest fills from the live market</p>
+          <p className="text-xs text-muted-foreground/70">Latest simulated fills from the token book</p>
         </div>
         <span className="hidden text-[10px] uppercase tracking-wide text-muted-foreground/60 sm:inline">Last 24h</span>
       </div>
@@ -414,7 +415,7 @@ export default function AssetDetail() {
         )}
         {showHuntPrompt && (
           <Button
-            onClick={() => navigate(`/market/${asset.id}/hunt`)}
+            onClick={() => navigate(`/assets/${asset.id}/hunt`)}
             className="h-11 w-full rounded-full border border-emerald-400/60 bg-transparent text-emerald-300 hover:bg-emerald-400/10"
           >
             Start Hunt
@@ -548,6 +549,28 @@ export default function AssetDetail() {
               <BuyTagSectionContent />
             </section>
             <AnalyticsSection className="hidden lg:block" />
+            {tokenInfo && (
+              <section className="hidden lg:block">
+                <Card className="rounded-2xl border border-border/50 bg-surface/50 px-5 py-6">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="space-y-1 text-sm">
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">Ecosystem Token</p>
+                      <p className="font-semibold text-foreground">{tokenInfo.symbol}</p>
+                      <p className="text-xs text-muted-foreground/70">
+                        {tokenInfo.unlocked
+                          ? "Token trading is active for this collection."
+                          : "Token trading unlocks once all LFTs are discovered."}
+                      </p>
+                    </div>
+                    {tokenInfo.unlocked ? (
+                      <Button size="sm" onClick={() => navigate(`/assets/${asset.id}/token`)}>
+                        Token Trading
+                      </Button>
+                    ) : null}
+                  </div>
+                </Card>
+              </section>
+            )}
 
             <section className="sm:hidden space-y-4 pb-4">
               <div className="grid grid-cols-2 gap-x-3 gap-y-4">
@@ -596,6 +619,27 @@ export default function AssetDetail() {
 
             <TransactionHistorySection className="lg:hidden" />
             <AnalyticsSection className="lg:hidden" />
+            {tokenInfo && (
+              <section className="lg:hidden">
+                <div className="rounded-2xl border border-border/40 bg-surface/50 px-4 py-5 space-y-3">
+                  <div className="space-y-1 text-xs uppercase tracking-wide text-muted-foreground">
+                    <div className="text-sm font-semibold text-foreground">{tokenInfo.symbol}</div>
+                    <div>Status: {tokenInfo.unlocked ? "Trading Enabled" : "Locked until discovery"}</div>
+                    <div>Supply: <span className="font-mono text-sm text-foreground">{tokenInfo.supply.toLocaleString()}</span></div>
+                    <div>Token Price: <span className="font-mono text-sm text-foreground">{tokenInfo.price > 0 ? formatCurrency(tokenInfo.price) : "—"}</span></div>
+                  </div>
+                  {tokenInfo.unlocked ? (
+                    <Button className="w-full" onClick={() => navigate(`/assets/${asset.id}/token`)}>
+                      Token Trading
+                    </Button>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground">
+                      Tokens unlock once all LFTs are discovered for the launch cycle.
+                    </p>
+                  )}
+                </div>
+              </section>
+            )}
           </div>
 
           <div className="space-y-6 lg:pt-2">
@@ -654,7 +698,7 @@ export default function AssetDetail() {
 
       <div className="sm:hidden">
         {!mobileBuyOpen && (
-          <div className="fixed inset-x-0 bottom-16 z-40 px-4 pb-5">
+          <div className="fixed inset-x-0 bottom-12 z-40 px-4 pb-5">
             <Button
               onClick={() => setMobileBuyOpen(true)}
               className="w-full rounded-2xl py-3 text-base font-semibold text-black shadow-lg"

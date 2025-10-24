@@ -30,12 +30,13 @@ type WalletOption = {
 
 const NAV_LINKS = [
   { label: "Assets", href: "/assets" },
-  { label: "LaunchPad", href: "/coin-tags" },
   { label: "Portfolio", href: "/portfolio" },
-  { label: "Revenue", href: "/revenue" },
-  { label: "Market", href: "/market" },
   { label: "Notifications", href: "/notifications" },
+  { label: "LaunchPad", href: "/coin-tags" },
+  { label: "Revenue", href: "/revenue" },
 ];
+
+const BOTTOM_NAV_PATHS = new Set<string>(["/assets", "/portfolio", "/notifications"]);
 
 const Header = () => {
   const { assets } = useApp();
@@ -54,7 +55,7 @@ const Header = () => {
   const isMobileAssetsView = location.pathname.startsWith("/assets");
 
   const MOBILE_NETWORK_OPTIONS = [
-    { code: "ALL", id: "all", buttonLabel: "Chains", name: "All chains", image: "/22.png" },
+    { code: "ALL", id: "all", buttonLabel: "Chain", name: "All chains", image: "/22.png" },
     { code: "BTC", id: "bitcoin", buttonLabel: "Bitcoin", name: "Bitcoin", image: "/bitcoin.jpeg" },
     { code: "ETH", id: "ethereum", buttonLabel: "Ethereum", name: "Ethereum", image: "/ethereum.jpeg" },
     { code: "SOL", id: "solana", buttonLabel: "Solana", name: "Solana", image: "/solana.jpeg" },
@@ -73,7 +74,6 @@ const Header = () => {
       { type: "page", label: "LaunchPad", path: "/coin-tags", description: "Configure a new campaign" },
       { type: "page", label: "Portfolio", path: "/portfolio", description: "View balances and redeem" },
       { type: "page", label: "Revenue", path: "/revenue", description: "Track live revenue splits" },
-      { type: "page", label: "Market", path: "/market", description: "Marketplace overview" },
       { type: "page", label: "Notifications", path: "/notifications", description: "Hunt alerts and activity" },
     ],
     [],
@@ -143,6 +143,16 @@ const Header = () => {
       },
     ];
   }, [walletDialogOpen]);
+
+  const getThemeButtonClass = useCallback(
+    (mode: string) => {
+      const isActive = theme === mode;
+      const activeClass = isDarkTheme ? "!bg-white text-black" : "!bg-gray-900 text-white";
+      const inactiveClass = isDarkTheme ? "bg-transparent text-gray-400" : "bg-transparent text-gray-500";
+      return cn("h-7 w-7 rounded-full hover:bg-transparent p-0 transition-all", isActive ? activeClass : inactiveClass);
+    },
+    [theme, isDarkTheme],
+  );
 
   const renderAssetCommandItem = (asset: Asset, context: "trending" | "all") => (
     <CommandItem
@@ -380,7 +390,7 @@ const Header = () => {
                 <Button
                   variant="ghost"
                   onClick={() => setMobileNetworkOpen((prev) => !prev)}
-                  className="inline-flex h-10 items-center gap-2 rounded-full bg-muted/70 px-3 text-xs font-semibold text-foreground transition-colors hover:bg-muted/40"
+                  className="inline-flex h-8 items-center gap-2 rounded-full bg-muted/70 px-2.5 text-sm font-semibold leading-none text-foreground transition-colors hover:bg-muted/40"
                 >
                   {selectedMobileOption.image ? (
                     <img
@@ -391,8 +401,8 @@ const Header = () => {
                   ) : (
                     <span className="text-lg">⚡</span>
                   )}
-                  <span className="uppercase tracking-wide">
-                    {selectedMobileOption.buttonLabel.toUpperCase()}
+                  <span className="sr-only">
+                    {selectedMobileOption.buttonLabel}
                   </span>
                   <ChevronDown className="h-3.5 w-3.5" />
                 </Button>
@@ -576,30 +586,52 @@ const Header = () => {
               {mobileMenuOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setMobileMenuOpen(false)} />
-                  <div className="absolute top-full right-0 mt-2 w-56 rounded-2xl bg-neutral-900 border border-neutral-800 shadow-xl z-50 overflow-hidden">
+                  <div
+                    className={cn(
+                      "absolute top-full right-0 mt-2 w-56 rounded-2xl shadow-xl z-50 overflow-hidden divide-y text-center border",
+                      isDarkTheme
+                        ? "bg-neutral-900 border-neutral-800 divide-neutral-800/70 text-gray-200"
+                        : "bg-white border-gray-200 divide-gray-200/80 text-gray-900",
+                    )}
+                  >
                     <nav className="flex flex-col">
-                      {NAV_LINKS.map((link) => (
+                      {NAV_LINKS.filter((link) => !BOTTOM_NAV_PATHS.has(link.href)).map((link) => (
                         <Link
                           key={link.href}
                           to={link.href}
                           onClick={() => {
                             setMobileMenuOpen(false);
                           }}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm transition-colors text-gray-300 hover:bg-neutral-800/50"
+                          className={cn(
+                            "block w-full px-4 py-3 text-sm font-medium transition-colors",
+                            isDarkTheme ? "text-gray-200 hover:bg-neutral-800/60" : "text-gray-900 hover:bg-gray-100",
+                          )}
                         >
                           {link.label}
                         </Link>
                       ))}
                     </nav>
-                    <div className="border-t border-neutral-800 px-4 py-3 text-sm text-gray-300">
-                      <div className="mb-2 font-semibold uppercase tracking-wide text-xs text-gray-400">Appearance</div>
-                      <div className="flex items-center gap-2 rounded-full bg-neutral-800 p-1">
+                    <div className={cn("px-4 py-4 text-sm", isDarkTheme ? "text-gray-200" : "text-gray-800")}>
+                      <div
+                        className={cn(
+                          "mb-3 text-center font-semibold uppercase tracking-wide text-xs",
+                          isDarkTheme ? "text-gray-400" : "text-gray-500",
+                        )}
+                      >
+                        Appearance
+                      </div>
+                      <div
+                        className={cn(
+                          "flex items-center justify-center gap-2 rounded-full p-1",
+                          isDarkTheme ? "bg-neutral-800" : "bg-gray-100",
+                        )}
+                      >
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => setTheme("system")}
                           aria-label="System theme"
-                          className={`h-7 w-7 rounded-full hover:bg-transparent p-0 transition-all ${theme === "system" ? "!bg-white text-black" : "bg-transparent text-gray-400"}`}
+                          className={getThemeButtonClass("system")}
                         >
                           <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <rect x="3" y="3" width="18" height="14" rx="2" strokeWidth="2" />
@@ -613,7 +645,7 @@ const Header = () => {
                           size="icon"
                           onClick={() => setTheme("dark")}
                           aria-label="Dark theme"
-                          className={`h-7 w-7 rounded-full hover:bg-transparent p-0 transition-all ${theme === "dark" ? "!bg-white text-black" : "bg-transparent text-gray-400"}`}
+                          className={getThemeButtonClass("dark")}
                         >
                           <Moon className="h-3.5 w-3.5" />
                         </Button>
@@ -622,7 +654,7 @@ const Header = () => {
                           size="icon"
                           onClick={() => setTheme("light")}
                           aria-label="Light theme"
-                          className={`h-7 w-7 rounded-full hover:bg-transparent p-0 transition-all ${theme === "light" ? "!bg-white text-black" : "bg-transparent text-gray-400"}`}
+                          className={getThemeButtonClass("light")}
                         >
                           <Sun className="h-3.5 w-3.5" />
                         </Button>

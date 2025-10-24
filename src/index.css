@@ -89,6 +89,17 @@
   animation-delay: -18s;
 }
 
+@keyframes nav-drop {
+  0% {
+    transform: translateY(-16px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 .font-glacial,
 .font-landing {
   font-family: "Glacial Indifference", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -219,6 +230,43 @@
 
 
 @layer components {
+  .portfolio-badge {
+    border: 1px solid #34d399;
+    background-color: #d1fae5;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+
+  .portfolio-badge__text {
+    color: #047857;
+  }
+
+  html[data-theme="dark"] .portfolio-badge {
+    border-color: #059669;
+    background-color: #064e3b;
+  }
+
+  html[data-theme="dark"] .portfolio-badge__text {
+    color: #d1fae5;
+  }
+
+  html[data-theme="dark"] .listed-asset-card,
+  html[data-theme="dark"] .live-asset-card {
+    border: none !important;
+    border-width: 0 !important;
+    border-style: none !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+
+  html[data-theme="dark"] .listed-asset-card > div:first-child,
+  html[data-theme="dark"] .live-asset-card > div:first-child {
+    border: none !important;
+    border-width: 0 !important;
+    border-style: none !important;
+    border-color: transparent !important;
+  }
+
   .hunt-spreadsheet-wrap {
     position: relative;
     width: 100%;

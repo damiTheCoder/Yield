@@ -1,23 +1,14 @@
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "react-router-dom";
 import Web3News from "./Web3News";
-import {
-  Layers,
-  Rocket,
-  DollarSign,
-  LineChart,
-  Store,
-  Bell,
-  type LucideIcon,
-} from "lucide-react";
+import { Layers, Rocket, DollarSign, LineChart, Bell, type LucideIcon } from "lucide-react";
 
 const NAV_LINKS: Array<{ label: string; href: string; icon: LucideIcon }> = [
   { label: "Assets", href: "/assets", icon: Layers },
-  { label: "LaunchPad", href: "/coin-tags", icon: Rocket },
   { label: "Portfolio", href: "/portfolio", icon: DollarSign },
-  { label: "Revenue", href: "/revenue", icon: LineChart },
-  { label: "Market", href: "/market", icon: Store },
   { label: "Notifications", href: "/notifications", icon: Bell },
+  { label: "LaunchPad", href: "/coin-tags", icon: Rocket },
+  { label: "Revenue", href: "/revenue", icon: LineChart },
 ];
 
 const Sidebar = () => {

@@ -76,7 +76,7 @@ export default function HuntPage() {
 
   useEffect(() => {
     if (!asset) {
-      const timeout = setTimeout(() => navigate("/market"), 2000);
+      const timeout = setTimeout(() => navigate("/assets"), 2000);
       return () => clearTimeout(timeout);
     }
   }, [asset, navigate]);
@@ -86,8 +86,8 @@ export default function HuntPage() {
       <div className="min-h-screen">
         <main className="container mx-auto px-4 py-20 text-center space-y-4">
           <h1 className="text-2xl font-semibold">Asset not found</h1>
-          <p className="text-muted-foreground">Redirecting you back to the market…</p>
-          <Button onClick={() => navigate("/market")}>Return to Market</Button>
+          <p className="text-muted-foreground">Redirecting you back to the assets directory…</p>
+          <Button onClick={() => navigate("/assets")}>Return to Assets</Button>
         </main>
       </div>
     );
@@ -434,7 +434,7 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, lpu, pricePer
             </div>
 
             {/* Input Section (mobile floating bar) */}
-            <div className="sm:hidden fixed inset-x-0 bottom-12 z-40 border-t border-border/40 bg-background/95 px-3 py-3 backdrop-blur-sm shadow-[0_-16px_32px_rgba(0,0,0,0.35)]">
+            <div className="sm:hidden fixed inset-x-0 bottom-12 z-40 border-t border-border/40 bg-background/95 px-3 py-3 backdrop-blur-sm">
               <div className="container mx-auto px-0">
                 <div className="flex flex-col gap-2">
                   <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Enter coordinate</div>

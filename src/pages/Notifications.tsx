@@ -124,7 +124,7 @@ export default function Notifications() {
                     {(notification.type === 'purchased_hunt' || notification.type === 'new_hunt') && (
                       <div className="flex gap-2 mt-3">
                         <a
-                          href={`/market/${notification.asset.id}/hunt`}
+                          href={`/assets/${notification.asset.id}/token`}
                           className="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
                           style={{ backgroundColor: '#00ff4f', color: 'black' }}
                         >
