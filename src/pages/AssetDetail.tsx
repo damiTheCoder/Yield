@@ -45,7 +45,7 @@ export default function AssetDetail() {
   const currentLiquidity = asset.cycle.reserve;
   const backingReserve = asset.params.initialReserve;
   const lpu = asset.cycle.lpu;
-  const totalSupply = asset.params.initialSupply;
+  const totalSupply = asset.cycle.initialSupply;
   const discovered = Math.max(0, totalSupply - findable);
   const discoveryPercent = totalSupply > 0 ? (discovered / totalSupply) * 100 : 0;
   const huntFee = Math.max(4.2, lpu * 0.4);
@@ -383,8 +383,8 @@ export default function AssetDetail() {
         </div>
       </div>
       <Button
-        className="h-12 w-full rounded-full text-base font-semibold text-black"
-        style={{ backgroundColor: '#00ff4f' }}
+        className="h-12 w-full rounded-full text-base font-semibold text-white"
+        style={{ backgroundColor: '#8B5CFF' }}
         disabled={user.usd < huntFee || ua.coinTags >= 1}
         onClick={() => {
           if (ua.coinTags >= 1) {
@@ -407,7 +407,7 @@ export default function AssetDetail() {
           <p
             className={cn(
               "text-[11px]",
-              purchaseMessage.toLowerCase().includes("insufficient") ? "text-rose-400" : "text-emerald-300",
+              purchaseMessage.toLowerCase().includes("insufficient") ? "text-rose-400" : "text-violet-300",
             )}
           >
             {purchaseMessage}
@@ -416,7 +416,7 @@ export default function AssetDetail() {
         {showHuntPrompt && (
           <Button
             onClick={() => navigate(`/assets/${asset.id}/hunt`)}
-            className="h-11 w-full rounded-full border border-emerald-400/60 bg-transparent text-emerald-300 hover:bg-emerald-400/10"
+            className="h-11 w-full rounded-full border border-violet-400/60 bg-transparent text-violet-300 hover:bg-violet-400/10"
           >
             Start Hunt
           </Button>
@@ -701,8 +701,8 @@ export default function AssetDetail() {
           <div className="fixed inset-x-0 bottom-12 z-40 px-4 pb-5">
             <Button
               onClick={() => setMobileBuyOpen(true)}
-              className="w-full rounded-2xl py-3 text-base font-semibold text-black shadow-lg"
-              style={{ backgroundColor: '#00ff4f' }}
+              className="w-full rounded-2xl py-3 text-base font-semibold text-white shadow-lg"
+              style={{ backgroundColor: "#8B5CFF" }}
             >
               Tap to buy tag
             </Button>

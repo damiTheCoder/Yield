@@ -1,18 +1,21 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useApp } from "@/lib/app-state";
+import { useApp, HUNT_TOKEN_SUPPLY, HUNT_TOKEN_BUNDLE } from "@/lib/app-state";
 import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
 const LETTERS = "ABCDEFGHIJKLMNOPQRST".split("");
 const ROWS = Array.from({ length: 20 }, (_, i) => i + 1);
-const MAX_TOKENS = 100;
+const TOTAL_HUNT_TOKENS = HUNT_TOKEN_SUPPLY;
+const TOKEN_BUNDLE = HUNT_TOKEN_BUNDLE;
 
 type HuntData = {
   boxes: string[];
   values: Record<string, string>;
   winningCoordinates: Set<string>; // Only these coordinates contain tokens
+  tokenBundles: Record<string, number>;
+  totalTokens: number;
 };
 
 function createSeededRandom(seedString: string) {
@@ -60,11 +63,15 @@ function generateHuntData(seed: string): HuntData {
   // Select boxes to display (320 boxes)
   const boxes: string[] = shuffled.slice(0, 320);
   
-  // Only 30-40% of boxes actually contain tokens (makes it challenging but not impossible)
   const numWinningBoxes = Math.floor(boxes.length * 0.35); // ~112 winning boxes out of 320
-  const winningCoordinates = new Set(boxes.slice(0, numWinningBoxes));
+  const winningBoxes = boxes.slice(0, numWinningBoxes);
+  const winningCoordinates = new Set(winningBoxes);
+  const bundles: Record<string, number> = {};
+  winningBoxes.forEach((coord) => {
+    bundles[coord] = TOKEN_BUNDLE;
+  });
   
-  return { boxes, values, winningCoordinates };
+  return { boxes, values, winningCoordinates, tokenBundles: bundles, totalTokens: TOTAL_HUNT_TOKENS };
 }
 
 export default function HuntPage() {
@@ -99,9 +106,7 @@ export default function HuntPage() {
       assetName={asset.name}
       ticker={asset.ticker}
       cycleNumber={asset.cycle.cycle}
-      lpu={asset.cycle.lpu}
-      pricePerUnit={asset.cycle.lpu}
-      initialSupply={asset.params.initialSupply}
+      pricePerUnit={asset.cycle.reserve / TOTAL_HUNT_TOKENS}
       image={asset.image}
     />
   );
@@ -112,13 +117,11 @@ type HuntExperienceProps = {
   assetName: string;
   ticker?: string;
   cycleNumber: number;
-  lpu: number;
   pricePerUnit: number;
-  initialSupply: number;
   image: string;
 };
 
-function HuntExperience({ assetId, assetName, ticker, cycleNumber, lpu, pricePerUnit, initialSupply, image }: HuntExperienceProps) {
+function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit, image }: HuntExperienceProps) {
   const { getHuntProgress, updateHuntProgress, claimHuntToken } = useApp();
   
   // Load saved progress or initialize
@@ -137,13 +140,13 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, lpu, pricePer
   const [inputValue, setInputValue] = useState("");
   const [foundTokens, setFoundTokens] = useState(() => {
     const saved = getHuntProgress(assetId);
-    return saved.foundTokens;
+    return Math.min(saved.foundTokens, TOTAL_HUNT_TOKENS);
   });
   const [status, setStatus] = useState<string>("");
   const [statusType, setStatusType] = useState<"idle" | "success" | "error">("idle");
 
-  const maxTokens = Math.min(MAX_TOKENS, initialSupply);
   const huntData = useMemo(() => generateHuntData(assetId), [assetId]);
+  const maxTokens = huntData.totalTokens || TOTAL_HUNT_TOKENS;
 
   // Reset when switching to a different asset
   useEffect(() => {
@@ -151,13 +154,14 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, lpu, pricePer
     setRevealed(new Set(saved.revealed));
     setMatched(new Set(saved.matched));
     setFailed(new Set(saved.failed || [])); // Restore failed attempts from saved progress
-    setFoundTokens(saved.foundTokens);
+    setFoundTokens(Math.min(saved.foundTokens, huntData.totalTokens || TOTAL_HUNT_TOKENS));
     setInputValue("");
     setStatus("");
     setStatusType("idle");
-  }, [assetId, getHuntProgress]);
+  }, [assetId, getHuntProgress, huntData.totalTokens]);
 
   const walletValue = foundTokens * pricePerUnit;
+  const progressRatio = maxTokens > 0 ? foundTokens / maxTokens : 0;
 
   const handleReveal = useCallback((coordinate: string) => {
     setRevealed((prevRevealed) => {
@@ -231,8 +235,18 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, lpu, pricePer
       return;
     }
     
+    const bundle = huntData.tokenBundles[coord] ?? 0;
+    if (bundle <= 0) {
+      setStatusType("error");
+      setStatus("That coordinate has already been claimed.");
+      return;
+    }
+    
     // Try to claim the token from the app state
-    const claimed = claimHuntToken(assetId);
+    console.log(`🎮 Hunt Page - Attempting to claim ${bundle} tokens for asset ${assetId}`);
+    const claimed = claimHuntToken(assetId, bundle);
+    console.log(`🎮 Hunt Page - Claim result: ${claimed}`);
+    
     if (!claimed) {
       setStatusType("error");
       setStatus("No more tokens available in this asset's pool.");
@@ -241,12 +255,17 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, lpu, pricePer
     
     const nextMatched = new Set(matched);
     nextMatched.add(coord);
-    const nextFoundTokens = Math.min(foundTokens + 1, maxTokens);
+    const nextFoundTokens = Math.min(foundTokens + bundle, maxTokens);
+    const awardValue = bundle * pricePerUnit;
     
     setMatched(nextMatched);
     setFoundTokens(nextFoundTokens);
     setStatusType("success");
-    setStatus(`Token found at ${coord}! +${formatCurrency(pricePerUnit)} added to your wallet.`);
+    setStatus(
+      `${bundle.toLocaleString()} tokens uncovered at ${coord}! +${formatCurrency(awardValue, {
+        decimals: awardValue >= 1 ? 2 : 6,
+      })} added to your wallet.`
+    );
     setInputValue("");
     
     // Save progress after state updates
@@ -287,12 +306,14 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, lpu, pricePer
             <div className="hidden sm:flex sm:items-center sm:gap-4">
               <div className="rounded-xl border border-border/40 bg-muted/30 px-4 py-3 text-left shadow-sm sm:min-w-[200px] dark:bg-neutral-900/70">
                 <span className="text-[10px] uppercase tracking-wide text-muted-foreground sm:text-xs">Wallet value</span>
-                <div className="text-xl font-semibold text-emerald-400 sm:text-3xl">{formatCurrency(walletValue)}</div>
+                <div className="text-xl font-semibold text-emerald-400 sm:text-3xl">
+                  {formatCurrency(walletValue, { decimals: walletValue >= 1 ? 2 : 6 })}
+                </div>
               </div>
               <div className="rounded-xl border border-border/40 bg-muted/30 px-4 py-3 text-left shadow-sm sm:min-w-[200px] dark:bg-neutral-900/70">
                 <span className="text-[10px] uppercase tracking-wide text-muted-foreground sm:text-xs">Tokens found</span>
                 <div className="text-xl font-semibold text-emerald-400 sm:text-3xl">
-                  {foundTokens}/{maxTokens}
+                  {foundTokens.toLocaleString()}/{maxTokens.toLocaleString()}
                 </div>
               </div>
             </div>
@@ -300,12 +321,14 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, lpu, pricePer
           <div className="flex flex-wrap gap-6 sm:hidden">
             <div className="space-y-0.5">
               <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Wallet value</span>
-              <div className="text-xl font-semibold text-emerald-400">{formatCurrency(walletValue)}</div>
+              <div className="text-xl font-semibold text-emerald-400">
+                {formatCurrency(walletValue, { decimals: walletValue >= 1 ? 2 : 6 })}
+              </div>
             </div>
             <div className="space-y-0.5">
               <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Tokens found</span>
               <div className="text-xl font-semibold text-emerald-400">
-                {foundTokens}/{maxTokens}
+                {foundTokens.toLocaleString()}/{maxTokens.toLocaleString()}
               </div>
             </div>
           </div>
@@ -334,12 +357,18 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, lpu, pricePer
             <div className="space-y-3 rounded-xl sm:rounded-2xl border border-border/40 bg-surface/40 p-3 sm:p-4">
               <div className="flex items-baseline justify-between">
                 <span className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">Progress</span>
-                <span className="text-xs sm:text-sm font-medium text-foreground">{((foundTokens / maxTokens) * 100).toFixed(0)}%</span>
+                <span className="text-xs sm:text-sm font-medium text-foreground">{Math.round(progressRatio * 100)}%</span>
               </div>
-              <Progress value={(foundTokens / maxTokens) * 100} className="h-2" />
-              <div className="flex items-center justify-between text-[10px] sm:text-xs text-muted-foreground">
-                <span>LPU {formatCurrency(lpu)}</span>
-                <span>Max tokens {maxTokens}</span>
+              <Progress value={progressRatio * 100} className="h-2" />
+              <div className="flex flex-col gap-1 text-[10px] sm:text-xs text-muted-foreground">
+                <div className="flex items-center justify-between">
+                  <span>Token {pricePerUnit >= 1 ? formatCurrency(pricePerUnit) : formatCurrency(pricePerUnit, { decimals: 6 })}</span>
+                  <span>Total {maxTokens.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Found {foundTokens.toLocaleString()}</span>
+                  <span>Remaining {Math.max(0, maxTokens - foundTokens).toLocaleString()}</span>
+                </div>
               </div>
             </div>
             <div className="space-y-2 rounded-xl sm:rounded-2xl border border-border/40 bg-surface/40 p-3 sm:p-4 text-xs text-muted-foreground">

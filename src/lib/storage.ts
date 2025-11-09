@@ -22,6 +22,7 @@ export interface StoredState {
     lfts: number;
     yieldUnits: number;
     realizedRewards: number;
+    withdrawn: number;
   };
   assets: Array<{
     id: string;
@@ -45,7 +46,7 @@ export function saveState(state: Partial<StoredState>): void {
     const dataToStore: StoredState = {
       version: STORAGE_VERSION,
       timestamp: Date.now(),
-      user: state.user || { usd: 1000, coinTags: 0, lfts: 0, yieldUnits: 0, realizedRewards: 0 },
+      user: state.user || { usd: 1000, coinTags: 0, lfts: 0, yieldUnits: 0, realizedRewards: 0, withdrawn: 0 },
       assets: state.assets || [],
       assetAvailable: state.assetAvailable || {},
       userAssets: state.userAssets || {},

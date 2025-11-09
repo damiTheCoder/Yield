@@ -58,8 +58,8 @@ const Header = () => {
     { code: "ALL", id: "all", buttonLabel: "Chain", name: "All chains", image: "/22.png" },
     { code: "BTC", id: "bitcoin", buttonLabel: "Bitcoin", name: "Bitcoin", image: "/bitcoin.jpeg" },
     { code: "ETH", id: "ethereum", buttonLabel: "Ethereum", name: "Ethereum", image: "/ethereum.jpeg" },
-    { code: "SOL", id: "solana", buttonLabel: "Solana", name: "Solana", image: "/solana.jpeg" },
-    { code: "EOS", id: "eos", buttonLabel: "EOS", name: "EOS", image: "/eos.jpeg" },
+    { code: "SOL", id: "solana", buttonLabel: "Solana", name: "Solana", image: "/solana.png" },
+    { code: "BASE", id: "base", buttonLabel: "Base", name: "Base", image: "/base.jpeg" },
   ] as const;
 
   const networkIdToOption = (id: string) => MOBILE_NETWORK_OPTIONS.find((option) => option.id === id) ?? MOBILE_NETWORK_OPTIONS[0];
@@ -345,7 +345,13 @@ const Header = () => {
       </CommandDialog>
 
       <header className="sticky top-0 z-50 w-full">
-        <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div 
+          className="relative bg-background/70 md:bg-background/60"
+          style={{
+            WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+            backdropFilter: 'saturate(180%) blur(20px)',
+          }}
+        >
           <div className="flex w-full items-center justify-between gap-3 px-4 py-2 md:pl-[19rem] md:pr-6">
           <div className="flex items-center gap-6">
             <Link
@@ -355,7 +361,7 @@ const Header = () => {
               <img 
                 src="/OPY.png" 
                 alt="Trone" 
-                className="h-7 w-7 rounded-lg object-cover"
+                className="h-6 w-6 rounded-lg object-cover"
               />
               <span className="text-xl font-bold text-foreground">Trone</span>
             </Link>
@@ -491,7 +497,12 @@ const Header = () => {
 
             <Dialog open={walletDialogOpen} onOpenChange={setWalletDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="default" size="sm" className="hidden md:inline-flex min-w-[120px] justify-center h-8 rounded-full text-black" style={{ backgroundColor: '#00ff4f' }}>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="hidden md:inline-flex min-w-[120px] justify-center h-8 rounded-full text-white"
+                  style={{ backgroundColor: "#8B5CFF" }}
+                >
                   {connectedWallet ? (
                     <span className="flex items-center gap-1">
                       <Check className="h-4 w-4 text-emerald-300" />
@@ -503,7 +514,12 @@ const Header = () => {
                 </Button>
               </DialogTrigger>
               <DialogTrigger asChild>
-                <Button variant="default" size="sm" className="md:hidden rounded-full h-8 px-4 text-sm font-semibold text-black" style={{ backgroundColor: '#00ff4f' }}>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="md:hidden rounded-full h-8 px-4 text-sm font-semibold text-white"
+                  style={{ backgroundColor: "#8B5CFF" }}
+                >
                   {connectedWallet ? "Wallet" : "Connect"}
                 </Button>
               </DialogTrigger>
@@ -578,7 +594,7 @@ const Header = () => {
                 variant="ghost" 
                 size="icon" 
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="bg-neutral-800 hover:bg-neutral-700 text-white h-8 w-8 rounded-full"
+                className="bg-neutral-800 hover:bg-neutral-700 text-white h-8 w-8 rounded-lg"
               >
                 <Menu className="h-4 w-4" />
               </Button>
@@ -588,10 +604,10 @@ const Header = () => {
                   <div className="fixed inset-0 z-40" onClick={() => setMobileMenuOpen(false)} />
                   <div
                     className={cn(
-                      "absolute top-full right-0 mt-2 w-56 rounded-2xl shadow-xl z-50 overflow-hidden divide-y text-center border",
+                      "absolute top-full right-0 mt-2 w-56 rounded-2xl shadow-xl z-50 overflow-hidden text-center border",
                       isDarkTheme
-                        ? "bg-neutral-900 border-neutral-800 divide-neutral-800/70 text-gray-200"
-                        : "bg-white border-gray-200 divide-gray-200/80 text-gray-900",
+                        ? "bg-neutral-900 border-neutral-800 text-gray-200"
+                        : "bg-white border-gray-200 text-gray-900",
                     )}
                   >
                     <nav className="flex flex-col">
@@ -611,7 +627,7 @@ const Header = () => {
                         </Link>
                       ))}
                     </nav>
-                    <div className={cn("px-4 py-4 text-sm", isDarkTheme ? "text-gray-200" : "text-gray-800")}>
+                    <div className={cn("px-4 py-4 text-sm border-t", isDarkTheme ? "text-gray-200 border-neutral-800/70" : "text-gray-800 border-gray-200/80")}>
                       <div
                         className={cn(
                           "mb-3 text-center font-semibold uppercase tracking-wide text-xs",

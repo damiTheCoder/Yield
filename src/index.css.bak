@@ -44,14 +44,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Mobile-safe backdrop blur utility */
-@layer utilities {
-  .backdrop-blur-mobile {
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-  }
-}
-
   @keyframes float-soft {
     0%, 100% {
       transform: translateY(0px);
@@ -67,20 +59,6 @@
   }
   100% {
     transform: translateX(-100%);
-  }
-}
-
-.gradient-border-blink {
-  animation: gradient-border-blink 4s ease-in-out infinite;
-}
-
-@keyframes gradient-border-blink {
-  0%,
-  100% {
-    opacity: 0.35;
-  }
-  50% {
-    opacity: 0.95;
   }
 }
 
@@ -253,22 +231,22 @@
 
 @layer components {
   .portfolio-badge {
-    border: 1px solid #c4b1ff;
-    background: linear-gradient(135deg, rgba(139, 92, 255, 0.18), rgba(139, 92, 255, 0.05));
+    border: 1px solid #34d399;
+    background-color: #d1fae5;
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   }
 
   .portfolio-badge__text {
-    color: #8b5cff;
+    color: #047857;
   }
 
   html[data-theme="dark"] .portfolio-badge {
-    border-color: rgba(139, 92, 255, 0.35);
-    background: linear-gradient(135deg, rgba(139, 92, 255, 0.35), rgba(139, 92, 255, 0.1));
+    border-color: #059669;
+    background-color: #064e3b;
   }
 
   html[data-theme="dark"] .portfolio-badge__text {
-    color: #ede8ff;
+    color: #d1fae5;
   }
 
   html[data-theme="dark"] .listed-asset-card,

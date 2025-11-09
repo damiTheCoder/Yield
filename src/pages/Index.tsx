@@ -1,49 +1,9 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import FloatingLogos from "@/components/FloatingLogos";
-import { ArrowRight, CheckCircle2, ShieldCheck, Sparkles, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 type TrackingPayload = Record<string, unknown>;
-
-const trustSignals: string[] = [];
-
-const mechanics = [
-  {
-    title: "Lock real reserves",
-    description:
-      "Creators seed a verifiable liquidity pool so every participant sees the floor before the first token is issued.",
-  },
-  {
-    title: "Discovery fuels growth",
-    description:
-      "CoinTags and hunts route revenue into the reserve and rewards engine—no inflation, just compounding backing.",
-  },
-  {
-    title: "Share the upside",
-    description:
-      "Smart contracts stream holder rewards while creators capture sustainable income each cycle.",
-  },
-];
-
-const audienceHighlights = [
-  {
-    title: "Creators",
-    description:
-      "Launch once, grow continuously. Liquidity-backed drops keep communities engaged without grinding on secondary sales.",
-  },
-  {
-    title: "Collectors",
-    description:
-      "Hold assets with a visible floor and cash-flow potential. No rugs—just transparent reserves and cycle reporting.",
-  },
-];
-
-const assurancePoints = [
-  "Reserves and reward flows are published on-chain in real time.",
-  "Cycle transitions are automated to prevent surprise dilution or shutdowns.",
-  "Open APIs and docs make it simple to verify every metric yourself.",
-];
 
 const trackEvent = (event: string, payload: TrackingPayload = {}) => {
   if (typeof window === "undefined") return;
@@ -63,9 +23,16 @@ const trackEvent = (event: string, payload: TrackingPayload = {}) => {
 };
 
 const Index = () => {
-  const [activeToken, setActiveToken] = useState<string | null>(null);
-  const [navDropped, setNavDropped] = useState(false);
   const navigate = useNavigate();
+  const [navDropped, setNavDropped] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const navLinks = [
+    { label: "Problem", href: "#problem" },
+    { label: "Difference", href: "#difference" },
+    { label: "Solution", href: "#solution" },
+    { label: "Impact", href: "#impact" },
+    { label: "Launch", href: "#cta" },
+  ];
 
   const handleCta = (location: string, href?: string, options?: { newTab?: boolean }) => {
     trackEvent("cta_click", { location });
@@ -73,17 +40,13 @@ const Index = () => {
     if (!href) return;
 
     if (options?.newTab) {
-      if (typeof window !== "undefined") {
-        window.open(href, "_blank", "noopener,noreferrer");
-      }
+      window.open(href, "_blank", "noopener,noreferrer");
       return;
     }
 
     const isExternal = /^(https?:|mailto:|tel:)/i.test(href);
     if (isExternal) {
-      if (typeof window !== "undefined") {
-        window.location.href = href;
-      }
+      window.location.href = href;
       return;
     }
 
@@ -91,357 +54,488 @@ const Index = () => {
   };
 
   useEffect(() => {
-    const handleScroll = () => {
-      if (typeof window === "undefined") return;
-      setNavDropped(window.scrollY > 12);
-    };
-
+    const handleScroll = () => setNavDropped(window.scrollY > 12);
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const handleNavClick = (label: string, href: string) => {
+    trackEvent("nav_click", { label });
+
+    if (!href) return;
+    if (href.startsWith("#")) {
+      if (typeof document === "undefined") return;
+      const target = document.querySelector(href);
+      target?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+
+    handleCta(`nav_${label.toLowerCase()}`, href);
+  };
+
   return (
-    <div className="font-glacial min-h-screen bg-white text-black">
-      <main className="flex flex-col">
-        <section id="hero" className="relative bg-white">
-          <header
-            className={`sticky top-0 z-50 flex w-full items-center justify-between border-b border-black/10 px-4 py-4 text-xs sm:text-sm lg:px-10 transition-all duration-300 ease-out ${
-              navDropped
-                ? "bg-white/95 backdrop-blur-sm shadow-[0_10px_30px_rgba(0,0,0,0.08)] animate-[nav-drop_0.35s_ease-out]"
-                : "bg-white"
-            }`}
+    <div className={cn("relative font-glacial min-h-screen transition-colors duration-300", isDarkMode ? "bg-black text-white" : "bg-white text-black")}>
+      {/* Violet gradient background - fades to white */}
+      <div 
+        className="pointer-events-none absolute inset-x-0 top-0 h-[550px]"
+        style={{
+          background: "linear-gradient(180deg, rgba(139,92,255,0.65) 0%, rgba(167,139,255,0.45) 35%, rgba(189,165,255,0.2) 70%, rgba(255,255,255,0) 100%)",
+          zIndex: 0
+        }}
+      />
+      {/* Net/Grid pattern overlay */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-[550px]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(139,92,255,0.12) 1.5px, transparent 1.5px), linear-gradient(90deg, rgba(139,92,255,0.12) 1.5px, transparent 1.5px)",
+          backgroundSize: "50px 50px",
+          maskImage: "linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%)",
+          WebkitMaskImage: "linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%)",
+          zIndex: 1
+        }}
+      />
+      <div className="relative z-10">
+      <nav
+        className={cn(
+          "fixed inset-x-0 top-0 z-50 transition-all duration-300",
+          navDropped
+            ? isDarkMode 
+              ? "bg-black/80 shadow-[0_12px_40px_rgba(0,0,0,0.5)]"
+              : "bg-white/80 shadow-[0_12px_40px_rgba(15,24,74,0.08)]"
+            : "bg-transparent"
+        )}
+        style={navDropped ? {
+          backdropFilter: 'saturate(180%) blur(20px)',
+          WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+        } : undefined}
+      >
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-3.5">
+          <button
+            type="button"
+            onClick={() => handleCta("nav_logo", "/")}
+            className="flex items-center gap-2 text-left sm:gap-3"
           >
-            <div className="flex items-center gap-4">
-              <img src="/OPY.png" alt="Trone logo" className="h-8 w-8 rounded-md object-cover" />
-              <span className="text-sm font-semibold uppercase tracking-[0.35em]">Trone</span>
+            <span className="flex h-9 w-9 overflow-hidden rounded-full sm:h-10 sm:w-10">
+              <img src="/OPY.png" alt="Trone logo" className="h-full w-full object-cover" />
+            </span>
+            <div className="flex flex-col leading-tight">
+              <span className={cn("text-sm font-semibold tracking-wide sm:text-base", isDarkMode ? "text-white" : "text-black")}>Trone</span>
             </div>
-            <nav className="hidden items-center gap-6 font-medium text-black/70 md:flex">
-              <a
-                href="#what"
-                className="transition hover:text-black"
-                onClick={() => handleCta("nav_overview")}
+          </button>
+
+          <div className={cn("hidden items-center justify-center gap-6 text-[11px] font-semibold uppercase tracking-[0.22em] md:flex lg:gap-8 lg:text-sm", isDarkMode ? "text-white" : "text-black")}>
+            {navLinks.map((link) => (
+              <button
+                key={link.label}
+                type="button"
+                onClick={() => handleNavClick(link.label, link.href)}
+                className="relative transition hover:text-[#8b5cff]"
               >
-                Overview
-              </a>
-              <a
-                href="#mechanics"
-                className="transition hover:text-black"
-                onClick={() => handleCta("nav_mechanics")}
-              >
-                Mechanics
-              </a>
-              <a
-                href="#audience"
-                className="transition hover:text-black"
-                onClick={() => handleCta("nav_use_cases")}
-              >
-                Use cases
-              </a>
-            </nav>
-            <div className="flex items-center gap-3 text-xs font-medium text-black/80 sm:text-sm">
+                {link.label}
+                <span className="absolute inset-x-0 -bottom-1 h-0.5 scale-x-0 bg-[#8b5cff] transition-transform duration-200 ease-out hover:scale-x-100" />
+              </button>
+            ))}
+          </div>
+
+          <div className="hidden md:block">
+            <Button
+              size="sm"
+              className="rounded-full bg-[#7A3BFF] px-4 py-2 text-xs font-semibold uppercase tracking-[0.26em] text-white transition hover:bg-[#6a2ef0] sm:text-sm"
+              onClick={() => handleCta("nav_launch", "/assets")}
+            >
+              Launch Console
+            </Button>
+          </div>
+          <div className="flex flex-1 justify-end md:hidden">
+            <Button
+              variant="ghost"
+              className={cn("rounded-full border border-[#dcd4ff] bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] shadow-[0_10px_30px_rgba(139,92,255,0.12)]", isDarkMode ? "text-white" : "text-black")}
+              onClick={() => handleCta("nav_launch_mobile", "/assets")}
+            >
+              Launch
+            </Button>
+          </div>
+        </div>
+      </nav>
+      <main className="flex w-full flex-col gap-28 pb-24 pt-16 sm:gap-32 sm:pb-32 sm:pt-24 lg:gap-36">
+        {/* Section 1 – Problem & Vision */}
+        <section
+          id="problem"
+          className="flex flex-col items-center gap-12 px-6 text-center sm:px-12 lg:px-16"
+        >
+          <div className="max-w-3xl space-y-5 sm:space-y-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#8b5cff]">The problem</p>
+            <h1 className={cn("text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl", isDarkMode ? "text-white" : "text-black")}>
+              The digital asset market is broken.
+            </h1>
+            <p className={cn("text-base leading-relaxed sm:text-lg", isDarkMode ? "text-white" : "text-black")}>
+              Crypto today is driven by speculation, not sustainability. The greater-fool cycle has replaced real value
+              creation.
+            </p>
+            <ul className={cn("mx-auto flex max-w-2xl flex-col gap-3 text-left text-sm sm:flex-row sm:items-start sm:justify-center sm:gap-6 sm:text-base", isDarkMode ? "text-white" : "text-black")}>
+              {[
+                "Meme coins spike on hype, then crater to zero.",
+                "NFTs promise creativity but strand holders in illiquid markets.",
+                "Utility tokens inflate endlessly while delivering little real utility.",
+              ].map((item) => (
+                <li key={item} className="flex flex-1 items-start gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#8b5cff]" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+            <p className={cn("text-base leading-relaxed sm:text-lg", isDarkMode ? "text-white" : "text-black")}>
+              Creators earn once and vanish. Holders get burned. The system feeds on exit liquidity. At Trone, we believe
+              digital assets should hold their ground — not your hope.
+            </p>
+            <Button
+              size="lg"
+              className="mx-auto rounded-xl bg-[#7A3BFF] px-10 py-3 text-white transition hover:bg-[#6a2ef0]"
+              onClick={() => handleCta("cta_problem_future", "/assets")}
+            >
+              Discover the future of value-backed tokens
+            </Button>
+          </div>
+          <div className="w-full max-w-4xl">
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl shadow-[0_24px_70px_rgba(124,58,237,0.18)]">
+              <img
+                src="/d1.png"
+                alt="Chaotic crypto market contrasted with a stable liquidity-backed token"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Section 2 – Solution */}
+        <section
+          id="difference"
+          className="grid gap-10 px-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-stretch lg:px-16"
+        >
+          <div className="order-1 mt-8 px-6 sm:px-12 lg:order-1 lg:mt-0 lg:flex lg:h-full lg:px-12">
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl lg:aspect-auto lg:h-full">
+              <img
+                src="/d2.png"
+                alt="Liquidity funded tokens value cycle"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          </div>
+          <div className="order-2 space-y-6 px-6 sm:px-12 lg:pl-12">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#8b5cff]">The difference</p>
+            <h2 className={cn("text-3xl font-semibold leading-tight sm:text-4xl", isDarkMode ? "text-white" : "text-black")}>
+              The Trone difference: liquidity, transparency, and growth.
+            </h2>
+            <p className={cn("text-base leading-relaxed sm:text-lg", isDarkMode ? "text-white" : "text-black")}>
+              Trone redefines digital ownership with Liquidity-Funded Tokens (LFTs) — assets backed by real liquidity
+              from the first block. LFTs launch with a guaranteed redemption floor and self-appreciating mechanics. As
+              the community engages, liquidity deepens automatically and every token becomes more valuable.
+            </p>
+            <ul className={cn("grid gap-2 text-sm sm:text-base", isDarkMode ? "text-white" : "text-black")}>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-[#8b5cff]" />
+                <span>Guaranteed floor value anchored by locked liquidity.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-[#8b5cff]" />
+                <span>Automatic appreciation as participation expands.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-[#8b5cff]" />
+                <span>Skill-based discovery replaces panic-driven speculation.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-[#8b5cff]" />
+                <span>Locked pools that creators cannot drain.</span>
+              </li>
+            </ul>
+            <blockquote className="rounded-3xl border border-[#dcd4ff] bg-[#f6f3ff] px-6 py-5 text-sm italic text-black">
+              “Every LFT starts with real liquidity — and only gets stronger as the community grows.”
+            </blockquote>
+            <Button
+              size="lg"
+              className="rounded-xl bg-[#7A3BFF] px-10 py-3 text-white transition hover:bg-[#6a2ef0]"
+              onClick={() => handleCta("cta_difference_learn", "/coin-tags")}
+            >
+              See how LFTs work
+            </Button>
+          </div>
+        </section>
+
+        {/* Section 3 – Solution */}
+        <section
+          id="solution"
+          className="grid gap-10 px-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-stretch lg:px-16"
+        >
+          <div className="order-1 mt-8 px-6 sm:px-12 lg:order-1 lg:mt-0 lg:flex lg:h-full lg:px-12">
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl lg:aspect-auto lg:h-full">
+              <img
+                src="/d3.jpeg"
+                alt="Step-by-step visuals showing the LFT lifecycle"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          </div>
+          <div className="order-2 space-y-6 px-6 sm:px-12 lg:pl-12">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#8b5cff]">The solution</p>
+            <h2 className={cn("text-3xl font-semibold leading-tight sm:text-4xl", isDarkMode ? "text-white" : "text-black")}>
+              We turn speculation into sustainable play.
+            </h2>
+            <p className={cn("text-base leading-relaxed sm:text-lg", isDarkMode ? "text-white" : "text-black")}>
+              LFTs replace the buy-and-pray model with a discovery experience where every move reinforces the system.
+            </p>
+            <ol className={cn("space-y-4 text-sm sm:text-base", isDarkMode ? "text-white" : "text-black")}>
+              {[
+                {
+                  title: "Launch with liquidity",
+                  description: "Creators seed an LFT with locked liquidity from day one.",
+                },
+                {
+                  title: "Divide the pool",
+                  description: "Liquidity splits into 1,000,000 tokens that inherit the floor value.",
+                },
+                {
+                  title: "Hunt with CoinTags",
+                  description: "Participants purchase CoinTags to uncover tokens on an encrypted grid.",
+                },
+                {
+                  title: "Boost the floor",
+                  description: "Thirty percent of every CoinTag sale flows into liquidity, lifting redemption value.",
+                },
+                {
+                  title: "Redeem or hold",
+                  description: "Players cash out at the floor or stay for the next appreciation cycle.",
+                },
+              ].map((step, index) => (
+                <li key={step.title} className={cn("flex gap-3 rounded-3xl px-4 py-3", isDarkMode ? "bg-[#1a1a1a]" : "bg-[#f7f5ff]")}>
+                  <span className="mt-1 inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#8b5cff] text-xs font-semibold text-white">
+                    {index + 1}
+                  </span>
+                  <div>
+                    <p className={cn("text-sm font-semibold uppercase tracking-wide", isDarkMode ? "text-white" : "text-black")}>{step.title}</p>
+                    <p className={cn("text-sm", isDarkMode ? "text-white" : "text-black")}>{step.description}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <p className={cn("text-base leading-relaxed sm:text-lg", isDarkMode ? "text-white" : "text-black")}>
+              The outcome is a self-sustaining, cashflow-positive ecosystem where creators earn continuously, players
+              profit transparently, and the community fuels lasting growth.
+            </p>
+            <Button
+              size="lg"
+              className="rounded-xl bg-[#7A3BFF] px-10 py-3 text-white transition hover:bg-[#6a2ef0]"
+              onClick={() => handleCta("cta_solution_join", "/portfolio")}
+            >
+              Join the next generation of digital assets
+            </Button>
+          </div>
+        </section>
+
+        {/* Section 4 – Impact */}
+        <section
+          id="impact"
+          className="grid gap-10 px-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-stretch lg:px-16"
+        >
+          <div className="order-1 mt-8 px-6 sm:px-12 lg:order-1 lg:mt-0 lg:flex lg:h-full lg:px-12">
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl lg:aspect-auto lg:h-full">
+              <img
+                src="/d4.png"
+                alt="Comparison between NFTs, meme coins, and LFTs"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          </div>
+          <div className="order-2 space-y-6 px-6 sm:px-12 lg:pl-12">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#8b5cff]">The impact</p>
+            <h2 className={cn("text-3xl font-semibold leading-tight sm:text-4xl", isDarkMode ? "text-white" : "text-black")}>
+              Not just another token — a new digital asset standard.
+            </h2>
+            <div className={cn("overflow-hidden rounded-3xl border border-[#e6ddff] shadow-[0_20px_60px_rgba(16,18,36,0.08)]", isDarkMode ? "bg-[#1a1a1a]" : "bg-white")}>
+              <table className={cn("w-full text-left text-sm sm:text-base", isDarkMode ? "text-white" : "text-black")}>
+                <thead className={cn("text-xs uppercase tracking-wide", isDarkMode ? "bg-[#2a2a2a] text-white" : "bg-[#f6f3ff] text-black")}>
+                  <tr>
+                    <th className="px-5 py-3">Problem (NFTs & meme coins)</th>
+                    <th className="px-5 py-3">Solution (LFTs)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ["Can drop to zero", "Guaranteed redemption floor"],
+                    ["Reliant on resale hype", "Value grows automatically"],
+                    ["No creator incentive after mint", "Creators earn every cycle"],
+                    ["Illiquid markets and exits", "Instant redemption at the floor"],
+                    ["Pump-and-dump risk", "Locked liquidity and transparent flows"],
+                  ].map(([problem, solution]) => (
+                    <tr key={problem} className={cn("border-t", isDarkMode ? "border-[#3a3a3a]" : "border-[#ede8ff]")}>
+                      <td className="px-5 py-4">{problem}</td>
+                      <td className="px-5 py-4">{solution}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className={cn("text-base leading-relaxed sm:text-lg", isDarkMode ? "text-white" : "text-black")}>
+              LFTs merge the strongest parts of DeFi, NFTs, and skill gaming without carrying over their flaws. It’s
+              crypto that rewards participation, preserves value, and aligns incentives for everyone in the network.
+            </p>
+            <Button
+              size="lg"
+              className="rounded-xl bg-[#7A3BFF] px-10 py-3 text-white transition hover:bg-[#6a2ef0]"
+              onClick={() => handleCta("cta_impact_explore", "/assets")}
+            >
+              Explore Trone — where liquidity meets longevity
+            </Button>
+          </div>
+        </section>
+
+        {/* Section 5 – Call to Action */}
+        <section
+          id="cta"
+          className="grid gap-10 px-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-stretch lg:px-16"
+        >
+          <div className="order-1 mt-8 px-6 sm:px-12 lg:order-1 lg:mt-0 lg:flex lg:h-full lg:px-12">
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl lg:aspect-auto lg:h-full">
+              <img
+                src="/a.png"
+                alt="Trone liquidity network"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          </div>
+          <div className="order-2 space-y-6 px-6 sm:px-12 lg:pl-12">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#8b5cff]">Call to action</p>
+            <h2 className={cn("text-3xl font-semibold leading-tight sm:text-4xl", isDarkMode ? "text-white" : "text-black")}>
+              The future of digital assets starts here.
+            </h2>
+            <p className={cn("text-base leading-relaxed sm:text-lg", isDarkMode ? "text-white" : "text-black")}>
+              Trone isn’t another speculative play. It’s a financial game layer built on real liquidity, community
+              participation, and sustainable growth. The crypto world doesn’t need more hype — it needs Trone.
+            </p>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
               <Button
-                size="sm"
-                className="rounded-full border border-black bg-black px-4 text-[10px] font-semibold uppercase tracking-[0.25em] text-white transition hover:bg-black/80 sm:px-5 sm:text-xs"
-                onClick={() => handleCta("nav_launch", "/assets")}
+                size="lg"
+                className="rounded-xl bg-[#7A3BFF] px-10 py-3 text-white transition hover:bg-[#6a2ef0]"
+                onClick={() => handleCta("cta_final_launch", "/assets")}
               >
                 Launch console
               </Button>
-            </div>
-          </header>
-
-          <div className="grid w-full gap-12 px-6 pb-24 pt-20 text-left lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:px-12">
-            <div className="flex flex-col gap-12">
-              <div className="space-y-6">
-                <p className="text-sm font-medium uppercase tracking-[0.35em] text-black/60">
-                  Liquidity funded tokens
-                </p>
-                <h1 className="text-4xl font-semibold leading-tight text-black sm:text-5xl lg:text-7xl">
-                  Liquidity-backed launches for calm, durable ecosystems.
-                </h1>
-                <p className="text-lg text-black/70 sm:text-xl">
-                  Trone’s Liquidity Funded Tokens seed verifiable reserves before the first trade.
-                  Every cycle compounds transparent floors, automated rewards, and reporting that
-                  holders and creators can audit in real time.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-6">
-                <Button
-                  size="lg"
-                  className="rounded-full border border-black bg-black px-12 text-white transition hover:bg-black/80"
-                  onClick={() => handleCta("cta_primary", "/assets")}
-                >
-                  Get started
-                </Button>
-                <div className="flex flex-col gap-1 text-sm text-black/60">
-                  <span className="font-semibold text-black">Available for</span>
-                  <span>teams ready to launch with provable reserves and engaged communities.</span>
-                </div>
-              </div>
-
-              {trustSignals.length > 0 && (
-                <ul className="grid gap-3 text-sm text-black sm:grid-cols-3">
-                  {trustSignals.map((signal) => (
-                    <li
-                      key={signal}
-                      className="flex items-start gap-2 rounded-xl border border-black/10 bg-white p-3"
-                    >
-                      <ShieldCheck className="mt-0.5 h-4 w-4 text-black" />
-                      <span>{signal}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-12 text-black/70 lg:items-end">
-              <div className="max-w-md text-base leading-relaxed lg:text-right">
-                <p>
-                  Deploy new assets with predictable floors, measurable liquidity health, and
-                  redemption mechanics encoded on-chain. Investors see cycle data before they
-                  participate; creators earn recurring revenue without sacrificing trust.
-                </p>
-              </div>
-              <div className="flex flex-col gap-3 text-xs uppercase tracking-[0.3em] text-black/50 lg:items-end">
-                <span>EST. BLOCK 18921579</span>
-                <span>Proof-of-liquidity since genesis</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-  {/* Floating partner logos below hero */}
-  {/* Inserted component renders two continuous horizontal marquees */}
-  <FloatingLogos />
-
-        <section id="what" className="bg-white py-16">
-          <div className="relative z-10 flex w-full px-6 lg:px-12">
-            <div className="relative w-full overflow-hidden border border-black/10 bg-white text-black lg:text-xs">
-              {/* Top meta strip */}
-              <div className="relative z-10 flex divide-x divide-black/10 border-b border-black/10 text-[10px] uppercase tracking-[0.45em] text-black sm:text-[11px] lg:text-[10px]">
-                <div className="flex flex-1 items-center gap-2 px-4 py-3">
-                  <img src="/OPY.png" alt="Trone logo" className="h-6 w-6 rounded-full" />
-                  <span className="font-semibold tracking-[0.35em] text-black">Trone</span>
-                </div>
-                <div className="flex items-center justify-center px-4 py-3 text-lg text-black sm:px-6">×</div>
-                <a
-                  href="https://opencitadel.xyz"
-                  className="flex flex-1 items-center justify-between gap-3 px-4 py-3 text-black transition hover:text-black sm:px-6"
-                >
-                  <span className="tracking-[0.35em]">opencitadel.xyz</span>
-                  <ArrowRight className="h-4 w-4" />
-                </a>
-              </div>
-
-              {/* Body */}
-              <div className="relative z-10 border-t border-black/10">
-                <div className="relative flex flex-col gap-6 px-6 py-8 text-left sm:px-10 sm:py-10 lg:px-12 lg:py-12">
-                  <div className="space-y-4">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.35em] text-black sm:text-xs">Why LFTs Matter</p>
-                    <h2 className="text-2xl font-semibold text-black sm:text-3xl lg:text-2xl">
-                      Liquidity-backed. Trust by default.
-                    </h2>
-                    <div className="text-sm text-black sm:text-base lg:text-sm space-y-3">
-                      <p>
-                        In traditional launches, speculation drives volatility and uncertainty. With LFTs, every cycle begins with <strong>real liquidity locked in smart contracts</strong>, so the market’s foundation is visible, verifiable, and sustainable.
-                      </p>
-                      <p>
-                        Reserves grow through <strong>CoinTag discovery events</strong> — where new demand automatically feeds back into the pool — turning community activity into genuine value creation.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="rounded-md border border-black/10 bg-white px-4 py-3 text-black">
-                      <p className="text-[10px] uppercase tracking-[0.3em] text-black">No rugs</p>
-                      <p className="mt-1 text-sm font-medium">Reserves and flows stay on-chain. Redemption never disappears.</p>
-                    </div>
-                    <div className="rounded-md border border-black/10 bg-white px-4 py-3 text-black">
-                      <p className="text-[10px] uppercase tracking-[0.3em] text-black">Calm cycles</p>
-                      <p className="mt-1 text-sm font-medium">Discovery, rewards, and creator income stay in sync each launch.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="mechanics" className="bg-white py-12 md:py-16 -mt-8 md:-mt-10">
-          <div className="relative z-10 flex w-full px-6 lg:px-12">
-            <div className="relative w-full overflow-hidden border border-black/10 bg-white text-black">
-              <div className="relative flex flex-col gap-10 px-6 py-10 sm:px-10 sm:py-12 lg:px-12">
-                <div className="flex flex-col gap-4 text-left">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-black/20 bg-white px-4 py-1.5 text-xs font-bold uppercase tracking-[0.4em] text-black">
-                    How it works
-                  </div>
-                  <h2 className="text-3xl font-semibold text-black sm:text-4xl">
-                    A quiet, verifiable cycle
-                  </h2>
-                  <p className="text-sm text-black sm:text-base">
-                    A quiet, verifiable cycle: lock real reserves, let discovery drive growth, and share upside with holders and creators through automated, on-chain flows.
-                  </p>
-                </div>
-
-                <div className="grid gap-6 sm:grid-cols-3">
-                  {mechanics.map((item) => (
-                    <div key={item.title} className="flex flex-col gap-3 border border-black/10 bg-white px-4 py-5 text-black">
-                      <h3 className="text-base font-semibold text-black">{item.title}</h3>
-                      <p className="text-sm text-black">{item.description}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="audience" className="bg-white py-20">
-          <div className="relative z-10 flex w-full px-6 lg:px-12">
-            <div className="relative w-full overflow-hidden border border-black/10 bg-white text-black">
-              <div className="relative z-10 grid grid-cols-1 items-center gap-8 px-6 py-10 sm:grid-cols-2 sm:px-10 sm:py-12 lg:px-12">
-                {/* Left: image (on mobile this appears above content) */}
-                <div className="flex justify-center sm:justify-start">
-                  <div className="overflow-hidden rounded-2xl border border-black/10 bg-white p-2">
-                    <img src="/x2.png" alt="Creator visual" className="h-48 w-48 rounded-lg object-cover" />
-                  </div>
-                </div>
-
-                {/* Right: content */}
-                <div className="flex flex-col gap-6">
-                  <p className="text-xs font-medium uppercase tracking-[0.35em] text-black">For Creators</p>
-                  <h3 className="text-2xl font-bold text-black">Launch once. Grow continuously.</h3>
-                  <p className="text-base text-black">
-                    Seed verifiable reserves for confidence and stability. Engage your community through transparent discovery cycles, and capture recurring income with every round of growth.
-                  </p>
-
-                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                    <div className="rounded-md border border-black/10 bg-white px-4 py-3 text-black">
-                      <p className="text-[10px] uppercase tracking-[0.3em] text-black">Tools</p>
-                      <p className="mt-1 text-sm font-medium">Creator-friendly primitives for managing cycles.</p>
-                    </div>
-                    <div className="rounded-md border border-black/10 bg-white px-4 py-3 text-black">
-                      <p className="text-[10px] uppercase tracking-[0.3em] text-black">Rewards</p>
-                      <p className="mt-1 text-sm font-medium">Automated payouts and transparent analytics.</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-md border border-black/10 bg-white px-4 py-3 text-black">
-                    <p className="text-[10px] uppercase tracking-[0.3em] text-black">For Collectors</p>
-                    <p className="mt-1 text-sm font-medium">
-                      Build with a visible floor and share in the upside. Every reserve balance and reward flow is published on-chain in real time.
-                    </p>
-                  </div>
-                  <div className="rounded-md border border-black/10 bg-white px-4 py-3 text-black">
-                    <p className="text-[10px] uppercase tracking-[0.3em] text-black">Trust</p>
-                    <p className="mt-1 text-sm font-medium">Transparency without middlemen — on-chain balances, flows, and cycle reporting.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* New full-width centered section: LFTs by Trone (moved after mechanics) */}
-        <section id="lfts-by-opy" className="bg-white py-24">
-          <div className="relative z-10 w-full px-6 text-center lg:px-12">
-            <div className="mb-8 border-t border-black/10" />
-            <h2 className="text-5xl font-bold text-black leading-tight md:text-6xl lg:text-7xl">
-              LFTs by Trone
-            </h2>
-            <p className="mt-6 text-lg text-black">
-              A new standard for liquidity-backed collectibles and revenue-sharing tokens, designed for creators and collectors.
-            </p>
-          </div>
-        </section>
-
-        <section id="citadel-protocol" className="bg-white py-20">
-          <div className="relative z-10 w-full px-6 lg:px-12">
-            <div className="relative w-full overflow-hidden border border-black/10 bg-white text-black">
-              <div className="relative z-10 px-6 py-12 sm:px-10 lg:px-12">
-                <div className="mb-6 border-t-2 border-black/10 pt-6"></div>
-                <p className="text-xs font-bold uppercase tracking-[0.35em] text-black">The Trone Protocol</p>
-                <h2 className="mt-4 text-5xl font-bold text-black leading-tight md:text-6xl lg:text-7xl">
-                  Powering calm, durable ecosystems.
-                </h2>
-                <p className="mt-6 text-lg text-black">
-                  Trone makes LFTs possible — a protocol for liquidity-backed collectibles and revenue-sharing tokens.
-                </p>
-
-                <div className="mt-12 grid gap-6 sm:grid-cols-3">
-                  <div className="flex flex-col gap-3 rounded-2xl border border-black/10 bg-white p-6">
-                    <div className="flex items-start gap-3">
-                      <CheckCircle2 className="mt-1 h-5 w-5 text-black" />
-                      <span className="text-base text-black">Automated transitions prevent surprise dilution</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-3 rounded-2xl border border-black/10 bg-white p-6">
-                    <div className="flex items-start gap-3">
-                      <CheckCircle2 className="mt-1 h-5 w-5 text-black" />
-                      <span className="text-base text-black">Open APIs make verification effortless</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-3 rounded-2xl border border-black/10 bg-white p-6">
-                    <div className="flex items-start gap-3">
-                      <CheckCircle2 className="mt-1 h-5 w-5 text-black" />
-                      <span className="text-base text-black">Every promise is enforced on-chain</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="cta" className="bg-white py-24">
-          <div className="relative z-10 flex w-full flex-col items-center gap-8 px-6 text-center lg:px-12">
-            <h2 className="text-4xl font-bold text-black sm:text-5xl">
-              Build with a floor. Share in the upside.
-            </h2>
-            <p className="text-lg text-black">
-              Trone pairs creator-friendly economics with collector confidence. Launch a cycle or join the waitlist to explore what LFTs can do for your community.
-            </p>
-            <div className="flex flex-col gap-4 sm:flex-row">
               <Button
                 size="lg"
-                className="rounded-full border border-black px-12 text-black transition hover:bg-neutral-200"
-                onClick={() => handleCta("cta_primary", "/assets")}
+                className="rounded-xl bg-[#7A3BFF] px-10 py-3 text-white transition hover:bg-[#6a2ef0]"
+                onClick={() => handleCta("cta_final_learn", "/coin-tags")}
               >
-                Launch the Asset Desk
-                <ArrowRight className="ml-2 h-5 w-5" />
+                Learn about LFTs
               </Button>
             </div>
           </div>
         </section>
       </main>
-
-      <footer className="bg-white">
-        <div className="flex w-full flex-col gap-6 px-6 py-12 text-sm text-black sm:flex-row sm:items-center sm:justify-between lg:px-12">
-          <div>
-            <span className="text-base font-medium text-black">Trone</span>
-            <p className="text-xs text-black">Liquidity Funded Tokens for calm, durable ecosystems.</p>
+      <footer
+        id="footer"
+        className={cn("border-t", isDarkMode ? "border-[#3a3a3a] bg-[#0a0a0a] text-white" : "border-[#ede8ff] bg-[#f8f5ff] text-black")}
+      >
+        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-12 sm:px-12 sm:py-16 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-md space-y-3">
+            <div className="flex items-center gap-3">
+              <span className={cn("flex h-10 w-10 overflow-hidden rounded-full border shadow-[0_12px_32px_rgba(139,92,255,0.2)]", isDarkMode ? "border-[#3a3a3a] bg-[#1a1a1a]" : "border-white/40 bg-white")}>
+                <img src="/OPY.png" alt="Trone logo" className="h-full w-full object-cover" />
+              </span>
+              <span className={cn("text-lg font-semibold tracking-wide", isDarkMode ? "text-white" : "text-black")}>Trone</span>
+            </div>
+            <p className={cn("text-sm leading-relaxed", isDarkMode ? "text-gray-400" : "text-[#4d3a7f]")}>
+              Trone curates liquidity-backed digital art experiences that reward creators, collectors, and communities in
+              equal measure.
+            </p>
+            <p className="text-xs uppercase tracking-[0.32em] text-[#8b5cff]">
+              Where liquidity meets artistry
+            </p>
           </div>
-          <nav className="flex flex-wrap items-center gap-4 text-xs uppercase tracking-[0.3em] text-black">
-            <a href="#what" className="hover:underline">
-              Overview
-            </a>
-            <a href="#mechanics" className="hover:underline">
-              Mechanics
-            </a>
-            <a href="#audience" className="hover:underline">
-              Use Cases
-            </a>
-            <a href="#assurance" className="hover:underline">
-              Trust
-            </a>
-            <a href="#cta" className="hover:underline">
-              Get Started
-            </a>
-          </nav>
-          <p className="text-xs text-black">© {new Date().getFullYear()} Trone.</p>
+          <div className="grid grid-cols-1 gap-8 text-sm sm:grid-cols-2 sm:text-base">
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#8b5cff]">Navigate</p>
+              <div className={cn("flex flex-col gap-2", isDarkMode ? "text-white" : "text-black")}>
+                {navLinks.map((link) => (
+                  <button
+                    key={`footer-${link.label}`}
+                    type="button"
+                    onClick={() => handleNavClick(link.label, link.href)}
+                    className="text-left transition hover:text-[#8b5cff]"
+                  >
+                    {link.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#8b5cff]">Get in touch</p>
+              <div className={cn("flex flex-col gap-2", isDarkMode ? "text-white" : "text-black")}>
+                <button
+                  type="button"
+                  onClick={() => handleCta("footer_email", "mailto:hello@forgearthub.com")}
+                  className="text-left transition hover:text-[#8b5cff]"
+                >
+                  hello@forgearthub.com
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleCta("footer_launch", "/assets")}
+                  className="text-left transition hover:text-[#8b5cff]"
+                >
+                  Launch Console
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className={cn("border-t", isDarkMode ? "border-[#3a3a3a] bg-black/60" : "border-[#ede8ff] bg-white/60")}>
+          <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-6 text-xs uppercase tracking-[0.3em] text-[#8b5cff] sm:flex-row sm:items-center sm:justify-between">
+            <span>© {new Date().getFullYear()} Trone. All rights reserved.</span>
+            <div className={cn("flex flex-wrap gap-4", isDarkMode ? "text-gray-400" : "text-[#4d3a7f]")}>
+              <button
+                type="button"
+                onClick={() => handleCta("footer_terms", "/terms")}
+                className="transition hover:text-[#8b5cff]"
+              >
+                Terms
+              </button>
+              <button
+                type="button"
+                onClick={() => handleCta("footer_privacy", "/privacy")}
+                className="transition hover:text-[#8b5cff]"
+              >
+                Privacy
+              </button>
+              <button
+                type="button"
+                onClick={() => handleCta("footer_status", "/status")}
+                className="transition hover:text-[#8b5cff]"
+              >
+                Status
+              </button>
+            </div>
+          </div>
         </div>
       </footer>
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center pb-6 sm:pb-8">
+        <button
+          type="button"
+          aria-label="Toggle dark mode"
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          className="pointer-events-auto relative flex h-24 w-24 items-center justify-center rounded-full transition hover:scale-105 focus:outline-none"
+        >
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 rounded-full bg-gradient-to-br from-[#8b5cff] via-[#a855f7] to-[#7c3aed] gradient-border-blink"
+          />
+          <span className={cn("relative flex h-20 w-20 items-center justify-center rounded-full shadow-[0_12px_32px_rgba(0,0,0,0.16)] transition-colors", isDarkMode ? "bg-black" : "bg-white")}>
+            <img src="/OPY.png" alt="Trone" className="h-16 w-16 rounded-full object-cover" />
+          </span>
+        </button>
+      </div>
+      </div>
     </div>
   );
 };

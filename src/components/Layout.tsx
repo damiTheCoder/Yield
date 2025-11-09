@@ -105,7 +105,7 @@ const Layout = ({ children }: LayoutProps) => {
       <main
         className={cn(
           "transition-all duration-300",
-          hideShell ? "pb-24" : "md:ml-[19rem] md:mr-6 pb-32 md:pb-8"
+          hideShell ? "pb-16" : "md:ml-[19rem] md:mr-6 pb-16 md:pb-8"
         )}
       >
         {children}
@@ -129,14 +129,14 @@ const Layout = ({ children }: LayoutProps) => {
                   className={cn(
                     "flex flex-1 flex-col items-center gap-1 px-2 py-1 text-[11px] font-semibold transition-colors",
                     active
-                      ? "text-emerald-400"
+                      ? "text-[#8B5CFF]"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   <Icon
                     className={cn(
                       "h-4 w-4",
-                      active ? "text-emerald-400" : "text-muted-foreground"
+                      active ? "text-[#8B5CFF]" : "text-muted-foreground"
                     )}
                   />
                   <span>{label}</span>
@@ -152,13 +152,13 @@ const Layout = ({ children }: LayoutProps) => {
                 onClick={onClick}
                 className={cn(
                   "flex flex-1 flex-col items-center gap-1 px-2 py-1 text-[11px] font-semibold transition-colors",
-                  active ? "text-emerald-400" : "text-muted-foreground hover:text-foreground"
+                  active ? "text-[#8B5CFF]" : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <Icon
                   className={cn(
                     "h-4 w-4",
-                    active ? "text-emerald-400" : "text-muted-foreground"
+                    active ? "text-[#8B5CFF]" : "text-muted-foreground"
                   )}
                 />
                 <span>{label}</span>

@@ -27,7 +27,7 @@ export default function Notifications() {
           : `Platform maintenance scheduled for tomorrow 2AM UTC. All hunts will be temporarily paused.`,
         timestamp: `${Math.floor(Math.random() * 24) + 1}h`,
         metrics: {
-          found: asset.params.initialSupply - asset.cycle.supply,
+          found: Math.max(0, asset.cycle.initialSupply - asset.cycle.supply),
           lpu: asset.cycle.lpu,
           liquidity: asset.cycle.reserve
         },
@@ -62,7 +62,7 @@ export default function Notifications() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-10 border-b border-border/40 bg-background/80 backdrop-blur-xl">
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl">
         <div className="w-full px-4 py-4">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-bold text-foreground">Notifications</h1>
@@ -125,14 +125,13 @@ export default function Notifications() {
                       <div className="flex gap-2 mt-3">
                         <a
                           href={`/assets/${notification.asset.id}/token`}
-                          className="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
-                          style={{ backgroundColor: '#00ff4f', color: 'black' }}
+                          className="inline-flex items-center justify-center rounded-lg bg-[#7A3BFF] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#6a2ef0] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8b5cff]"
                         >
                           {notification.type === 'purchased_hunt' ? 'Start Hunt' : 'View Hunt'}
                         </a>
                         <a
                           href={`/assets/${notification.asset.id}`}
-                          className="inline-flex items-center justify-center rounded-lg border border-border/50 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-surface/50 transition-colors"
+                          className="inline-flex items-center justify-center rounded-lg bg-[#7A3BFF] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#6a2ef0] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8b5cff]"
                         >
                           Asset Details
                         </a>

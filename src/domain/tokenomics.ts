@@ -25,6 +25,7 @@ export type CycleState = {
   cycle: number;
   reserve: number; // Rt
   supply: number; // Qt (circulating)
+  initialSupply: number; // total units at cycle start
   lpu: number; // Rt / Qt
   totalSales: number; // St accumulated
   seedNext: number; // Rt+1_seed accumulates 0.20 St
@@ -39,14 +40,22 @@ export type CycleState = {
   ended: boolean;
 };
 
+function getSupplyForCycle(baseSupply: number, cycle: number): number {
+  if (baseSupply <= 0) return 0;
+  const halvingFactor = Math.max(0, cycle - 1);
+  const divisor = 2 ** halvingFactor;
+  return Math.max(1, Math.floor(baseSupply / divisor));
+}
+
 export function initializeCycle(params: CycleParams, cycle = 1): CycleState {
   const split = params.split ?? DEFAULT_SPLIT;
   const reserve = params.initialReserve;
-  const supply = params.initialSupply;
+  const supply = getSupplyForCycle(params.initialSupply, cycle);
   return {
     cycle,
     reserve,
     supply,
+    initialSupply: supply,
     lpu: supply > 0 ? reserve / supply : 0,
     totalSales: 0,
     seedNext: 0,
@@ -112,6 +121,7 @@ export function redeemFinders(state: CycleState, count: number, redemptionThresh
     ...state,
     reserve,
     supply,
+    initialSupply: state.initialSupply,
     lpu,
     ended,
   };
@@ -121,13 +131,14 @@ export function endCycleAndSeedNext(state: CycleState, params: CycleParams): Cyc
   // Ends the current cycle and starts a new one seeded with accumulated seedNext
   const nextCycle = state.cycle + 1;
   const reserve = state.seedNext; // seed from reserveGrowth
-  const supply = params.initialSupply; // reset supply per cycle
+  const supply = getSupplyForCycle(params.initialSupply, nextCycle); // halved supply per cycle
   const lpu = supply > 0 ? reserve / supply : 0;
 
   return {
     cycle: nextCycle,
     reserve,
     supply,
+    initialSupply: supply,
     lpu,
     totalSales: 0,
     seedNext: 0,
@@ -173,4 +184,3 @@ export function convertLFTtoYield(state: CycleState, units: number, index: Yield
     index: updatedIndex,
   };
 }
-

@@ -3,23 +3,24 @@ import type { Asset } from "@/lib/app-state";
 import { useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn, formatCurrency, formatCurrencyK } from "@/lib/utils";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
+import { ArrowLeftRight, ChevronDown, Search } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/input";
+import { CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import Web3News from "@/components/Web3News";
 
 const MAX_TRENDING = 10;
 
-type Network = "all" | "bitcoin" | "ethereum" | "solana" | "eos";
+type Network = "all" | "bitcoin" | "ethereum" | "solana" | "base";
 
 const NETWORKS = [
   { id: "all" as const, name: "All networks", icon: "⚡", image: "/22.png" },
   { id: "bitcoin" as const, name: "Bitcoin", icon: "₿", image: "/bitcoin.jpeg" },
   { id: "ethereum" as const, name: "Ethereum", icon: "Ξ", image: "/ethereum.jpeg" },
-  { id: "solana" as const, name: "Solana", icon: "◎", image: "/solana.jpeg" },
-  { id: "eos" as const, name: "EOS", icon: "E", image: "/eos.jpeg" },
+  { id: "solana" as const, name: "Solana", icon: "◎", image: "/solana.png" },
+  { id: "base" as const, name: "Base", icon: "🔵", image: "/base.jpeg" },
 ];
 
 type AssetsPageProps = {
@@ -175,6 +176,32 @@ function useAverageColor(src: string, id: string): RGBColor {
   return color;
 }
 
+function detectWebView(): boolean {
+  if (typeof window === "undefined" || typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent || navigator.vendor || "";
+  const standalone = (navigator as unknown as { standalone?: boolean }).standalone;
+  const displayModeStandalone =
+    typeof window.matchMedia === "function" && window.matchMedia("(display-mode: standalone)").matches;
+
+  const isAndroid = /Android/.test(ua);
+  const isAndroidWebView = isAndroid && /; wv;/.test(ua);
+
+  const isIOS = /iPhone|iPad|iPod/.test(ua);
+  const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|OPiOS|EdgiOS/.test(ua);
+  const isIOSWebView = isIOS && !isSafari;
+
+  const isSocialInApp =
+    /FBAN|FBAV|Instagram|Line\/|Twitter|Snapchat|TikTok|OKApp|Electron/.test(ua);
+
+  return Boolean(
+    displayModeStandalone ||
+      standalone ||
+      isAndroidWebView ||
+      isIOSWebView ||
+      isSocialInApp
+  );
+}
+
 export function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit, showSearchBar = false }: AssetsPageProps) {
   const { assets } = useApp();
   const { theme } = useTheme();
@@ -183,7 +210,18 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   const [selectedNetwork, setSelectedNetwork] = useState<Network>("all");
   const [showNetworkDropdown, setShowNetworkDropdown] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showSearchModal, setShowSearchModal] = useState(false);
   const [marketMode, setMarketMode] = useState<"listed" | "live">("listed");
+  const [viewMode, setViewMode] = useState<"list" | "grid">(() => {
+    if (typeof window === "undefined") return "list";
+    // Always default to list on desktop/webview
+    return window.matchMedia("(min-width: 768px)").matches ? "list" : "grid";
+  });
+  const [isWebview, setIsWebview] = useState(() => detectWebView());
+  const [isDesktop, setIsDesktop] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return window.matchMedia("(min-width: 768px)").matches;
+  });
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -226,7 +264,47 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     window.dispatchEvent(new CustomEvent("trone-network-sync", { detail: selectedNetwork }));
   }, [selectedNetwork]);
 
+  useEffect(() => {
+    setIsWebview(detectWebView());
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    
+    const mediaQuery = window.matchMedia("(min-width: 768px)");
+    const handleResize = (e: MediaQueryListEvent) => {
+      setIsDesktop(e.matches);
+      // Force list view on desktop
+      if (e.matches) {
+        setViewMode("list");
+      }
+    };
+
+    // Set initial state
+    setIsDesktop(mediaQuery.matches);
+    if (mediaQuery.matches || isWebview) {
+      setViewMode("list");
+    }
+
+    mediaQuery.addEventListener("change", handleResize);
+    return () => mediaQuery.removeEventListener("change", handleResize);
+  }, [isWebview]);
+
+  useEffect(() => {
+    if ((isWebview || isDesktop) && viewMode !== "list") {
+      setViewMode("list");
+    }
+  }, [isWebview, isDesktop, viewMode]);
+
   const normalizedSearch = searchTerm.trim().toLowerCase();
+
+  const handleToggleViewMode = useCallback(() => {
+    if (isWebview || isDesktop) {
+      setViewMode("list");
+      return;
+    }
+    setViewMode((prev) => (prev === "list" ? "grid" : "list"));
+  }, [isWebview, isDesktop]);
 
   const filteredAssets = useMemo(() => {
     let filtered = assets;
@@ -235,7 +313,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     if (selectedNetwork !== "all") {
       filtered = filtered.filter((asset) => {
         const hash = asset.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        const networks: Network[] = ["bitcoin", "ethereum", "solana", "eos"];
+        const networks: Network[] = ["bitcoin", "ethereum", "solana", "base"];
         const assignedNetwork = networks[hash % networks.length];
         return assignedNetwork === selectedNetwork;
       });
@@ -261,6 +339,8 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   const cardMediaBorderClass = isDarkTheme ? "border-b-0" : "border-b border-slate-200/60";
 
   const selectedNetworkInfo = NETWORKS.find(n => n.id === selectedNetwork) || NETWORKS[0];
+  const brandHeadingGradient = "linear-gradient(92deg, #8B5CFF 0%, #B897FF 50%, #D4C3FF 100%)";
+  const isGridView = viewMode === "grid";
 
   const getAssetChange = (asset: Asset) => {
     const baseHash = hashString(`${asset.id}-${asset.name}`);
@@ -311,7 +391,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
       >
         <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 overflow-hidden rounded-full sm:h-12 sm:w-12">
+              <div className="h-10 w-10 overflow-hidden rounded-xl sm:h-12 sm:w-12">
                 <img src={asset.image} alt={asset.name} className="h-full w-full object-cover" />
               </div>
             <div className="flex flex-col">
@@ -404,7 +484,6 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 
   const renderListedGrid = (items: Asset[]) => (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:gap-6">
-      <div className="-mt-2 h-px w-full bg-border/60 sm:hidden" />
       {items.map((asset) => {
         const change = getAssetChange(asset);
         return renderGridCard(asset, change, () => navigate(`/assets/${asset.id}`));
@@ -514,10 +593,10 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 
   return (
     <div className="min-h-screen">
-      <main className="container mx-auto px-4 pt-4 pb-6">
-        <div className="flex flex-col gap-3">
-          <div className="space-y-3">
-            <div className="space-y-3 px-0">
+      <main className="container mx-auto px-4 pt-2 pb-4">
+        <div className="flex flex-col gap-2">
+          <div className="space-y-2">
+            <div className="space-y-2 px-0">
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex-1">
                   <div className="flex items-center justify-between gap-2">
@@ -525,79 +604,121 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       {marketMode === "live" ? (
                         <>
                           Live{" "}
-                          <span className="bg-gradient-to-r from-green-400 via-emerald-500 to-teal-600 bg-clip-text text-transparent">
+                          <span
+                            className="bg-clip-text text-transparent"
+                            style={{ backgroundImage: brandHeadingGradient }}
+                          >
                             Market
                           </span>
                         </>
                       ) : (
                         <>
                           Listed{" "}
-                          <span className="bg-gradient-to-r from-green-400 via-emerald-500 to-teal-600 bg-clip-text text-transparent">
+                          <span
+                            className="bg-clip-text text-transparent"
+                            style={{ backgroundImage: brandHeadingGradient }}
+                          >
                             Assets
                           </span>
                         </>
                       )}
                     </h1>
-                    {/* Mobile: Show view all button adjacent to title */}
-                    {showViewAllButton && (
+                    {!isWebview && !isDesktop && (
+                      <div className="ml-4 flex items-center gap-2 sm:hidden">
+                        <button
+                          type="button"
+                          onClick={handleToggleViewMode}
+                          role="switch"
+                          aria-checked={isGridView}
+                          aria-label={isGridView ? "Switch to list view" : "Switch to grid view"}
+                          className={cn(
+                            "relative h-6 w-11 rounded-full transition-colors",
+                            isGridView ? "bg-white" : "bg-[#2a2d3a]",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-foreground focus-visible:ring-offset-background",
+                          )}
+                        >
+                          <span className="sr-only">Toggle asset layout</span>
+                          <span
+                            className={cn(
+                              "absolute top-[2px] h-5 w-5 rounded-full transition-all duration-200 ease-out",
+                              isGridView 
+                                ? "left-[calc(100%-22px)] bg-black" 
+                                : "left-[2px] bg-white",
+                            )}
+                          />
+                        </button>
+                      </div>
+                    )}
+                    {!isWebview && !isDesktop && (
+                      <div className="ml-4 hidden items-center gap-2 sm:flex">
+                        <button
+                          type="button"
+                          onClick={handleToggleViewMode}
+                          role="switch"
+                          aria-checked={isGridView}
+                          aria-label={isGridView ? "Switch to list view" : "Switch to grid view"}
+                          className={cn(
+                            "relative h-6 w-11 rounded-full transition-colors",
+                            isGridView ? "bg-white" : "bg-[#2a2d3a]",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-foreground focus-visible:ring-offset-background",
+                          )}
+                        >
+                          <span className="sr-only">Toggle asset layout</span>
+                          <span
+                            className={cn(
+                              "absolute top-[2px] h-5 w-5 rounded-full transition-all duration-200 ease-out",
+                              isGridView 
+                                ? "left-[calc(100%-22px)] bg-black" 
+                                : "left-[2px] bg-white",
+                            )}
+                          />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    {marketMode === "live"
+                      ? "Monitor market performance, liquidity flows, and pricing in real time."
+                      : "Browse listed LFT assets, analyze their performance, and discover investment opportunities."}
+                  </p>
+                  {showViewAllButton && (
+                    <div className="mt-2 sm:hidden">
                       <Button
                         type="button"
                         size="sm"
                         variant="ghost"
                         onClick={() => navigate("/assets/all")}
-                        className="sm:hidden text-xs font-semibold text-primary hover:text-primary hover:bg-transparent px-2"
+                        className="h-auto px-0 text-xs font-semibold text-primary hover:text-primary hover:bg-transparent"
                       >
                         View all tokens
                       </Button>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {marketMode === "live"
-                      ? "Monitor market performance, liquidity flows, and pricing in real time."
-                      : "Browse listed LFT assets, analyze their performance, and discover investment opportunities."}
-                  </p>
-                  <div className="mt-3 flex items-center justify-between gap-2 text-xs sm:hidden">
-                    <span className="text-muted-foreground">
-                      {marketMode === "live" ? "Viewing live market data" : "Viewing listed marketplace"}
-                    </span>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      className="text-foreground"
-                      onClick={() => setMarketMode((prev) => (prev === "live" ? "listed" : "live"))}
-                    >
-                      {marketMode === "live" ? "Switch to Listed" : "Switch to Live"}
-                    </Button>
-                  </div>
+                    </div>
+                  )}
                 </div>
-                <div className="flex w-full items-center gap-3 text-xs text-muted-foreground sm:w-auto sm:justify-end">
-                  <div className="hidden items-center gap-2 sm:flex">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={marketMode === "listed" ? "default" : "ghost"}
-                      onClick={() => setMarketMode("listed")}
-                    >
-                      Listed
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={marketMode === "live" ? "default" : "ghost"}
-                      onClick={() => setMarketMode("live")}
-                    >
-                      Live
-                    </Button>
-                  </div>
-                </div>
+                <div className="flex w-full items-center gap-3 text-xs text-muted-foreground sm:w-auto sm:justify-end" />
               </div>
 
               {/* Mobile search removed per updated layout */}
 
               {/* Desktop controls and network selector */}
               <div className="hidden sm:flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex w-full items-center gap-3 sm:w-auto" />
+                <div className="flex w-full items-center gap-2 sm:w-auto">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => setMarketMode((prev) => (prev === "live" ? "listed" : "live"))}
+                    className={cn(
+                      "inline-flex items-center gap-2 rounded-full px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.25em] transition",
+                      "focus-visible:ring-2 focus-visible:ring-offset-2",
+                      isDarkTheme
+                        ? "bg-[#C7CAD1] text-neutral-900 hover:bg-[#d5d8de] focus-visible:ring-neutral-500 focus-visible:ring-offset-neutral-900"
+                        : "bg-[#C7CAD1] text-neutral-900 hover:bg-[#d5d8de] focus-visible:ring-neutral-400 focus-visible:ring-offset-zinc-100",
+                    )}
+                  >
+                    <ArrowLeftRight className="h-3.5 w-3.5" />
+                    {marketMode === "live" ? "Switch to Listed Market" : "Switch to Live Market"}
+                  </Button>
+                </div>
                 <div className="flex items-center gap-2">
                   <div className="relative">
                     <Button
@@ -605,7 +726,13 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       size="sm"
                       variant="ghost"
                       onClick={() => setShowNetworkDropdown(!showNetworkDropdown)}
-                      className="inline-flex items-center gap-2 rounded-full border border-border/60 px-4 py-2 text-sm font-semibold bg-muted/70 text-foreground transition-colors hover:bg-muted dark:border-transparent dark:bg-neutral-950/80 dark:hover:bg-neutral-900"
+                      className={cn(
+                        "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+                        isDarkTheme
+                          ? "bg-[#C7CAD1] text-neutral-900 hover:bg-[#d5d8de] focus-visible:ring-neutral-500 focus-visible:ring-offset-neutral-900"
+                          : "bg-[#C7CAD1] text-neutral-900 hover:bg-[#d5d8de] focus-visible:ring-neutral-400 focus-visible:ring-offset-neutral-100",
+                      )}
                     >
                       {selectedNetworkInfo.image ? (
                         <img src={selectedNetworkInfo.image} alt={selectedNetworkInfo.name} className="h-5 w-5 rounded-full object-cover" />
@@ -661,7 +788,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
               </div>
 
               {marketMode === "listed" && showTrending && trendingTokens.length > 0 && (
-                <section className="space-y-2 -mb-3 hidden md:block">
+                <section className="space-y-1 -mb-2 hidden md:block">
                   <div className="flex items-center justify-between gap-3">
                     <h2 className="text-xl font-semibold text-foreground">Trending Tokens</h2>
                     <Button
@@ -702,18 +829,22 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                 </div>
               )}
 
-              {/* Always render list view */}
-              {displayListedAssets.length > 0
-                ? marketMode === "live"
-                  ? renderLiveList(displayListedAssets)
-                  : renderListedList(displayListedAssets)
-                : renderEmptyState()}
-
-              <div className="block h-px w-full bg-border/60 sm:hidden" />
+              {/* View mode switcher for listed/live markets */}
+              {displayListedAssets.length > 0 ? (
+                marketMode === "live" ? (
+                  viewMode === "grid" ? renderLiveGrid(displayListedAssets) : renderLiveList(displayListedAssets)
+                ) : viewMode === "grid" ? (
+                  renderListedGrid(displayListedAssets)
+                ) : (
+                  renderListedList(displayListedAssets)
+                )
+              ) : (
+                renderEmptyState()
+              )}
 
               {/* Mobile Trending Section - Below Listed Assets */}
               {marketMode === "listed" && showTrending && trendingTokens.length > 0 && (
-                <section className="space-y-3 mt-6 md:hidden">
+                <section className="space-y-2 mt-4 md:hidden">
                   <div className="flex items-center gap-2">
                     <h2 className="text-xl font-semibold text-foreground">Trending Tokens</h2>
                   </div>
@@ -728,12 +859,71 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
               {showTrending && <Web3News variant="mobile" className="mt-6 sm:hidden" />}
               
               {/* Spacer for mobile fixed bottom controls */}
-              <div className="h-20 sm:hidden" />
+              <div className="h-2 sm:hidden" />
             </div>
 
           </div>
         </div>
       </main>
+
+      {/* Fixed Search Button - Mobile Only */}
+      <div className="md:hidden fixed bottom-16 left-0 right-0 z-30 px-4 pb-3 flex justify-center">
+        <button
+          onClick={() => setShowSearchModal(true)}
+          className="h-11 bg-[#1a1d2e] hover:bg-[#222639] rounded-[22px] flex items-center justify-center gap-2.5 text-white shadow-lg transition-colors px-6"
+        >
+          <Search className="h-4 w-4 text-gray-400" />
+          <span className="text-sm font-normal text-gray-400">Search</span>
+        </button>
+      </div>
+
+      {/* Search Modal */}
+      <CommandDialog open={showSearchModal} onOpenChange={setShowSearchModal}>
+        <CommandInput 
+          placeholder="Search tokens, tickers, or IDs"
+          value={searchTerm}
+          onValueChange={setSearchTerm}
+        />
+        <CommandList>
+          <CommandEmpty>No tokens found</CommandEmpty>
+          {displayListedAssets.length > 0 && (
+            <CommandGroup heading="Listed Assets">
+              {displayListedAssets.slice(0, 20).map((asset) => (
+                <CommandItem
+                  key={asset.id}
+                  value={`${asset.name} ${asset.ticker ?? ""} ${asset.id}`}
+                  onSelect={() => {
+                    navigate(`/assets/${asset.id}`);
+                    setShowSearchModal(false);
+                    setSearchTerm("");
+                  }}
+                  className="data-[selected=true]:bg-surface/90"
+                >
+                  <div className="flex w-full items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={asset.image}
+                        alt={asset.name}
+                        className="h-9 w-9 rounded-full border border-border/50 object-cover"
+                      />
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold text-foreground">{asset.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {asset.ticker || asset.id.toUpperCase()} · LPU {formatCurrency(asset.cycle.lpu)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs font-semibold text-foreground">{formatCurrencyK(asset.cycle.reserve)}</div>
+                      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">TVL</div>
+                    </div>
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+        </CommandList>
+      </CommandDialog>
     </div>
   );
 }

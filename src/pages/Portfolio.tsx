@@ -8,6 +8,11 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useTheme } from "@/hooks/useTheme";
 
+const toNumeric = (value: unknown) => {
+  const parsed = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
 export default function Portfolio() {
   const {
     user,
@@ -17,6 +22,9 @@ export default function Portfolio() {
     claimRewards,
     redeemAssetLFTs,
   } = useApp();
+
+  console.log('🔄 Portfolio Page - Loaded with userAssets:', JSON.stringify(userAssets, null, 2));
+  console.log('🔄 Portfolio Page - Total assets available:', assets.length);
 
   const [assetRedeemCounts, setAssetRedeemCounts] = useState<Record<string, number>>({});
   const [ownedViewMode, setOwnedViewMode] = useState<"grid" | "list">("list");
@@ -29,23 +37,39 @@ export default function Portfolio() {
 
   const totalLftWithdrawnValue = user.withdrawn ?? 0;
   const totalLftValue = useMemo(() => {
-    return assets.reduce((sum, asset) => {
-      const owned = userAssets[asset.id]?.lfts ?? 0;
-      return sum + owned * asset.cycle.lpu;
+    console.log('🏦 Portfolio Debug - Calculating totalLftValue with userAssets:', JSON.stringify(userAssets, null, 2));
+    const total = assets.reduce((sum, asset) => {
+      const owned = toNumeric(userAssets[asset.id]?.lfts);
+      const lpu = typeof asset.cycle?.lpu === 'number' ? asset.cycle.lpu : 0;
+      const assetValue = owned * lpu;
+      console.log(`📊 Portfolio Debug - Asset ${asset.name} (${asset.id}): ${owned} LFTs × ${lpu} LPU = ${assetValue}`);
+      return sum + assetValue;
     }, 0);
+    console.log(`💰 Portfolio Debug - Total LFT Value: ${total}`);
+    return isNaN(total) ? 0 : total;
   }, [assets, userAssets]);
 
-  const ownedAssetLfts = useMemo(
-    () => assets.filter((asset) => (userAssets[asset.id]?.lfts ?? 0) > 0),
-    [assets, userAssets],
-  );
+  const ownedAssetLfts = useMemo(() => {
+    const owned = assets.filter((asset) => {
+      const lfts = toNumeric(userAssets[asset.id]?.lfts);
+      const hasLfts = lfts > 0;
+      console.log(`🔍 Portfolio Debug - Checking ${asset.name}: ${lfts} LFTs, owned: ${hasLfts}`);
+      return hasLfts;
+    });
+    console.log(`📦 Portfolio Debug - Total owned assets:`, owned.map(a => a.name));
+    return owned;
+  }, [assets, userAssets]);
   const selectedAsset = useMemo(
     () => (selectedAssetId ? assets.find((asset) => asset.id === selectedAssetId) ?? null : null),
     [assets, selectedAssetId],
   );
 
   const renderOwnedAssetCard = (asset: (typeof assets)[number], variant: "grid" | "modal" = "grid") => {
-    const balances = userAssets[asset.id] ?? { coinTags: 0, lfts: 0 };
+    const rawBalances = userAssets[asset.id];
+    const balances = {
+      coinTags: toNumeric(rawBalances?.coinTags),
+      lfts: toNumeric(rawBalances?.lfts),
+    };
     const redeemCount = assetRedeemCounts[asset.id] ?? 1;
     const assetValue = balances.lfts * asset.cycle.lpu;
 
@@ -169,7 +193,7 @@ export default function Portfolio() {
                 </div>
               </div>
               <Button
-                className="w-full bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-700 dark:text-emerald-100 dark:hover:bg-emerald-600 sm:bg-primary sm:text-primary-foreground sm:hover:bg-primary/90"
+                className="w-full bg-[#E6DDFF] text-[#5A34C9] hover:bg-[#d8ccff] dark:bg-[#3a2770] dark:text-[#ede8ff] dark:hover:bg-[#4c30a0] sm:bg-[#8B5CFF] sm:text-white sm:hover:bg-[#7a4cf8]"
                 onClick={() => claimRewards()}
                 disabled={accruedRewards <= 0}
               >
@@ -214,7 +238,11 @@ export default function Portfolio() {
             ) : (
               <div className="space-y-3 -mx-2 sm:mx-0">
                 {ownedAssetLfts.map((asset) => {
-                  const balances = userAssets[asset.id] ?? { coinTags: 0, lfts: 0 };
+                  const rawBalances = userAssets[asset.id];
+                  const balances = {
+                    coinTags: toNumeric(rawBalances?.coinTags),
+                    lfts: toNumeric(rawBalances?.lfts),
+                  };
                   const assetValue = balances.lfts * asset.cycle.lpu;
 
                   return (
@@ -222,12 +250,7 @@ export default function Portfolio() {
                       type="button"
                       key={`list-${asset.id}`}
                       onClick={() => setSelectedAssetId(asset.id)}
-                      className={cn(
-                        "flex w-full items-center justify-between gap-4 rounded-2xl text-left shadow-sm transition",
-                        isDarkTheme
-                          ? "bg-background/70 px-2 py-3 sm:px-4 hover:bg-background/60"
-                          : "px-2 py-3 sm:px-4 sm:bg-white sm:hover:bg-white/90",
-                      )}
+                      className="flex w-full items-center justify-between gap-4 rounded-2xl px-2 py-3 text-left transition sm:px-4"
                     >
                       <div className="flex items-center gap-3">
                         <img src={asset.image} alt={asset.name} className="h-12 w-12 rounded-2xl object-cover" />
