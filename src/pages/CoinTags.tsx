@@ -19,14 +19,16 @@ type BreakdownRow = {
 };
 
 const splitLabels: Record<keyof RevenueSplit, string> = {
-  creator: "Creator",
-  reserveGrowth: "Reserve Growth",
+  creator: "Creator Royalty",
+  nextCycleLiquidity: "Next Cycle Liquidity",
   platform: "Platform",
-  liquidityContribution: "Liquidity",
+  currentCycleLiquidity: "Current Cycle Liquidity",
   holderRewards: "Holder Rewards",
 };
 
 const DEFAULT_IMAGE = "/placeholder.svg";
+const LFT_SUPPLY = 1_000_000;
+const TOTAL_COINTAGS = 100;
 
 export default function CoinTags() {
   const navigate = useNavigate();
@@ -39,7 +41,6 @@ export default function CoinTags() {
     "Outline the story behind this artifact and why finders will want to activate your CoinTag campaign.",
   );
   const [initialReserve, setInitialReserve] = useState<number>(params.initialReserve);
-  const [initialSupply, setInitialSupply] = useState<number>(100); // Fixed at 100 units
   const [pricePerTag, setPricePerTag] = useState<number>(50); // CoinTag price
   const [discoveryRate, setDiscoveryRate] = useState<number>(25);
   const [imageName, setImageName] = useState<string>("");
@@ -47,9 +48,9 @@ export default function CoinTags() {
 
   const preview = useMemo(() => {
     const safeReserve = Math.max(0, initialReserve);
-    const safeSupply = 100; // Always 100 units
+    const safeSupply = LFT_SUPPLY; // 1M units, halves each cycle automatically
     const safePrice = Math.max(1, pricePerTag);
-    const tags = 100; // Always 100 CoinTags
+    const tags = TOTAL_COINTAGS; // Always 100 CoinTags
     const raise = tags * safePrice; // Calculate total raise from CoinTag price
     const effectiveDiscoveryRate = Math.min(Math.max(discoveryRate, 0), 100);
 
@@ -123,7 +124,7 @@ export default function CoinTags() {
       image: imagePreview,
       params: {
         initialReserve: Math.max(0, initialReserve),
-        initialSupply: 100, // Fixed at 100 units
+        initialSupply: LFT_SUPPLY,
         redemptionThreshold: params.redemptionThreshold,
         split: baseSplit,
       },
@@ -216,7 +217,9 @@ export default function CoinTags() {
               <section className="space-y-4">
                 <div>
                   <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Liquidity & Pricing</h3>
-                  <p className="text-xs text-muted-foreground mt-1">Set initial liquidity and CoinTag price. Supply is fixed at 100 units.</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Set initial liquidity and CoinTag price. LFT supply starts at 1,000,000 units and halves automatically each cycle.
+                  </p>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -249,11 +252,13 @@ export default function CoinTags() {
                     <Input
                       id="initialSupply"
                       type="number"
-                      value={100}
+                      value={LFT_SUPPLY}
                       disabled
                       className="bg-muted/50 cursor-not-allowed"
                     />
-                    <p className="text-xs text-muted-foreground">Fixed at 100 units for all launches</p>
+                    <p className="text-xs text-muted-foreground">
+                      Starts at 1,000,000 units (halves each new cycle automatically)
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="totalRaise">Total Raise</Label>

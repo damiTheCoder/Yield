@@ -136,15 +136,15 @@ const computeHuntPoolSeed = (asset: Asset | undefined): number => {
   return HUNT_TOKEN_SUPPLY;
 };
 
+const TOKEN_SUPPLY = 1_000_000;
 const DEFAULT_PARAMS: CycleParams = {
   initialReserve: 1000,
-  initialSupply: 100,
+  initialSupply: TOKEN_SUPPLY,
   redemptionThreshold: 200,
   split: DEFAULT_SPLIT,
 };
 
 const DEFAULT_INDEX: YieldIndex = { aggregatedLiquidity: 0, totalUnits: 0, price: 0 };
-const TOKEN_SUPPLY = 1_000_000;
 const INITIAL_CYCLE_STATE = initializeCycle(DEFAULT_PARAMS, 1);
 
 const AppCtx = createContext<(AppState & AppActions) | null>(null);
@@ -223,7 +223,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
             next[asset.id] = 0;
             return;
           }
-          const maxSupply = asset.cycle.initialSupply;
+          const maxSupply = asset.cycle.maxSupply ?? asset.cycle.initialSupply;
           const value = stored.assetAvailable?.[asset.id];
           next[asset.id] =
             typeof value === "number" && value > 0
@@ -755,9 +755,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         const clonedSplit = launchParams.split
           ? {
               creator: launchParams.split.creator,
-              reserveGrowth: launchParams.split.reserveGrowth,
+              nextCycleLiquidity: launchParams.split.nextCycleLiquidity,
               platform: launchParams.split.platform,
-              liquidityContribution: launchParams.split.liquidityContribution,
+              currentCycleLiquidity: launchParams.split.currentCycleLiquidity,
               holderRewards: launchParams.split.holderRewards,
             }
           : undefined;

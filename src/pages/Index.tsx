@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,54 @@ const trackEvent = (event: string, payload: TrackingPayload = {}) => {
   }
 
   anyWindow.dataLayer?.push?.({ event, ...payload });
+};
+
+type ScrollDropProps = {
+  children: ReactNode;
+  className?: string;
+  id?: string;
+  delay?: number;
+  as?: "div" | "section";
+};
+
+const ScrollDrop = ({ children, className, id, delay = 0, as = "section" }: ScrollDropProps) => {
+  const ref = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+
+    if (delay) {
+      node.style.setProperty("--scroll-drop-delay", `${delay}ms`);
+    }
+
+    const show = () => node.classList.add("scroll-drop-visible");
+
+    if (typeof IntersectionObserver === "undefined") {
+      show();
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          show();
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.18, rootMargin: "0px 0px -40px 0px" },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [delay]);
+
+  const Component = as;
+  return (
+    <Component id={id} ref={ref} className={cn("scroll-drop", className)}>
+      {children}
+    </Component>
+  );
 };
 
 const Index = () => {
@@ -161,7 +209,7 @@ const Index = () => {
       </nav>
       <main className="flex w-full flex-col gap-28 pb-24 pt-16 sm:gap-32 sm:pb-32 sm:pt-24 lg:gap-36">
         {/* Section 1 – Problem & Vision */}
-        <section
+        <ScrollDrop
           id="problem"
           className="flex flex-col items-center gap-12 px-6 text-center sm:px-12 lg:px-16"
         >
@@ -207,10 +255,10 @@ const Index = () => {
               />
             </div>
           </div>
-        </section>
+        </ScrollDrop>
 
         {/* Section 2 – Solution */}
-        <section
+        <ScrollDrop
           id="difference"
           className="grid gap-10 px-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-stretch lg:px-16"
         >
@@ -262,10 +310,10 @@ const Index = () => {
               See how LFTs work
             </Button>
           </div>
-        </section>
+        </ScrollDrop>
 
         {/* Section 3 – Solution */}
-        <section
+        <ScrollDrop
           id="solution"
           className="grid gap-10 px-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-stretch lg:px-16"
         >
@@ -332,10 +380,10 @@ const Index = () => {
               Join the next generation of digital assets
             </Button>
           </div>
-        </section>
+        </ScrollDrop>
 
         {/* Section 4 – Impact */}
-        <section
+        <ScrollDrop
           id="impact"
           className="grid gap-10 px-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-stretch lg:px-16"
         >
@@ -389,10 +437,10 @@ const Index = () => {
               Explore Trone — where liquidity meets longevity
             </Button>
           </div>
-        </section>
+        </ScrollDrop>
 
         {/* Section 5 – Call to Action */}
-        <section
+        <ScrollDrop
           id="cta"
           className="grid gap-10 px-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-stretch lg:px-16"
         >
@@ -431,7 +479,7 @@ const Index = () => {
               </Button>
             </div>
           </div>
-        </section>
+        </ScrollDrop>
       </main>
       <footer
         id="footer"

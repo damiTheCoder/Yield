@@ -106,7 +106,7 @@ export default function HuntPage() {
       assetName={asset.name}
       ticker={asset.ticker}
       cycleNumber={asset.cycle.cycle}
-      pricePerUnit={asset.cycle.reserve / TOTAL_HUNT_TOKENS}
+      pricePerUnit={asset.cycle.lpu}
       image={asset.image}
     />
   );

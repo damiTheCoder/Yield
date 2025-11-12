@@ -39,11 +39,12 @@ export default function Revenue() {
     return assets.reduce(
       (acc, asset) => {
         const { cycle } = asset;
+        const accrued = cycle.accrued ?? {};
         acc.totalSales += cycle.totalSales;
-        acc.totalLiquidity += cycle.accrued.liquidityContribution;
-        acc.totalPayouts += cycle.accrued.holderRewards;
-        acc.totalCreator += cycle.accrued.creator;
-        acc.totalReserve += cycle.accrued.reserveGrowth;
+        acc.totalLiquidity += accrued.currentCycleLiquidity ?? 0;
+        acc.totalPayouts += accrued.holderRewards ?? 0;
+        acc.totalCreator += accrued.creator ?? 0;
+        acc.totalNextCycle += accrued.nextCycleLiquidity ?? 0;
         acc.seed += cycle.seedNext;
         acc.cycleCount += 1;
         return acc;
@@ -53,7 +54,7 @@ export default function Revenue() {
         totalLiquidity: 0,
         totalPayouts: 0,
         totalCreator: 0,
-        totalReserve: 0,
+        totalNextCycle: 0,
         seed: 0,
         cycleCount: 0,
       },
@@ -64,17 +65,17 @@ export default function Revenue() {
     return assets.map((asset) => ({
       name: asset.ticker || asset.name,
       sales: Number(asset.cycle.totalSales.toFixed(2)),
-      liquidity: Number(asset.cycle.accrued.liquidityContribution.toFixed(2)),
-      payouts: Number(asset.cycle.accrued.holderRewards.toFixed(2)),
+      liquidity: Number(((asset.cycle.accrued.currentCycleLiquidity ?? 0)).toFixed(2)),
+      payouts: Number(((asset.cycle.accrued.holderRewards ?? 0)).toFixed(2)),
     }));
   }, [assets]);
 
   const timelineSeries = useMemo(() => {
     return assets.map((asset) => ({
       name: asset.ticker || asset.name,
-      reserveGrowth: Number(asset.cycle.accrued.reserveGrowth.toFixed(2)),
-      platform: Number(asset.cycle.accrued.platform.toFixed(2)),
-      creator: Number(asset.cycle.accrued.creator.toFixed(2)),
+      nextCycleLiquidity: Number(((asset.cycle.accrued.nextCycleLiquidity ?? 0)).toFixed(2)),
+      platform: Number(((asset.cycle.accrued.platform ?? 0)).toFixed(2)),
+      creator: Number(((asset.cycle.accrued.creator ?? 0)).toFixed(2)),
     }));
   }, [assets]);
 
@@ -87,17 +88,17 @@ export default function Revenue() {
         image: asset.image,
         sales: asset.cycle.totalSales,
         cycle: asset.cycle.cycle,
-        reserves: asset.cycle.accrued.reserveGrowth,
-        rewards: asset.cycle.accrued.holderRewards,
+        nextSeed: asset.cycle.accrued.nextCycleLiquidity ?? 0,
+        rewards: asset.cycle.accrued.holderRewards ?? 0,
       }))
       .sort((a, b) => b.sales - a.sales);
   }, [assets]);
 
   const chartConfig = {
     sales: { label: "Gross Sales", color: palette.primary },
-    liquidity: { label: "Liquidity Added", color: palette.secondary },
+    liquidity: { label: "Current Liquidity Added", color: palette.secondary },
     payouts: { label: "Holder Payouts", color: palette.accent },
-    reserve: { label: "Reserve Growth", color: palette.secondary },
+    nextCycleLiquidity: { label: "Next Cycle Liquidity Seed", color: "hsl(199 89% 60%)" },
     creator: { label: "Creator Share", color: palette.primary },
     platform: { label: "Platform Share", color: palette.accent },
   } as const;
@@ -113,11 +114,11 @@ export default function Revenue() {
         ? [
             {
               label: selectedAsset.ticker || selectedAsset.name,
-              creator: selectedAsset.cycle.accrued.creator,
-              reserve: selectedAsset.cycle.accrued.reserveGrowth,
-              liquidity: selectedAsset.cycle.accrued.liquidityContribution,
-              payouts: selectedAsset.cycle.accrued.holderRewards,
-              platform: selectedAsset.cycle.accrued.platform,
+              creator: selectedAsset.cycle.accrued.creator ?? 0,
+              nextCycleLiquidity: selectedAsset.cycle.accrued.nextCycleLiquidity ?? 0,
+              liquidity: selectedAsset.cycle.accrued.currentCycleLiquidity ?? 0,
+              payouts: selectedAsset.cycle.accrued.holderRewards ?? 0,
+              platform: selectedAsset.cycle.accrued.platform ?? 0,
             },
           ]
         : [],
@@ -250,7 +251,7 @@ export default function Revenue() {
             <CardHeader>
               <CardTitle>Cycle Momentum</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Reserve growth, creator share, and platform allocations plotted per collection.
+                Next-cycle liquidity, creator share, and platform allocations plotted per collection.
               </p>
             </CardHeader>
             <CardContent className="h-[320px] px-0 pb-6">
@@ -281,7 +282,7 @@ export default function Revenue() {
                       formatter={(value: number, name: string) => [formatCurrency(value), chartConfig[name as keyof typeof chartConfig]?.label ?? name]}
                       labelFormatter={(label) => `Collection: ${label}`}
                     />
-                    <Line dataKey="reserveGrowth" type="monotone" stroke={chartConfig.reserve.color} strokeWidth={2} dot={{ r: 3 }} name="reserve" />
+                    <Line dataKey="nextCycleLiquidity" type="monotone" stroke={chartConfig.nextCycleLiquidity.color} strokeWidth={2} dot={{ r: 3 }} name="nextCycleLiquidity" />
                     <Line dataKey="creator" type="monotone" stroke={chartConfig.creator.color} strokeWidth={2} dot={{ r: 3 }} name="creator" />
                     <Line dataKey="platform" type="monotone" stroke={chartConfig.platform.color} strokeWidth={2} dot={{ r: 3 }} name="platform" />
                   </LineChart>
@@ -325,7 +326,7 @@ export default function Revenue() {
                         </div>
                         <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                           <span>Cycle {entry.cycle}</span>
-                          <span>Reserves {formatCurrency(entry.reserves)}</span>
+                          <span>Next seed {formatCurrency(entry.nextSeed)}</span>
                           <span>Rewards {formatCurrency(entry.rewards)}</span>
                         </div>
                       </div>
@@ -391,11 +392,11 @@ export default function Revenue() {
                       </div>
                     </header>
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <DetailMetric label="Creator Share" value={selectedAsset.cycle.accrued.creator} />
-                      <DetailMetric label="Liquidity Added" value={selectedAsset.cycle.accrued.liquidityContribution} />
-                      <DetailMetric label="Holder Rewards" value={selectedAsset.cycle.accrued.holderRewards} />
-                      <DetailMetric label="Reserve Growth" value={selectedAsset.cycle.accrued.reserveGrowth} />
-                      <DetailMetric label="Platform Allocation" value={selectedAsset.cycle.accrued.platform} />
+                      <DetailMetric label="Creator Share" value={selectedAsset.cycle.accrued.creator ?? 0} />
+                      <DetailMetric label="Current Liquidity" value={selectedAsset.cycle.accrued.currentCycleLiquidity ?? 0} />
+                      <DetailMetric label="Holder Rewards" value={selectedAsset.cycle.accrued.holderRewards ?? 0} />
+                      <DetailMetric label="Next Cycle Liquidity" value={selectedAsset.cycle.accrued.nextCycleLiquidity ?? 0} />
+                      <DetailMetric label="Platform Allocation" value={selectedAsset.cycle.accrued.platform ?? 0} />
                       <DetailMetric label="Seed to Next Cycle" value={selectedAsset.cycle.seedNext} />
                     </div>
                   </div>
@@ -422,7 +423,7 @@ export default function Revenue() {
                                 }
                               />
                               <Bar dataKey="creator" stackId="a" fill={chartConfig.creator.color} radius={[6, 6, 0, 0]} />
-                              <Bar dataKey="reserve" stackId="a" fill={chartConfig.reserve.color} radius={[6, 6, 0, 0]} />
+                              <Bar dataKey="nextCycleLiquidity" stackId="a" fill={chartConfig.nextCycleLiquidity.color} radius={[6, 6, 0, 0]} />
                               <Bar dataKey="liquidity" stackId="a" fill={chartConfig.liquidity.color} radius={[6, 6, 0, 0]} />
                               <Bar dataKey="payouts" stackId="a" fill={chartConfig.payouts.color} radius={[6, 6, 0, 0]} />
                               <Bar dataKey="platform" stackId="a" fill={chartConfig.platform.color} radius={[6, 6, 0, 0]} />

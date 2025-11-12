@@ -7,8 +7,10 @@ import { Progress } from "@/components/ui/progress";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useApp } from "@/lib/app-state";
 import { cn, formatCurrency, formatCurrencyK } from "@/lib/utils";
+import { DEFAULT_LAUNCHPAD_DISTRIBUTION } from "@/domain/tokenomics";
 import { Dot, Image as ImageIcon, LineChart as LineChartIcon } from "lucide-react";
 import { Bar, BarChart as RechartsBarChart, Cell, Line, LineChart as RechartsLineChart, XAxis, YAxis } from "recharts";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function AssetDetail() {
   const { id } = useParams();
@@ -31,10 +33,20 @@ export default function AssetDetail() {
     );
   }
 
+  const cycleMaxSupply = asset.cycle.maxSupply ?? asset.cycle.initialSupply ?? 0;
+  const launchDistribution = asset.cycle.distribution ?? DEFAULT_LAUNCHPAD_DISTRIBUTION;
+  const distributionEntries = [
+    { key: "hunt", label: "Hunt", value: launchDistribution.gameHunt, accent: "text-emerald-400" },
+    { key: "creator", label: "Creator", value: launchDistribution.creator },
+    { key: "platform", label: "Platform", value: launchDistribution.platform },
+    { key: "investors", label: "Investors", value: launchDistribution.investors },
+  ];
+
   const [showHuntPrompt, setShowHuntPrompt] = useState(false);
   const [purchaseMessage, setPurchaseMessage] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"chart" | "image">("chart");
   const [mobileBuyOpen, setMobileBuyOpen] = useState(false);
+  const [showCycleModal, setShowCycleModal] = useState(false);
   const isImageMode = viewMode === "image";
   const handleToggleView = (checked: boolean) => setViewMode(checked ? "image" : "chart");
   const toggleTrackClass =
@@ -45,7 +57,8 @@ export default function AssetDetail() {
   const currentLiquidity = asset.cycle.reserve;
   const backingReserve = asset.params.initialReserve;
   const lpu = asset.cycle.lpu;
-  const totalSupply = asset.cycle.initialSupply;
+  const totalSupply = asset.cycle.initialSupply ?? cycleMaxSupply;
+  const nextCycleSupply = Math.max(1, Math.floor(cycleMaxSupply / 2));
   const discovered = Math.max(0, totalSupply - findable);
   const discoveryPercent = totalSupply > 0 ? (discovered / totalSupply) * 100 : 0;
   const huntFee = Math.max(4.2, lpu * 0.4);
@@ -56,6 +69,54 @@ export default function AssetDetail() {
   const formatPrimaryValue = (value: number) => {
     return value >= 1000 ? formatCurrencyK(value) : formatCurrency(value);
   };
+
+  const formatSupplyAbbrev = (value: number) => {
+    if (value >= 1000) {
+      return `${(value / 1000).toFixed(0)}K`;
+    }
+    return value.toLocaleString();
+  };
+
+  const cycleStatsContent = (
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+      <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
+        <div className="mb-2 flex items-center gap-2">
+          <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-400"></div>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-400">Current Cycle</span>
+        </div>
+        <div className="text-3xl font-bold text-emerald-300">#{asset.cycle.cycle}</div>
+        <div className="mt-1 text-xs text-muted-foreground">Halving epoch</div>
+      </div>
+
+      <div className="rounded-xl border border-border/40 bg-background/70 p-4">
+        <div className="mb-2 text-[10px] uppercase tracking-wide text-muted-foreground">Max Supply</div>
+        <div className="text-2xl font-semibold text-foreground">{formatSupplyAbbrev(cycleMaxSupply)}</div>
+        <div className="mt-1 text-xs text-muted-foreground">
+          {asset.cycle.cycle > 1 ? <span className="text-orange-400">↓ 50% from prev</span> : <span>Initial supply</span>}
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-border/40 bg-background/70 p-4">
+        <div className="mb-2 text-[10px] uppercase tracking-wide text-muted-foreground">Next Cycle</div>
+        <div className="text-2xl font-semibold text-blue-400">{formatSupplyAbbrev(nextCycleSupply)}</div>
+        <div className="mt-1 text-xs text-muted-foreground">
+          <span className="text-blue-400">Halved supply</span>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-border/40 bg-background/70 p-4">
+        <div className="mb-2 text-[10px] uppercase tracking-wide text-muted-foreground">Distribution</div>
+        <div className="mt-2 space-y-1 text-sm font-medium text-foreground">
+          {distributionEntries.map(({ key, label, value, accent }) => (
+            <div key={key} className="flex justify-between text-xs text-muted-foreground sm:text-sm">
+              <span className={accent}>{label}</span>
+              <span className={accent}>{(value * 100).toFixed(0)}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 
   const discoveryProgress = Math.min(100, Math.max(0, discoveryPercent));
   const multiSegmentPercent = 14;
@@ -549,6 +610,18 @@ export default function AssetDetail() {
               <BuyTagSectionContent />
             </section>
             <AnalyticsSection className="hidden lg:block" />
+            <section className="hidden lg:block">
+              <Button
+                variant="outline"
+                className="mt-4 w-full justify-between rounded-2xl border-border/40 bg-background/70 px-4 py-3 text-sm font-semibold"
+                onClick={() => setShowCycleModal(true)}
+              >
+                View cycle halving & distribution
+                <span className="text-xs font-normal text-muted-foreground">
+                  Current supply {formatSupplyAbbrev(cycleMaxSupply)}
+                </span>
+              </Button>
+            </section>
             {tokenInfo && (
               <section className="hidden lg:block">
                 <Card className="rounded-2xl border border-border/50 bg-surface/50 px-5 py-6">
@@ -619,6 +692,18 @@ export default function AssetDetail() {
 
             <TransactionHistorySection className="lg:hidden" />
             <AnalyticsSection className="lg:hidden" />
+            <section className="lg:hidden">
+              <Button
+                variant="outline"
+                className="mt-2 w-full justify-between rounded-2xl border-border/40 bg-background/70 px-4 py-3 text-sm font-semibold"
+                onClick={() => setShowCycleModal(true)}
+              >
+                View cycle halving & distribution
+                <span className="text-[11px] font-normal text-muted-foreground">
+                  Supply {formatSupplyAbbrev(cycleMaxSupply)}
+                </span>
+              </Button>
+            </section>
             {tokenInfo && (
               <section className="lg:hidden">
                 <div className="rounded-2xl border border-border/40 bg-surface/50 px-4 py-5 space-y-3">
@@ -731,6 +816,19 @@ export default function AssetDetail() {
         )}
       </div>
 
+      <Dialog open={showCycleModal} onOpenChange={setShowCycleModal}>
+        <DialogContent className="max-w-3xl rounded-3xl">
+          <DialogHeader>
+            <DialogTitle>Cycle Halving & Distribution</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Track how the 1M-unit mint halves each cycle and how supply is allocated across hunt rewards, creators, platform, and investors.
+            </p>
+            {cycleStatsContent}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
