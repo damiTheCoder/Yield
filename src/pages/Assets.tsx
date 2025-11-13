@@ -1,17 +1,43 @@
 import { useApp } from "@/lib/app-state";
 import type { Asset } from "@/lib/app-state";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn, formatCurrency, formatCurrencyK } from "@/lib/utils";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeftRight, ChevronDown, Search } from "lucide-react";
+import { ArrowLeftRight, ArrowUpRight, ChevronDown, Search } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/input";
 import { CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import Web3News from "@/components/Web3News";
+import type { TouchEvent } from "react";
 
 const MAX_TRENDING = 10;
+const FEATURED_NEWS_ITEMS = [
+  {
+    id: "tokenized-yield",
+    title: "Reimagining Liquidity: How Tokenized Yield Is Bridging TradFi and Web3",
+    description: "USYC shows how programmable liquidity merges Treasury yield with on-chain access.",
+    href: "/blog/tokenized-yield-liquidity",
+    image: "/d5.png",
+  },
+  {
+    id: "lft-future",
+    title: "Liquidity Funded Tokens (LFTs): The Future of Sustainable Digital Assets",
+    description: "Turning hype into real value through liquidity-backed launches powered by Trone.",
+    href: "/blog/liquidity-funded-tokens",
+    image: "/d1.png",
+  },
+  {
+    id: "creative-liquidity",
+    title: "The Creative Use of Liquidity in the Web3 Space",
+    description: "How DAOs, NFT studios, and LFT builders treat liquidity as a design medium.",
+    href: "/blog/creative-liquidity-web3",
+    image: "/d3.png",
+  },
+] as const;
+
+const FEATURED_NEWS_VIEW_ALL = "/blog";
 
 type Network = "all" | "bitcoin" | "ethereum" | "solana" | "base";
 
@@ -212,11 +238,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [marketMode, setMarketMode] = useState<"listed" | "live">("listed");
-  const [viewMode, setViewMode] = useState<"list" | "grid">(() => {
-    if (typeof window === "undefined") return "list";
-    // Always default to list on desktop/webview
-    return window.matchMedia("(min-width: 768px)").matches ? "list" : "grid";
-  });
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [isWebview, setIsWebview] = useState(() => detectWebView());
   const [isDesktop, setIsDesktop] = useState(() => {
     if (typeof window === "undefined") return true;
@@ -341,6 +363,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   const selectedNetworkInfo = NETWORKS.find(n => n.id === selectedNetwork) || NETWORKS[0];
   const brandHeadingGradient = "linear-gradient(92deg, #8B5CFF 0%, #B897FF 50%, #D4C3FF 100%)";
   const isGridView = viewMode === "grid";
+  const isListView = viewMode === "list";
 
   const getAssetChange = (asset: Asset) => {
     const baseHash = hashString(`${asset.id}-${asset.name}`);
@@ -437,7 +460,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
       <Table className="min-w-[720px] text-sm">
         <TableHeader>
           <TableRow>
-            <TableHead className="sticky left-0 z-20 min-w-[200px] bg-background text-left pl-2">Collection</TableHead>
+            <TableHead className="sticky left-0 z-20 min-w-[200px] bg-background text-left pl-1 sm:pl-3">Collection</TableHead>
             <TableHead className="min-w-[140px] text-right">Liquidity</TableHead>
             <TableHead className="min-w-[140px] text-right">LPU</TableHead>
             <TableHead className="min-w-[140px] text-right">CoinTag</TableHead>
@@ -453,11 +476,11 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
             return (
               <TableRow
                 key={asset.id}
-                className="cursor-pointer text-sm transition-colors hover:bg-surface/30"
+                className="cursor-pointer text-sm transition-colors hover:bg-surface/30 border-b-0 sm:border-b sm:border-border/40"
                 onClick={() => navigate(`/assets/${asset.id}`)}
               >
-                <TableCell className="sticky left-0 z-10 min-w-[200px] bg-background px-2">
-                  <div className="flex items-center gap-3 text-sm">
+                <TableCell className="sticky left-0 z-10 min-w-[200px] bg-background pl-1 pr-2 sm:pl-3">
+                  <div className="flex items-center gap-2.5 text-sm">
                     <img src={asset.image} alt={asset.name} className="h-9 w-9 rounded-xl object-cover" />
                     <div className="flex flex-col min-w-0">
                       <div className="flex items-center gap-1">
@@ -496,7 +519,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
       <Table className="min-w-[720px] text-sm">
         <TableHeader>
           <TableRow>
-            <TableHead className="sticky left-0 z-20 min-w-[200px] bg-background text-left pl-2">Collection</TableHead>
+            <TableHead className="sticky left-0 z-20 min-w-[200px] bg-background text-left pl-1 sm:pl-3">Collection</TableHead>
             <TableHead className="min-w-[140px] text-right">Liquidity</TableHead>
             <TableHead className="min-w-[140px] text-right">LPU</TableHead>
             <TableHead className="min-w-[140px] text-right">CoinTag</TableHead>
@@ -515,8 +538,8 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                 className="cursor-pointer text-sm transition-colors hover:bg-surface/30"
                 onClick={() => navigate(`/assets/${asset.id}/token`)}
               >
-                <TableCell className="sticky left-0 z-10 min-w-[200px] bg-background px-2">
-                  <div className="flex items-center gap-3 text-sm">
+                <TableCell className="sticky left-0 z-10 min-w-[200px] bg-background pl-1 pr-2 sm:pl-3">
+                  <div className="flex items-center gap-2.5 text-sm">
                     <img src={asset.image} alt={asset.name} className="h-9 w-9 rounded-xl object-cover" />
                     <div className="flex flex-col min-w-0">
                       <div className="flex items-center gap-1">
@@ -590,6 +613,195 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
       </button>
     );
   };
+  const MobileFeaturedNews = () => {
+    const totalSlides = FEATURED_NEWS_ITEMS.length;
+    const [activeSlide, setActiveSlide] = useState(0);
+    const touchStartX = useRef<number | null>(null);
+
+    useEffect(() => {
+      if (totalSlides <= 1) return;
+      const intervalId = window.setInterval(() => {
+        setActiveSlide((prev) => (prev + 1) % totalSlides);
+      }, 6500);
+      return () => window.clearInterval(intervalId);
+    }, [totalSlides]);
+
+    const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+      touchStartX.current = event.touches[0]?.clientX ?? null;
+    };
+
+    const handleTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
+      if (touchStartX.current === null || totalSlides <= 1) return;
+      const diff = (event.changedTouches[0]?.clientX ?? touchStartX.current) - touchStartX.current;
+      touchStartX.current = null;
+      if (Math.abs(diff) < 30) return;
+      setActiveSlide((prev) => {
+        if (diff < 0) {
+          return (prev + 1) % totalSlides;
+        }
+        return (prev - 1 + totalSlides) % totalSlides;
+      });
+    };
+
+    // Desktop/Webview Layout (like Web3 Headlines - hero + grid)
+    if (isWebview || isDesktop) {
+      const hero = FEATURED_NEWS_ITEMS[0];
+      const remainder = FEATURED_NEWS_ITEMS.slice(1);
+
+      return (
+        <section className="mb-6">
+          <div className="flex items-center justify-between mb-5">
+            <div className={cn(
+              "uppercase tracking-wide font-bold text-xl",
+              isDarkTheme ? "text-white" : "text-black"
+            )}>
+              Blog Posts
+            </div>
+            <a
+              href="/blog"
+              className="text-xs font-semibold uppercase tracking-widest text-primary hover:text-primary/80"
+            >
+              View all
+            </a>
+          </div>
+          <div className="grid gap-5 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+            {/* Left Column - Large Featured Post */}
+            <div
+              className={cn(
+                "group relative overflow-hidden rounded-[28px] border transition-colors",
+                "min-h-[280px] md:min-h-[360px]",
+                isDarkTheme 
+                  ? "bg-[#1a1a1a] border-transparent"
+                  : "bg-gray-50 border border-gray-200"
+              )}
+            >
+              <Link to={hero.href} className="absolute inset-0">
+                <div className="absolute inset-0">
+                  <img
+                    src={hero.image}
+                    alt={hero.title}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+                </div>
+                <div className="absolute inset-x-0 bottom-0 p-8 space-y-3 text-white">
+                  <span className="inline-flex items-center text-[11px] font-semibold uppercase tracking-[0.2em] text-yellow-300">
+                    Blog
+                  </span>
+                  <h3 className="text-2xl md:text-3xl font-semibold leading-tight">{hero.title}</h3>
+                  <p className="text-sm text-white/75">
+                    {hero.description}
+                  </p>
+                </div>
+              </Link>
+            </div>
+            
+            {/* Right Column - Grid of Smaller Posts */}
+            <div className="flex flex-col h-full">
+              {remainder.map((item, index) => (
+                <Link
+                  key={item.id}
+                  to={item.href}
+                  className={cn(
+                    "group flex w-full items-center gap-4 rounded-2xl border px-4 transition-colors hover:border-white/40",
+                    "flex-1 py-6", // Equal height distribution with more padding
+                    index === 0 ? "mb-2" : "mt-2", // Spacing between items
+                    isDarkTheme 
+                      ? "bg-[#1a1a1a] border-transparent"
+                      : "bg-gray-50 border border-gray-200"
+                  )}
+                >
+                  <div className="flex-1 space-y-2">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-yellow-400">
+                      Blog
+                    </span>
+                    <h4 className={cn(
+                      "text-base font-semibold leading-tight",
+                      isDarkTheme ? "text-white" : "text-gray-900"
+                    )}>
+                      {item.title}
+                    </h4>
+                    <p className={cn(
+                      "text-xs leading-relaxed",
+                      isDarkTheme ? "text-white/70" : "text-gray-600"
+                    )}>
+                      {item.description}
+                    </p>
+                  </div>
+                  <div className="relative h-24 w-32 overflow-hidden rounded-xl flex-shrink-0">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // Mobile Carousel Layout
+    return (
+      <section className="sm:hidden mb-3">
+        <div
+          className="relative mt-2 overflow-hidden rounded-2xl"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
+          <div
+            className="flex transition-transform duration-500"
+            style={{ transform: `translateX(-${activeSlide * 100}%)` }}
+          >
+            {FEATURED_NEWS_ITEMS.map((item) => (
+              <div key={item.id} className="w-full shrink-0">
+                <Link
+                  to={item.href}
+                  className={cn(
+                    "group block overflow-hidden rounded-2xl border border-white/10 bg-[#050505] text-white shadow-[0_16px_44px_rgba(0,0,0,0.45)] transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]",
+                    !isDarkTheme && "border-neutral-900/80",
+                  )}
+                  aria-label={item.title}
+                >
+                  <div className="relative aspect-[16/9] w-full overflow-hidden bg-neutral-950">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="h-full w-full object-cover object-center transition duration-300 group-hover:scale-[1.01]"
+                    />
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                  </div>
+                  <div className="space-y-3 px-4 py-4">
+                    <h3 className="text-2xl font-semibold leading-tight text-white">{item.title}</h3>
+                    <p className="text-sm text-white/70">{item.description}</p>
+                  </div>
+                </Link>
+              </div>
+            ))}
+          </div>
+          {totalSlides > 1 && (
+            <div className="absolute inset-x-4 bottom-4 flex justify-center gap-2">
+              {FEATURED_NEWS_ITEMS.map((item, index) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setActiveSlide(index)}
+                  className={cn(
+                    "h-1.5 w-6 rounded-full bg-white/30 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white",
+                    activeSlide === index && "bg-white w-8",
+                  )}
+                  aria-label={`Show news item ${index + 1}`}
+                  aria-pressed={activeSlide === index}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+    );
+  };
 
   return (
     <div className="min-h-screen">
@@ -597,6 +809,43 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
         <div className="flex flex-col gap-2">
           <div className="space-y-2">
             <div className="space-y-2 px-0">
+              {/* Mobile Network Selector - Horizontal Scrollable */}
+              <div className="sm:hidden mb-3" style={{ background: 'transparent !important' }}>
+                <div className="flex overflow-x-auto no-scrollbar gap-3 pb-2 px-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', background: 'transparent !important' }}>
+                  {NETWORKS.map((network) => (
+                    <button
+                      key={network.id}
+                      type="button"
+                      onClick={() => setSelectedNetwork(network.id)}
+                      className={cn(
+                        "flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full border-transparent transition-all duration-200",
+                        "min-w-fit whitespace-nowrap text-sm font-medium",
+                        isDarkTheme ? "text-white" : "text-black",
+                        selectedNetwork === network.id
+                          ? isDarkTheme
+                            ? "bg-gray-800"
+                            : "bg-gray-600"
+                          : isDarkTheme
+                          ? "bg-gray-900 hover:bg-gray-800"
+                          : "bg-gray-500 hover:bg-gray-600"
+                      )}
+                      style={{
+                        WebkitTapHighlightColor: 'transparent',
+                        WebkitUserSelect: 'none',
+                        userSelect: 'none'
+                      }}
+                    >
+                        <img
+                          src={network.image}
+                          alt={network.name}
+                          className="w-5 h-5 rounded-full object-cover flex-shrink-0"
+                        />
+                        <span>{network.id === 'all' ? 'Network' : network.name}</span>
+                      </button>
+                  ))}
+                </div>
+              </div>
+              {marketMode === "listed" && !isWebview && !isDesktop && <MobileFeaturedNews />}
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex-1">
                   <div className="flex items-center justify-between gap-2">
@@ -629,11 +878,11 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                           type="button"
                           onClick={handleToggleViewMode}
                           role="switch"
-                          aria-checked={isGridView}
-                          aria-label={isGridView ? "Switch to list view" : "Switch to grid view"}
+                          aria-checked={isListView}
+                          aria-label={isListView ? "Switch to grid view" : "Switch to list view"}
                           className={cn(
                             "relative h-6 w-11 rounded-full transition-colors",
-                            isGridView ? "bg-white" : "bg-[#2a2d3a]",
+                            isListView ? "bg-white" : "bg-[#2a2d3a]",
                             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-foreground focus-visible:ring-offset-background",
                           )}
                         >
@@ -641,8 +890,8 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                           <span
                             className={cn(
                               "absolute top-[2px] h-5 w-5 rounded-full transition-all duration-200 ease-out",
-                              isGridView 
-                                ? "left-[calc(100%-22px)] bg-black" 
+                              isListView
+                                ? "left-[calc(100%-22px)] bg-black"
                                 : "left-[2px] bg-white",
                             )}
                           />
@@ -655,11 +904,11 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                           type="button"
                           onClick={handleToggleViewMode}
                           role="switch"
-                          aria-checked={isGridView}
-                          aria-label={isGridView ? "Switch to list view" : "Switch to grid view"}
+                          aria-checked={isListView}
+                          aria-label={isListView ? "Switch to grid view" : "Switch to list view"}
                           className={cn(
                             "relative h-6 w-11 rounded-full transition-colors",
-                            isGridView ? "bg-white" : "bg-[#2a2d3a]",
+                            isListView ? "bg-white" : "bg-[#2a2d3a]",
                             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-foreground focus-visible:ring-offset-background",
                           )}
                         >
@@ -667,8 +916,8 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                           <span
                             className={cn(
                               "absolute top-[2px] h-5 w-5 rounded-full transition-all duration-200 ease-out",
-                              isGridView 
-                                ? "left-[calc(100%-22px)] bg-black" 
+                              isListView
+                                ? "left-[calc(100%-22px)] bg-black"
                                 : "left-[2px] bg-white",
                             )}
                           />
@@ -711,8 +960,8 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       "inline-flex items-center gap-2 rounded-full px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.25em] transition",
                       "focus-visible:ring-2 focus-visible:ring-offset-2",
                       isDarkTheme
-                        ? "bg-[#C7CAD1] text-neutral-900 hover:bg-[#d5d8de] focus-visible:ring-neutral-500 focus-visible:ring-offset-neutral-900"
-                        : "bg-[#C7CAD1] text-neutral-900 hover:bg-[#d5d8de] focus-visible:ring-neutral-400 focus-visible:ring-offset-zinc-100",
+                        ? "bg-[#2f323a] text-white hover:bg-[#3b3f49] focus-visible:ring-neutral-500 focus-visible:ring-offset-neutral-900"
+                        : "bg-[#E3E5EA] text-neutral-900 hover:bg-[#d5d8de] focus-visible:ring-neutral-400 focus-visible:ring-offset-zinc-100",
                     )}
                   >
                     <ArrowLeftRight className="h-3.5 w-3.5" />
@@ -730,8 +979,8 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                         "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition",
                         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
                         isDarkTheme
-                          ? "bg-[#C7CAD1] text-neutral-900 hover:bg-[#d5d8de] focus-visible:ring-neutral-500 focus-visible:ring-offset-neutral-900"
-                          : "bg-[#C7CAD1] text-neutral-900 hover:bg-[#d5d8de] focus-visible:ring-neutral-400 focus-visible:ring-offset-neutral-100",
+                          ? "bg-[#2f323a] text-white hover:bg-[#3b3f49] focus-visible:ring-neutral-500 focus-visible:ring-offset-neutral-900"
+                          : "bg-[#E3E5EA] text-neutral-900 hover:bg-[#d5d8de] focus-visible:ring-neutral-400 focus-visible:ring-offset-neutral-100",
                       )}
                     >
                       {selectedNetworkInfo.image ? (
@@ -856,7 +1105,16 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                 </section>
               )}
 
-              {showTrending && <Web3News variant="mobile" className="mt-6 sm:hidden" />}
+              {/* Blog section for desktop/webview - show right after assets */}
+              {(isWebview || isDesktop) && marketMode === "listed" && (
+                <div className="mt-6">
+                  <MobileFeaturedNews />
+                </div>
+              )}
+
+              {showTrending && !isWebview && !isDesktop && (
+                <Web3News variant="mobile" className="mt-6 sm:hidden" />
+              )}
               
               {/* Spacer for mobile fixed bottom controls */}
               <div className="h-2 sm:hidden" />

@@ -1,4 +1,4 @@
-const CACHE_VERSION = "yield-app-v2";
+const CACHE_VERSION = "yield-app-v4";
 const CORE_ASSETS = ["/", "/index.html", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {

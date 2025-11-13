@@ -17,6 +17,10 @@ import AssetTokenTrading from "./pages/AssetTokenTrading";
 import Revenue from "./pages/Revenue";
 import HuntPage from "./pages/Hunt";
 import Notifications from "./pages/Notifications";
+import Blog from "./pages/Blog";
+import BlogLiquidityFundedTokens from "./pages/BlogLiquidityFundedTokens";
+import BlogCreativeLiquidity from "./pages/BlogCreativeLiquidity";
+import BlogTokenizedYield from "./pages/BlogTokenizedYield";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +59,10 @@ const App = () => (
               <Route path="/assets/:id" element={<AssetDetail />} />
               <Route path="/assets/:id/token" element={<AssetTokenTrading />} />
               <Route path="/assets/:id/hunt" element={<HuntPage />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/liquidity-funded-tokens" element={<BlogLiquidityFundedTokens />} />
+              <Route path="/blog/creative-liquidity-web3" element={<BlogCreativeLiquidity />} />
+              <Route path="/blog/tokenized-yield-liquidity" element={<BlogTokenizedYield />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

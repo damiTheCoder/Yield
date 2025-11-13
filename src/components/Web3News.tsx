@@ -5,7 +5,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { cn } from "@/lib/utils";
 
 interface Web3NewsProps {
-  variant?: "sidebar" | "mobile";
+  variant?: "sidebar" | "mobile" | "webview";
   className?: string;
 }
 
@@ -20,6 +20,25 @@ const FEATURED_SUBSTACK_ARTICLE: Web3NewsItem = {
   source: "Trone Substack",
   publishedAt: new Date("2024-04-29T00:00:00.000Z"),
 };
+
+function formatRelativeTime(date?: Date) {
+  if (!date) return "";
+  const diff = Date.now() - date.getTime();
+  const minute = 60 * 1000;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+
+  if (diff < hour) {
+    const minutes = Math.max(1, Math.round(diff / minute));
+    return `${minutes}m ago`;
+  }
+  if (diff < day) {
+    const hours = Math.max(1, Math.round(diff / hour));
+    return `${hours}h ago`;
+  }
+  const days = Math.max(1, Math.round(diff / day));
+  return `${days}d ago`;
+}
 
 export default function Web3News({ variant = "sidebar", className }: Web3NewsProps) {
   const { news, loading, error } = useWeb3News();
@@ -69,11 +88,12 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
   // If there's an error, show nothing
   if (!loading && error) return null;
 
-  const headingSize = variant === "sidebar" ? "text-sm" : "text-base";
-  const listWrapperClass = cn(
-    "flex gap-4 overflow-x-auto no-scrollbar pb-1",
-    variant === "sidebar" ? "md:w-64" : "",
-  );
+  const headingSize =
+    variant === "sidebar" ? "text-sm" : variant === "mobile" ? "text-base" : "text-xl";
+  const listWrapperClass =
+    variant === "webview"
+      ? ""
+      : cn("flex gap-4 overflow-x-auto no-scrollbar pb-1", variant === "sidebar" ? "md:w-64" : "");
 
   const normalizeSource = (source?: string) => (source ?? "").toLowerCase();
   const coindeskItems = items.filter((i) => normalizeSource(i.source).includes("coindesk"));
@@ -83,8 +103,8 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
   const picked = new Set<typeof items[number]>();
   const selected: typeof items = [];
 
-  const MIN_REAL_ITEMS = 3;
-  const desiredSlots = MIN_REAL_ITEMS;
+  const desiredSlots = variant === "webview" ? 4 : 3;
+  const MIN_REAL_ITEMS = desiredSlots;
 
   const addFromCategory = (categoryItems: typeof items, desiredCount: number) => {
     let added = 0;
@@ -161,13 +181,114 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
     displayedItems = [...displayedItems, ...placeholders];
   }
 
+  const renderWebviewLayout = () => {
+    const hero = displayedItems[0];
+    const remainder = displayedItems.slice(1);
+    const heroIsPlaceholder = loading || !hero?.title;
+
+    return (
+      <section className={cn("flex flex-col gap-5", className)}>
+        <div className="flex items-center justify-between">
+          <div
+            className={cn("uppercase tracking-wide font-bold", headingSize, headingColorClass)}
+            style={{ color: activeTheme === "dark" ? "#ffffff" : "#000000" }}
+          >
+            Web3 Headlines
+          </div>
+          <a
+            href="/blog"
+            className="text-xs font-semibold uppercase tracking-widest text-primary hover:text-primary/80"
+          >
+            View all
+          </a>
+        </div>
+        <div className="grid gap-5 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+          <div
+            className={cn(
+              "group relative overflow-hidden rounded-[28px] border transition-colors",
+              heroIsPlaceholder ? shimmerBackgroundClasses : cardBackgroundClasses,
+              "min-h-[280px] md:min-h-[360px]",
+            )}
+          >
+            {heroIsPlaceholder ? (
+              <div className="h-full w-full animate-pulse bg-black/10" />
+            ) : (
+              <a href={hero.url} target="_blank" rel="noreferrer" className="absolute inset-0">
+                <div className="absolute inset-0">
+                  <img
+                    src={hero.imageUrl}
+                    alt={hero.title}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+                </div>
+                <div className="absolute inset-x-0 bottom-0 p-8 space-y-3 text-white">
+                  <span className="inline-flex items-center text-[11px] font-semibold uppercase tracking-[0.2em] text-yellow-300">
+                    {hero.source || "Featured"}
+                  </span>
+                  <h3 className="text-2xl md:text-3xl font-semibold leading-tight">{hero.title}</h3>
+                  <p className="text-sm text-white/75">
+                    {`Latest coverage from ${hero.source || "top analysts"} · ${formatRelativeTime(hero.publishedAt)}`}
+                  </p>
+                </div>
+              </a>
+            )}
+          </div>
+          <div className="space-y-4">
+            {remainder.map((item, index) => {
+              const isPlaceholder = loading || !item?.title;
+              return isPlaceholder ? (
+                <div
+                  key={`shimmer-${index}`}
+                  className={cn(
+                    "h-28 w-full rounded-2xl border px-4 py-3 animate-pulse",
+                    shimmerBackgroundClasses,
+                  )}
+                />
+              ) : (
+                <a
+                  key={item.id}
+                  href={item.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={cn(
+                    "group flex w-full items-center gap-4 rounded-2xl border px-4 py-4 transition-colors hover:border-white/40",
+                    cardBackgroundClasses,
+                  )}
+                >
+                  <div className="flex-1 space-y-1.5">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-yellow-400">
+                      {item.source || "Web3"}
+                    </span>
+                    <h4 className={cn("text-base font-semibold leading-tight", cardTextClasses)}>
+                      {item.title}
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      {formatRelativeTime(item.publishedAt)}
+                    </p>
+                  </div>
+                  <div className="relative h-20 w-28 overflow-hidden rounded-xl">
+                    <img
+                      src={item.imageUrl}
+                      alt={item.title}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+    );
+  };
+
+  if (variant === "webview") {
+    return renderWebviewLayout();
+  }
+
   return (
-    <section
-      className={cn(
-        "flex flex-col gap-3",
-        className,
-      )}
-    >
+    <section className={cn("flex flex-col gap-3", className)}>
       <div
         className={cn("uppercase tracking-wide", headingSize, "font-bold", headingColorClass)}
         style={{ color: activeTheme === "dark" ? "#ffffff" : "#000000" }}

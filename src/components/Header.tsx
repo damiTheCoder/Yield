@@ -356,13 +356,8 @@ const Header = () => {
           <div className="flex items-center gap-6">
             <Link
               to="/"
-              className="flex items-center gap-2 hover:opacity-80 transition-smooth md:hidden"
+              className="hover:opacity-80 transition-smooth md:hidden"
             >
-              <img 
-                src="/OPY.png" 
-                alt="Trone" 
-                className="h-6 w-6 rounded-lg object-cover"
-              />
               <span className="text-xl font-bold text-foreground">Trone</span>
             </Link>
           </div>
@@ -626,6 +621,18 @@ const Header = () => {
                           {link.label}
                         </Link>
                       ))}
+                      <Link
+                        to="/blog"
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                        }}
+                        className={cn(
+                          "block w-full px-4 py-3 text-sm font-medium transition-colors",
+                          isDarkTheme ? "text-gray-200 hover:bg-neutral-800/60" : "text-gray-900 hover:bg-gray-100",
+                        )}
+                      >
+                        View all posts
+                      </Link>
                     </nav>
                     <div className={cn("px-4 py-4 text-sm border-t", isDarkTheme ? "text-gray-200 border-neutral-800/70" : "text-gray-800 border-gray-200/80")}>
                       <div

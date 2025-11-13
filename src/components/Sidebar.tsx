@@ -61,7 +61,7 @@ const Sidebar = () => {
               <img 
                 src="/OPY.png" 
                 alt="Trone" 
-                className="h-6 w-6 rounded-md object-cover"
+                className="h-6 w-6 rounded-2xl object-cover"
               />
               <span className="text-lg font-semibold text-foreground">Trone</span>
             </div>
