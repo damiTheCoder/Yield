@@ -459,12 +459,12 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     <div className="overflow-x-auto no-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
       <Table className="min-w-[720px] text-sm">
         <TableHeader>
-          <TableRow>
-            <TableHead className="sticky left-0 z-20 min-w-[200px] bg-background text-left pl-1 sm:pl-3">Collection</TableHead>
-            <TableHead className="min-w-[140px] text-right">Liquidity</TableHead>
-            <TableHead className="min-w-[140px] text-right">LPU</TableHead>
-            <TableHead className="min-w-[140px] text-right">CoinTag</TableHead>
-            <TableHead className="min-w-[160px] text-right">Backing Reserve</TableHead>
+          <TableRow className="border-b-0">
+            <TableHead className="sticky left-0 z-20 min-w-[200px] bg-background text-left pl-1 sm:pl-3 border-b-0">Collection</TableHead>
+            <TableHead className="min-w-[140px] text-right border-b-0">Liquidity</TableHead>
+            <TableHead className="min-w-[140px] text-right border-b-0">LPU</TableHead>
+            <TableHead className="min-w-[140px] text-right border-b-0">CoinTag</TableHead>
+            <TableHead className="min-w-[160px] text-right border-b-0">Backing Reserve</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -476,7 +476,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
             return (
               <TableRow
                 key={asset.id}
-                className="cursor-pointer text-sm transition-colors hover:bg-surface/30 border-b-0 sm:border-b sm:border-border/40"
+                className="cursor-pointer text-sm transition-colors hover:bg-surface/30 border-b border-gray-200 dark:border-[#1a1a1a]"
                 onClick={() => navigate(`/assets/${asset.id}`)}
               >
                 <TableCell className="sticky left-0 z-10 min-w-[200px] bg-background pl-1 pr-2 sm:pl-3">
@@ -745,14 +745,14 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 
     // Mobile Carousel Layout
     return (
-      <section className="sm:hidden mb-3">
+      <section className="sm:hidden mb-3 -mx-2">
         <div
-          className="relative mt-2 overflow-hidden rounded-2xl"
+          className="relative mt-2 overflow-hidden rounded-2xl h-[400px]"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
           <div
-            className="flex transition-transform duration-500"
+            className="flex h-full transition-transform duration-500"
             style={{ transform: `translateX(-${activeSlide * 100}%)` }}
           >
             {FEATURED_NEWS_ITEMS.map((item) => (
@@ -760,8 +760,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                 <Link
                   to={item.href}
                   className={cn(
-                    "group block overflow-hidden rounded-2xl border border-white/10 bg-[#050505] text-white shadow-[0_16px_44px_rgba(0,0,0,0.45)] transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]",
-                    !isDarkTheme && "border-neutral-900/80",
+                    "group flex flex-col h-full overflow-hidden rounded-2xl bg-[#1f1f1f] text-white shadow-[0_16px_44px_rgba(0,0,0,0.45)] transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1f1f1f]",
                   )}
                   aria-label={item.title}
                 >
@@ -773,32 +772,32 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                     />
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                   </div>
-                  <div className="space-y-3 px-4 py-4">
-                    <h3 className="text-2xl font-semibold leading-tight text-white">{item.title}</h3>
-                    <p className="text-sm text-white/70">{item.description}</p>
+                  <div className="flex-1 flex flex-col justify-between space-y-3 px-4 py-4">
+                    <h3 className="text-2xl font-semibold leading-tight text-white line-clamp-3">{item.title}</h3>
+                    <p className="text-sm text-white/70 line-clamp-2">{item.description}</p>
                   </div>
                 </Link>
               </div>
             ))}
           </div>
-          {totalSlides > 1 && (
-            <div className="absolute inset-x-4 bottom-4 flex justify-center gap-2">
-              {FEATURED_NEWS_ITEMS.map((item, index) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setActiveSlide(index)}
-                  className={cn(
-                    "h-1.5 w-6 rounded-full bg-white/30 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white",
-                    activeSlide === index && "bg-white w-8",
-                  )}
-                  aria-label={`Show news item ${index + 1}`}
-                  aria-pressed={activeSlide === index}
-                />
-              ))}
-            </div>
-          )}
         </div>
+        {totalSlides > 1 && (
+          <div className="flex justify-center gap-2 mt-4">
+            {FEATURED_NEWS_ITEMS.map((item, index) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setActiveSlide(index)}
+                className={cn(
+                  "h-1.5 w-6 rounded-full bg-gray-500 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500",
+                  activeSlide === index && "bg-gray-700 w-8",
+                )}
+                aria-label={`Show news item ${index + 1}`}
+                aria-pressed={activeSlide === index}
+              />
+            ))}
+          </div>
+        )}
       </section>
     );
   };
@@ -809,43 +808,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
         <div className="flex flex-col gap-2">
           <div className="space-y-2">
             <div className="space-y-2 px-0">
-              {/* Mobile Network Selector - Horizontal Scrollable */}
-              <div className="sm:hidden mb-3" style={{ background: 'transparent !important' }}>
-                <div className="flex overflow-x-auto no-scrollbar gap-3 pb-2 px-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', background: 'transparent !important' }}>
-                  {NETWORKS.map((network) => (
-                    <button
-                      key={network.id}
-                      type="button"
-                      onClick={() => setSelectedNetwork(network.id)}
-                      className={cn(
-                        "flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full border-transparent transition-all duration-200",
-                        "min-w-fit whitespace-nowrap text-sm font-medium",
-                        isDarkTheme ? "text-white" : "text-black",
-                        selectedNetwork === network.id
-                          ? isDarkTheme
-                            ? "bg-gray-800"
-                            : "bg-gray-600"
-                          : isDarkTheme
-                          ? "bg-gray-900 hover:bg-gray-800"
-                          : "bg-gray-500 hover:bg-gray-600"
-                      )}
-                      style={{
-                        WebkitTapHighlightColor: 'transparent',
-                        WebkitUserSelect: 'none',
-                        userSelect: 'none'
-                      }}
-                    >
-                        <img
-                          src={network.image}
-                          alt={network.name}
-                          className="w-5 h-5 rounded-full object-cover flex-shrink-0"
-                        />
-                        <span>{network.id === 'all' ? 'Network' : network.name}</span>
-                      </button>
-                  ))}
-                </div>
-              </div>
-              {marketMode === "listed" && !isWebview && !isDesktop && <MobileFeaturedNews />}
+              <MobileFeaturedNews />
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex-1">
                   <div className="flex items-center justify-between gap-2">
@@ -882,7 +845,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                           aria-label={isListView ? "Switch to grid view" : "Switch to list view"}
                           className={cn(
                             "relative h-6 w-11 rounded-full transition-colors",
-                            isListView ? "bg-white" : "bg-[#2a2d3a]",
+                            isListView ? "bg-gray-300" : "bg-gray-600",
                             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-foreground focus-visible:ring-offset-background",
                           )}
                         >
@@ -891,8 +854,8 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                             className={cn(
                               "absolute top-[2px] h-5 w-5 rounded-full transition-all duration-200 ease-out",
                               isListView
-                                ? "left-[calc(100%-22px)] bg-black"
-                                : "left-[2px] bg-white",
+                                ? "left-[calc(100%-22px)] bg-gray-700"
+                                : "left-[2px] bg-gray-200",
                             )}
                           />
                         </button>
@@ -908,7 +871,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                           aria-label={isListView ? "Switch to grid view" : "Switch to list view"}
                           className={cn(
                             "relative h-6 w-11 rounded-full transition-colors",
-                            isListView ? "bg-white" : "bg-[#2a2d3a]",
+                            isListView ? "bg-gray-300" : "bg-gray-600",
                             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-foreground focus-visible:ring-offset-background",
                           )}
                         >
@@ -917,8 +880,8 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                             className={cn(
                               "absolute top-[2px] h-5 w-5 rounded-full transition-all duration-200 ease-out",
                               isListView
-                                ? "left-[calc(100%-22px)] bg-black"
-                                : "left-[2px] bg-white",
+                                ? "left-[calc(100%-22px)] bg-gray-700"
+                                : "left-[2px] bg-gray-200",
                             )}
                           />
                         </button>
@@ -1105,15 +1068,16 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                 </section>
               )}
 
-              {/* Blog section for desktop/webview - show right after assets */}
+              {/* Status bar first */}
+              {showTrending && !isWebview && !isDesktop && (
+                <Web3News variant="mobile" className="mt-6 sm:hidden" />
+              )}
+
+              {/* Blog section for desktop/webview - show beneath status bar */}
               {(isWebview || isDesktop) && marketMode === "listed" && (
                 <div className="mt-6">
                   <MobileFeaturedNews />
                 </div>
-              )}
-
-              {showTrending && !isWebview && !isDesktop && (
-                <Web3News variant="mobile" className="mt-6 sm:hidden" />
               )}
               
               {/* Spacer for mobile fixed bottom controls */}

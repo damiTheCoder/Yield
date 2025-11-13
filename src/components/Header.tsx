@@ -358,7 +358,7 @@ const Header = () => {
               to="/"
               className="hover:opacity-80 transition-smooth md:hidden"
             >
-              <span className="text-xl font-bold text-foreground">Trone</span>
+              <span className="text-xl font-extrabold text-foreground">Trone</span>
             </Link>
           </div>
 
