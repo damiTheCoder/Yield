@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useLayoutEffect } from "react";
 import Layout from "./components/Layout";
+import TroneSlider from "./components/TroneSlider";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound";
 import CoinTags from "./pages/CoinTags";
@@ -47,26 +48,31 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
-          <Layout>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/coin-tags" element={<CoinTags />} />
-              <Route path="/portfolio" element={<Portfolio />} />
-              <Route path="/revenue" element={<Revenue />} />
-              <Route path="/notifications" element={<Notifications />} />
-              <Route path="/assets" element={<Assets />} />
-              <Route path="/assets/all" element={<ViewAllAssets />} />
-              <Route path="/assets/:id" element={<AssetDetail />} />
-              <Route path="/assets/:id/token" element={<AssetTokenTrading />} />
-              <Route path="/assets/:id/hunt" element={<HuntPage />} />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/blog/liquidity-funded-tokens" element={<BlogLiquidityFundedTokens />} />
-              <Route path="/blog/creative-liquidity-web3" element={<BlogCreativeLiquidity />} />
-              <Route path="/blog/tokenized-yield-liquidity" element={<BlogTokenizedYield />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Layout>
+          <Routes>
+            <Route path="/" element={<TroneSlider />} />
+            <Route path="/old-home" element={<Index />} />
+            <Route path="/*" element={
+              <Layout>
+                <Routes>
+                  <Route path="/coin-tags" element={<CoinTags />} />
+                  <Route path="/portfolio" element={<Portfolio />} />
+                  <Route path="/revenue" element={<Revenue />} />
+                  <Route path="/notifications" element={<Notifications />} />
+                  <Route path="/assets" element={<Assets />} />
+                  <Route path="/assets/all" element={<ViewAllAssets />} />
+                  <Route path="/assets/:id" element={<AssetDetail />} />
+                  <Route path="/assets/:id/token" element={<AssetTokenTrading />} />
+                  <Route path="/assets/:id/hunt" element={<HuntPage />} />
+                  <Route path="/blog" element={<Blog />} />
+                  <Route path="/blog/liquidity-funded-tokens" element={<BlogLiquidityFundedTokens />} />
+                  <Route path="/blog/creative-liquidity-web3" element={<BlogCreativeLiquidity />} />
+                  <Route path="/blog/tokenized-yield-liquidity" element={<BlogTokenizedYield />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Layout>
+            } />
+          </Routes>
         </BrowserRouter>
       </AppStateProvider>
     </TooltipProvider>

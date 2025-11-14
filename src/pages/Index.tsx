@@ -31,7 +31,7 @@ type ScrollDropProps = {
 };
 
 const ScrollDrop = ({ children, className, id, delay = 0, as = "section" }: ScrollDropProps) => {
-  const ref = useRef<HTMLElement | null>(null);
+  const ref = useRef<any>(null);
 
   useEffect(() => {
     const node = ref.current;
@@ -124,23 +124,23 @@ const Index = () => {
 
   return (
     <div className={cn("relative font-glacial min-h-screen transition-colors duration-300", isDarkMode ? "bg-black text-white" : "bg-white text-black")}>
-      {/* Violet gradient background - fades to white */}
+      {/* Background image with blur effect */}
       <div 
         className="pointer-events-none absolute inset-x-0 top-0 h-[550px]"
         style={{
-          background: "linear-gradient(180deg, rgba(139,92,255,0.65) 0%, rgba(167,139,255,0.45) 35%, rgba(189,165,255,0.2) 70%, rgba(255,255,255,0) 100%)",
+          backgroundImage: "url('/d1.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          filter: "blur(8px)",
           zIndex: 0
         }}
       />
-      {/* Net/Grid pattern overlay */}
+      {/* Overlay for content visibility */}
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-[550px]"
         style={{
-          backgroundImage:
-            "linear-gradient(rgba(139,92,255,0.12) 1.5px, transparent 1.5px), linear-gradient(90deg, rgba(139,92,255,0.12) 1.5px, transparent 1.5px)",
-          backgroundSize: "50px 50px",
-          maskImage: "linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%)",
-          WebkitMaskImage: "linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%)",
+          background: "rgba(0, 0, 0, 0.4)",
           zIndex: 1
         }}
       />
@@ -245,15 +245,6 @@ const Index = () => {
             >
               Discover the future of value-backed tokens
             </Button>
-          </div>
-          <div className="w-full max-w-4xl">
-            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl shadow-[0_24px_70px_rgba(124,58,237,0.18)]">
-              <img
-                src="/d1.png"
-                alt="Chaotic crypto market contrasted with a stable liquidity-backed token"
-                className="h-full w-full object-cover"
-              />
-            </div>
           </div>
         </ScrollDrop>
 

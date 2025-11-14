@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Toggle Test</title>
+    <style>
+        :root {
+            --background: 0 0% 4%;
+            --foreground: 0 0% 98%;
+        }
+
+        :root[data-theme="light"] {
+            --background: 0 0% 99%;
+            --foreground: 222 47% 11%;
+        }
+
+        body {
+            margin: 0;
+            background: hsl(var(--background));
+            color: hsl(var(--foreground));
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        .navigation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 36px;
+            font-weight: 500;
+            background: rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            color: #fff;
+        }
+
+        .nav-logo img {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+        }
+
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 4px;
+            backdrop-filter: blur(10px);
+        }
+
+        .theme-option {
+            padding: 6px 10px;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: transparent;
+            border: none;
+            outline: none;
+            text-transform: capitalize;
+        }
+
+        .theme-option:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .theme-option.active {
+            background: #00ffa1;
+            color: #000;
+            box-shadow: 0 2px 8px rgba(0, 255, 161, 0.3);
+        }
+
+        [data-theme="light"] .theme-toggle {
+            background: rgba(0, 0, 0, 0.1);
+            border-color: rgba(0, 0, 0, 0.2);
+        }
+
+        [data-theme="light"] .theme-option {
+            color: #000;
+        }
+
+        [data-theme="light"] .theme-option:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="light"] .nav-brand {
+            color: #000;
+        }
+
+        .content {
+            padding: 100px 36px 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navigation">
+        <div class="nav-brand">
+            <div class="nav-logo">
+                <img src="/OPY.png" alt="Trone logo" />
+            </div>
+            <div>Trone</div>
+        </div>
+        
+        <div class="theme-toggle">
+            <button class="theme-option" data-theme="light">Light</button>
+            <button class="theme-option active" data-theme="dark">Dark</button>
+            <button class="theme-option" data-theme="system">System</button>
+        </div>
+    </nav>
+
+    <div class="content">
+        <h1>Theme Toggle Test</h1>
+        <p>Click the theme toggle buttons to test the theme switching functionality.</p>
+    </div>
+
+    <script>
+        const root = document.documentElement;
+        const themeOptions = document.querySelectorAll('.theme-option');
+
+        function setTheme(theme) {
+            root.setAttribute('data-theme', theme === 'system' ? getSystemTheme() : theme);
+            
+            // Update active state
+            themeOptions.forEach(option => {
+                option.classList.remove('active');
+                if (option.dataset.theme === theme) {
+                    option.classList.add('active');
+                }
+            });
+
+            localStorage.setItem('theme', theme);
+        }
+
+        function getSystemTheme() {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+
+        // Initialize theme
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        setTheme(savedTheme);
+
+        // Add click handlers
+        themeOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                setTheme(option.dataset.theme);
+            });
+        });
+
+        // Listen for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            if (localStorage.getItem('theme') === 'system') {
+                setTheme('system');
+            }
+        });
+    </script>
+</body>
+</html>
