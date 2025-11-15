@@ -644,7 +644,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     };
 
     // Desktop/Webview Layout (like Web3 Headlines - hero + grid)
-    if (isWebview || isDesktop) {
+    if (isDesktop) {
       const hero = FEATURED_NEWS_ITEMS[0];
       const remainder = FEATURED_NEWS_ITEMS.slice(1);
 

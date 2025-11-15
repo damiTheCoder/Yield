@@ -77,7 +77,7 @@ export default function Portfolio() {
       variant === "grid"
         ? isDarkTheme
           ? "rounded-2xl border border-white/5 bg-neutral-800/80 p-4 space-y-4 text-sm"
-          : "rounded-2xl border border-gray-200 bg-gray-100 p-4 space-y-4 text-sm"
+          : "rounded-2xl border border-gray-200 bg-gray-50 p-4 space-y-4 text-sm"
         : isDarkTheme
           ? "rounded-2xl bg-background/80 p-4 space-y-4 text-sm shadow-lg"
           : "rounded-2xl bg-white p-4 space-y-4 text-sm shadow-lg";

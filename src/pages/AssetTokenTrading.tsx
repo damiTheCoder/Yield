@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useApp, type Asset } from "@/lib/app-state";
+import { useTheme } from "@/hooks/useTheme";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -106,7 +107,10 @@ const useStats = (asset: Asset | undefined, latestPrice: number): Stat[] => {
 export default function AssetTokenTrading() {
   const { id } = useParams<{ id: string }>();
   const { assets, getAssetTokenInfo } = useApp();
+  const { theme } = useTheme();
   const navigate = useNavigate();
+  
+  const isDarkTheme = theme === "dark";
 
   const asset = useMemo(() => assets.find((entry) => entry.id === id), [assets, id]);
   const tokenInfo = id ? getAssetTokenInfo(id) : null;
@@ -168,13 +172,13 @@ export default function AssetTokenTrading() {
           {/* Asset Header with Chart */}
           <div className="bg-background">
             {/* Asset Info Header */}
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-center gap-4 mb-4">
               <div className="h-12 w-12 sm:h-16 sm:w-16 overflow-hidden rounded-full">
                 <img src={asset.image} alt={asset.name} className="h-full w-full object-cover" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 sm:gap-3 mb-1">
-                  <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate max-w-[180px] sm:max-w-none">{asset.name}</h1>
+                  <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate max-w-[140px] sm:max-w-none">{asset.name}</h1>
                   <img src="/checklist.png" alt="verified" className="h-4 w-4 sm:h-5 sm:w-5 opacity-80 flex-shrink-0" />
                   {asset.ticker && (
                     <span className="rounded-full bg-surface px-2 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground flex-shrink-0">
@@ -644,22 +648,22 @@ export default function AssetTokenTrading() {
           <aside className="space-y-2">
             {/* Stats Grid - 2x2 */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="text-left space-y-1">
+              <div className={`text-left space-y-1 p-4 rounded-xl ${isDarkTheme ? 'bg-neutral-800/80' : 'bg-gray-50'}`}>
                 <p className="text-xs font-medium text-muted-foreground">24H Vol</p>
                 <p className="text-lg font-bold text-foreground">{formatCurrencyK(asset.cycle.reserve * 0.38)}</p>
                 <span className="text-xs text-muted-foreground block">Live</span>
               </div>
-              <div className="text-left space-y-1">
+              <div className={`text-left space-y-1 p-4 rounded-xl ${isDarkTheme ? 'bg-neutral-800/80' : 'bg-gray-50'}`}>
                 <p className="text-xs font-medium text-muted-foreground">TVL</p>
                 <p className="text-lg font-bold text-foreground">{formatCurrencyK(asset.cycle.reserve)}</p>
                 <span className="text-xs text-muted-foreground block">Locked</span>
               </div>
-              <div className="text-left space-y-1">
+              <div className={`text-left space-y-1 p-4 rounded-xl ${isDarkTheme ? 'bg-neutral-800/80' : 'bg-gray-50'}`}>
                 <p className="text-xs font-medium text-muted-foreground">Discovery</p>
                 <p className="text-lg font-bold text-foreground">{Math.min(96, Math.round(asset.cycle.lpu * 1.8))}%</p>
                 <span className="text-xs text-muted-foreground block">Complete</span>
               </div>
-              <div className="text-left space-y-1">
+              <div className={`text-left space-y-1 p-4 rounded-xl ${isDarkTheme ? 'bg-neutral-800/80' : 'bg-gray-50'}`}>
                 <p className="text-xs font-medium text-muted-foreground">Market Cap</p>
                 <p className="text-lg font-bold text-foreground">{formatCurrencyK(asset.cycle.reserve * 2.1)}</p>
                 <span className="text-xs text-muted-foreground block">Est.</span>
@@ -830,7 +834,7 @@ export default function AssetTokenTrading() {
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 sm:gap-3 mb-1">
-                  <h1 className="text-xl sm:text-2xl font-bold text-foreground">{asset.name}</h1>
+                  <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate max-w-[140px] sm:max-w-none">{asset.name}</h1>
                   <img src="/checklist.png" alt="verified" className="h-4 w-4 sm:h-5 sm:w-5 opacity-80" />
                   {asset.ticker && (
                     <span className="rounded-full bg-surface px-2 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -1044,22 +1048,22 @@ export default function AssetTokenTrading() {
 
         {/* Mobile Stats - Below Chart */}
         <div className="lg:hidden grid grid-cols-2 gap-3 mb-3">
-          <div className="p-4 text-left rounded-xl">
+          <div className={`p-4 text-left rounded-xl ${isDarkTheme ? 'bg-neutral-800/80' : 'bg-gray-50'}`}>
             <p className="text-xs font-medium text-muted-foreground">24H Vol</p>
             <p className="text-lg font-bold text-foreground">{formatCurrencyK(asset.cycle.reserve * 0.38)}</p>
             <span className="text-xs text-muted-foreground">Live</span>
           </div>
-          <div className="p-4 text-left rounded-xl">
+          <div className={`p-4 text-left rounded-xl ${isDarkTheme ? 'bg-neutral-800/80' : 'bg-gray-50'}`}>
             <p className="text-xs font-medium text-muted-foreground">TVL</p>
             <p className="text-lg font-bold text-foreground">{formatCurrencyK(asset.cycle.reserve)}</p>
             <span className="text-xs text-muted-foreground">Locked</span>
           </div>
-          <div className="p-4 text-left rounded-xl">
+          <div className={`p-4 text-left rounded-xl ${isDarkTheme ? 'bg-neutral-800/80' : 'bg-gray-50'}`}>
             <p className="text-xs font-medium text-muted-foreground">Discovery</p>
             <p className="text-lg font-bold text-foreground">{Math.min(96, Math.round(asset.cycle.lpu * 1.8))}%</p>
             <span className="text-xs text-muted-foreground">Complete</span>
           </div>
-          <div className="p-4 text-left rounded-xl">
+          <div className={`p-4 text-left rounded-xl ${isDarkTheme ? 'bg-neutral-800/80' : 'bg-gray-50'}`}>
             <p className="text-xs font-medium text-muted-foreground">Market Cap</p>
             <p className="text-lg font-bold text-foreground">{formatCurrencyK(asset.cycle.reserve * 2.1)}</p>
             <span className="text-xs text-muted-foreground">Est.</span>
@@ -1220,7 +1224,7 @@ export default function AssetTokenTrading() {
                 <div className="h-8 w-8 overflow-hidden rounded-lg">
                   <img src={asset.image} alt={asset.name} className="h-full w-full object-cover" />
                 </div>
-                {modalTradeSide === "buy" ? "Buy" : "Sell"} {asset.name}
+                <span className="truncate max-w-[200px]">{modalTradeSide === "buy" ? "Buy" : "Sell"} {asset.name}</span>
               </DialogTitle>
             </DialogHeader>
             
