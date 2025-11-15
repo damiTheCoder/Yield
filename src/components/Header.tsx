@@ -353,13 +353,26 @@ const Header = () => {
           }}
         >
           <div className="flex w-full items-center justify-between gap-3 px-4 py-2 md:pl-[19rem] md:pr-6">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3">
             <Link
               to="/"
               className="hover:opacity-80 transition-smooth md:hidden"
             >
-              <span className="text-xl font-extrabold text-foreground">Trone</span>
+              <span className="text-xl font-extrabold text-foreground px-2 py-1 rounded-2xl bg-foreground/10 backdrop-blur-sm h-8 flex items-center gap-1.5">
+                <img src="/OPY.png" alt="Trone logo" className="h-5 w-5 rounded-lg object-cover" />
+                Trone
+              </span>
             </Link>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setSearchOpen(true)}
+              className="md:hidden"
+              aria-label="Search listed assets"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
           </div>
 
           <div className="flex items-center gap-1 md:flex-1 md:gap-3">
@@ -374,16 +387,6 @@ const Header = () => {
               <span className="hidden items-center gap-1 rounded border border-border/40 bg-background px-1.5 text-[10px] font-semibold uppercase text-muted-foreground md:flex">
                 ⌘K
               </span>
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => setSearchOpen(true)}
-              className="md:hidden"
-              aria-label="Search listed assets"
-            >
-              <Search className="h-4 w-4" />
             </Button>
 
             {isMobileAssetsView && (

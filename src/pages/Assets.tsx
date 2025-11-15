@@ -1102,7 +1102,10 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
       </div>
 
       {/* Search Modal */}
-      <CommandDialog open={showSearchModal} onOpenChange={setShowSearchModal}>
+      <CommandDialog 
+        open={showSearchModal} 
+        onOpenChange={setShowSearchModal}
+      >
         <CommandInput 
           placeholder="Search tokens, tickers, or IDs"
           value={searchTerm}
