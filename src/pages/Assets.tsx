@@ -1077,7 +1077,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 
               {/* Blog section for desktop/webview - show beneath status bar */}
               {(isWebview || isDesktop) && marketMode === "listed" && (
-                <div className="mt-6">
+                <div className="mt-6 hidden sm:block">
                   <MobileFeaturedNews />
                 </div>
               )}

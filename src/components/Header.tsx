@@ -356,12 +356,10 @@ const Header = () => {
           <div className="flex items-center gap-3">
             <Link
               to="/"
-              className="hover:opacity-80 transition-smooth md:hidden"
+              className="hover:opacity-80 transition-smooth md:hidden flex items-center gap-2"
             >
-              <span className="text-xl font-extrabold text-foreground px-2 py-1 rounded-2xl bg-foreground/10 backdrop-blur-sm h-8 flex items-center gap-1.5">
-                <img src="/OPY.png" alt="Trone logo" className="h-5 w-5 rounded-lg object-cover" />
-                Trone
-              </span>
+              <img src="/OPY.png" alt="Trone logo" className="h-6 w-6 rounded-lg object-cover" />
+              <span className="text-lg font-extrabold text-foreground">Trone</span>
             </Link>
             <Button
               type="button"

@@ -426,13 +426,22 @@ const TroneSlider: React.FC = () => {
 
         /* Controls */
         .controls {
-          position: absolute;
+          position: fixed;
           bottom: 40px;
-          left: 60px;
+          left: 50%;
+          transform: translateX(-50%);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 16px;
+          z-index: 20;
+        }
+
+        .arrow-controls {
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 24px;
-          z-index: 20;
         }
 
         .arrow-btn {
@@ -504,7 +513,8 @@ const TroneSlider: React.FC = () => {
           
           .controls {
             bottom: 20px;
-            left: 40px;
+            left: 50%;
+            transform: translateX(-50%);
           }
 
           .nav-menu {
@@ -537,12 +547,19 @@ const TroneSlider: React.FC = () => {
 
           
           .controls {
-            left: 20px;
-            gap: 16px;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            gap: 12px;
           }
           
           .progress-bar-container {
-            width: 150px;
+            width: 200px;
+          }
+          
+          .arrow-btn {
+            width: 48px;
+            height: 48px;
           }
 
           .cta-buttons {
@@ -642,27 +659,29 @@ const TroneSlider: React.FC = () => {
 
       {/* Controls */}
       <div className="controls">
-        <button className="arrow-btn" onClick={prevSlide}>
-          <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.75 19.5L8.25 12l7.5-7.5" />
-          </svg>
-        </button>
-        
-        <button className="arrow-btn" onClick={nextSlide}>
-          <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-          </svg>
-        </button>
+        <div className="arrow-controls">
+          <button className="arrow-btn" onClick={prevSlide}>
+            <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+          </button>
+          
+          <button className="arrow-btn" onClick={nextSlide}>
+            <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </button>
+          
+          <div className="slide-counter">
+            {String(currentIndex + 1).padStart(2, '0')}
+          </div>
+        </div>
         
         <div className="progress-bar-container">
           <div 
             className="progress-bar" 
             style={{ width: `${((currentIndex + 1) / data.length) * 100}%` }}
           ></div>
-        </div>
-        
-        <div className="slide-counter">
-          {String(currentIndex + 1).padStart(2, '0')}
         </div>
       </div>
     </div>

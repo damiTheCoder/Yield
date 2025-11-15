@@ -261,17 +261,6 @@ export default function CoinTags() {
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="totalRaise">Total Raise</Label>
-                    <Input
-                      id="totalRaise"
-                      type="number"
-                      value={preview.raise}
-                      disabled
-                      className="bg-muted/50 cursor-not-allowed"
-                    />
-                    <p className="text-xs text-muted-foreground">Calculated: {preview.tags} tags × ${pricePerTag}</p>
-                  </div>
-                  <div className="space-y-2">
                     <Label htmlFor="discoveryRate">Expected Discovery Rate (%)</Label>
                     <Input
                       id="discoveryRate"
