@@ -77,7 +77,7 @@ export default function Portfolio() {
       variant === "grid"
         ? isDarkTheme
           ? "rounded-2xl border border-white/5 bg-neutral-800/80 p-4 space-y-4 text-sm"
-          : "rounded-2xl border border-gray-200 bg-gray-50 p-4 space-y-4 text-sm"
+          : "rounded-2xl border border-gray-200 bg-white p-4 space-y-4 text-sm shadow-sm"
         : isDarkTheme
           ? "rounded-2xl bg-background/80 p-4 space-y-4 text-sm shadow-lg"
           : "rounded-2xl bg-white p-4 space-y-4 text-sm shadow-lg";
@@ -193,7 +193,7 @@ export default function Portfolio() {
                 </div>
               </div>
               <Button
-                className="w-full bg-[#E6DDFF] text-[#5A34C9] hover:bg-[#d8ccff] dark:bg-[#3a2770] dark:text-[#ede8ff] dark:hover:bg-[#4c30a0] sm:bg-[#8B5CFF] sm:text-white sm:hover:bg-[#7a4cf8]"
+                className="w-full bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
                 onClick={() => claimRewards()}
                 disabled={accruedRewards <= 0}
               >

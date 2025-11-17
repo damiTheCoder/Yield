@@ -24,7 +24,7 @@ const FEATURED_NEWS_ITEMS = [
   {
     id: "lft-future",
     title: "Liquidity Funded Tokens (LFTs): The Future of Sustainable Digital Assets",
-    description: "Turning hype into real value through liquidity-backed launches powered by Trone.",
+    description: "Turning hype into real value through liquidity-backed launches powered by Solaris.",
     href: "/blog/liquidity-funded-tokens",
     image: "/d1.png",
   },
@@ -256,16 +256,16 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
       setMarketMode((prev) => (prev === "listed" ? "live" : "listed"));
     };
 
-    window.addEventListener("trone-assets-toggle-market", handleToggleMarket as EventListener);
+    window.addEventListener("solaris-assets-toggle-market", handleToggleMarket as EventListener);
     return () => {
-      window.removeEventListener("trone-assets-toggle-market", handleToggleMarket as EventListener);
+      window.removeEventListener("solaris-assets-toggle-market", handleToggleMarket as EventListener);
     };
   }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     window.dispatchEvent(
-      new CustomEvent("trone-assets-market-mode", { detail: marketMode })
+      new CustomEvent("solaris-assets-market-mode", { detail: marketMode })
     );
   }, [marketMode]);
 
@@ -277,13 +277,13 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
       setSelectedNetwork(detail);
       setShowNetworkDropdown(false);
     };
-    window.addEventListener("trone-network-change", handler as EventListener);
-    return () => window.removeEventListener("trone-network-change", handler as EventListener);
+    window.addEventListener("solaris-network-change", handler as EventListener);
+    return () => window.removeEventListener("solaris-network-change", handler as EventListener);
   }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    window.dispatchEvent(new CustomEvent("trone-network-sync", { detail: selectedNetwork }));
+    window.dispatchEvent(new CustomEvent("solaris-network-sync", { detail: selectedNetwork }));
   }, [selectedNetwork]);
 
   useEffect(() => {
@@ -361,7 +361,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   const cardMediaBorderClass = isDarkTheme ? "border-b-0" : "border-b border-slate-200/60";
 
   const selectedNetworkInfo = NETWORKS.find(n => n.id === selectedNetwork) || NETWORKS[0];
-  const brandHeadingGradient = "linear-gradient(92deg, #8B5CFF 0%, #B897FF 50%, #D4C3FF 100%)";
+  const brandHeadingGradient = "linear-gradient(92deg, #9FFFAE 0%, #5BEF8A 50%, #21C262 100%)";
   const isGridView = viewMode === "grid";
   const isListView = viewMode === "list";
 

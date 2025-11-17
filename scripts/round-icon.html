@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Round Icon Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        canvas {
+            border: 1px solid #ddd;
+            margin: 10px 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #preview {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Icon Border Radius Generator</h1>
+        <p>Upload your g56.png image to create a rounded version for favicon use.</p>
+        
+        <input type="file" id="fileInput" accept="image/*">
+        <br><br>
+        
+        <label for="radiusSlider">Border Radius: <span id="radiusValue">8</span>px</label><br>
+        <input type="range" id="radiusSlider" min="0" max="50" value="8" style="width: 100%;">
+        
+        <div id="preview">
+            <div>
+                <h3>Original</h3>
+                <canvas id="originalCanvas" width="64" height="64"></canvas>
+            </div>
+            <div>
+                <h3>Rounded</h3>
+                <canvas id="roundedCanvas" width="64" height="64"></canvas>
+            </div>
+        </div>
+        
+        <button onclick="downloadRoundedIcon()">Download Rounded Icon</button>
+        <button onclick="generateMultipleSizes()">Generate All Sizes (16px, 32px, 192px, 512px)</button>
+    </div>
+
+    <script>
+        let originalImage = null;
+        let currentRadius = 8;
+        
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        originalImage = img;
+                        drawOriginal();
+                        drawRounded();
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        document.getElementById('radiusSlider').addEventListener('input', function(e) {
+            currentRadius = parseInt(e.target.value);
+            document.getElementById('radiusValue').textContent = currentRadius;
+            if (originalImage) {
+                drawRounded();
+            }
+        });
+        
+        function drawOriginal() {
+            const canvas = document.getElementById('originalCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
+        }
+        
+        function drawRounded() {
+            const canvas = document.getElementById('roundedCanvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // Create rounded rectangle path
+            ctx.beginPath();
+            ctx.roundRect(0, 0, width, height, currentRadius);
+            ctx.clip();
+            
+            // Draw the image
+            ctx.drawImage(originalImage, 0, 0, width, height);
+        }
+        
+        function downloadRoundedIcon() {
+            if (!originalImage) {
+                alert('Please upload an image first');
+                return;
+            }
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = 32;
+            canvas.height = 32;
+            const ctx = canvas.getContext('2d');
+            
+            // Create rounded rectangle
+            ctx.beginPath();
+            ctx.roundRect(0, 0, 32, 32, currentRadius * (32/64));
+            ctx.clip();
+            
+            // Draw image
+            ctx.drawImage(originalImage, 0, 0, 32, 32);
+            
+            // Download
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'g56-rounded.png';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        }
+        
+        function generateMultipleSizes() {
+            if (!originalImage) {
+                alert('Please upload an image first');
+                return;
+            }
+            
+            const sizes = [
+                { size: 16, name: 'g56-rounded-16x16.png' },
+                { size: 32, name: 'g56-rounded-32x32.png' },
+                { size: 192, name: 'g56-rounded-192x192.png' },
+                { size: 512, name: 'g56-rounded-512x512.png' }
+            ];
+            
+            sizes.forEach(({ size, name }) => {
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                
+                // Calculate radius proportional to size
+                const radius = currentRadius * (size / 64);
+                
+                // Create rounded rectangle
+                ctx.beginPath();
+                ctx.roundRect(0, 0, size, size, radius);
+                ctx.clip();
+                
+                // Draw image
+                ctx.drawImage(originalImage, 0, 0, size, size);
+                
+                // Download
+                canvas.toBlob(function(blob) {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = name;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                });
+            });
+        }
+        
+        // Polyfill for roundRect if not available
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                this.moveTo(x + radius, y);
+                this.lineTo(x + width - radius, y);
+                this.quadraticCurveTo(x + width, y, x + width, y + radius);
+                this.lineTo(x + width, y + height - radius);
+                this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                this.lineTo(x + radius, y + height);
+                this.quadraticCurveTo(x, y + height, x, y + height - radius);
+                this.lineTo(x, y + radius);
+                this.quadraticCurveTo(x, y, x + radius, y);
+                this.closePath();
+            };
+        }
+    </script>
+</body>
+</html>

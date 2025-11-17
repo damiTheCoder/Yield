@@ -25,7 +25,7 @@ const posts = [
     slug: "liquidity-funded-tokens",
     title: "Liquidity Funded Tokens (LFTs): Turning Hype Into Durable Value",
     description:
-      "A deep dive into how Trone’s liquidity-backed launch model keeps communities engaged long after the mint frenzy fades.",
+      "A deep dive into how Solaris’s liquidity-backed launch model keeps communities engaged long after the mint frenzy fades.",
     readTime: "6 min read",
     date: "May 21, 2024",
     tag: "LFT Playbook",

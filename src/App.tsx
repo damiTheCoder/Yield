@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useLayoutEffect } from "react";
 import Layout from "./components/Layout";
-import TroneSlider from "./components/TroneSlider";
+import SolarisSlider from "./components/SolarisSlider";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound";
 import CoinTags from "./pages/CoinTags";
@@ -40,6 +40,22 @@ function ScrollToTop() {
   return null;
 }
 
+// Wrapper components for routes
+const CoinTagsPage = () => <Layout><CoinTags /></Layout>;
+const PortfolioPage = () => <Layout><Portfolio /></Layout>;
+const RevenuePage = () => <Layout><Revenue /></Layout>;
+const NotificationsPage = () => <Layout><Notifications /></Layout>;
+const AssetsPage = () => <Layout><Assets /></Layout>;
+const ViewAllAssetsPage = () => <Layout><ViewAllAssets /></Layout>;
+const AssetDetailPage = () => <Layout><AssetDetail /></Layout>;
+const AssetTokenTradingPage = () => <Layout><AssetTokenTrading /></Layout>;
+const HuntPageWrapper = () => <Layout><HuntPage /></Layout>;
+const BlogPage = () => <Layout><Blog /></Layout>;
+const BlogLiquidityFundedTokensPage = () => <Layout><BlogLiquidityFundedTokens /></Layout>;
+const BlogCreativeLiquidityPage = () => <Layout><BlogCreativeLiquidity /></Layout>;
+const BlogTokenizedYieldPage = () => <Layout><BlogTokenizedYield /></Layout>;
+const NotFoundPage = () => <Layout><NotFound /></Layout>;
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -49,29 +65,23 @@ const App = () => (
         <BrowserRouter>
           <ScrollToTop />
           <Routes>
-            <Route path="/" element={<TroneSlider />} />
+            <Route path="/" element={<SolarisSlider />} />
             <Route path="/old-home" element={<Index />} />
-            <Route path="/*" element={
-              <Layout>
-                <Routes>
-                  <Route path="/coin-tags" element={<CoinTags />} />
-                  <Route path="/portfolio" element={<Portfolio />} />
-                  <Route path="/revenue" element={<Revenue />} />
-                  <Route path="/notifications" element={<Notifications />} />
-                  <Route path="/assets" element={<Assets />} />
-                  <Route path="/assets/all" element={<ViewAllAssets />} />
-                  <Route path="/assets/:id" element={<AssetDetail />} />
-                  <Route path="/assets/:id/token" element={<AssetTokenTrading />} />
-                  <Route path="/assets/:id/hunt" element={<HuntPage />} />
-                  <Route path="/blog" element={<Blog />} />
-                  <Route path="/blog/liquidity-funded-tokens" element={<BlogLiquidityFundedTokens />} />
-                  <Route path="/blog/creative-liquidity-web3" element={<BlogCreativeLiquidity />} />
-                  <Route path="/blog/tokenized-yield-liquidity" element={<BlogTokenizedYield />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Layout>
-            } />
+            <Route path="/coin-tags" element={<CoinTagsPage />} />
+            <Route path="/portfolio" element={<PortfolioPage />} />
+            <Route path="/revenue" element={<RevenuePage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/assets" element={<AssetsPage />} />
+            <Route path="/assets/all" element={<ViewAllAssetsPage />} />
+            <Route path="/assets/:id" element={<AssetDetailPage />} />
+            <Route path="/assets/:id/token" element={<AssetTokenTradingPage />} />
+            <Route path="/assets/:id/hunt" element={<HuntPageWrapper />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/liquidity-funded-tokens" element={<BlogLiquidityFundedTokensPage />} />
+            <Route path="/blog/creative-liquidity-web3" element={<BlogCreativeLiquidityPage />} />
+            <Route path="/blog/tokenized-yield-liquidity" element={<BlogTokenizedYieldPage />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </BrowserRouter>
       </AppStateProvider>

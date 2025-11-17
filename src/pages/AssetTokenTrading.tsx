@@ -9,13 +9,11 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, ComposedChart, Bar } from "recharts";
 import { cn, formatCurrency, formatCurrencyK } from "@/lib/utils";
 import {
-  ArrowLeft,
   BarChart3,
   Flame,
   Power,
   Radio,
   TrendingUp,
-  Zap,
   CandlestickChart,
 } from "lucide-react";
 
@@ -31,6 +29,13 @@ type OrderBook = { bids: SimpleOrder[]; asks: SimpleOrder[] };
 type Trade = { id: string; time: string; price: number; amount: number; side: OrderSide };
 
 type Stat = { label: string; value: string; helper?: string };
+type CandleShapeProps = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  payload: CandleData;
+};
 
 const buildChart = (seed: number): ChartPoint[] =>
   Array.from({ length: 48 }).map((_, index) => ({
@@ -85,6 +90,9 @@ const buildTrades = (price: number): Trade[] =>
     };
   });
 
+const formatPriceInputValue = (price: number, multiplier = 1) =>
+  price > 0 ? (price * multiplier).toFixed(4) : "";
+
 const useStats = (asset: Asset | undefined, latestPrice: number): Stat[] => {
   if (!asset) {
     return [];
@@ -114,37 +122,46 @@ export default function AssetTokenTrading() {
 
   const asset = useMemo(() => assets.find((entry) => entry.id === id), [assets, id]);
   const tokenInfo = id ? getAssetTokenInfo(id) : null;
+  const currentPrice = tokenInfo?.price ?? 0.84;
 
-  const [tradeSide, setTradeSide] = useState<OrderSide>("buy");
-  const [orderType, setOrderType] = useState<OrderType>("limit");
+  const [swapMode, setSwapMode] = useState<OrderSide>("buy");
   const [timeframe, setTimeframe] = useState<(typeof TIMEFRAMES)[number]>("1D");
-  const [priceInput, setPriceInput] = useState("");
-  const [amountInput, setAmountInput] = useState("");
+  const [chartType, setChartType] = useState<"line" | "candle">("line");
+  const [fromAmount, setFromAmount] = useState("500");
+  const [slippage, setSlippage] = useState(0.5);
+  const [orderType, setOrderType] = useState<OrderType>("limit");
+  const [tradeSide, setTradeSide] = useState<OrderSide>("buy");
+  const [priceInput, setPriceInput] = useState(() => formatPriceInputValue(currentPrice));
+  const [amountInput, setAmountInput] = useState("1000");
+  const [leverage, setLeverage] = useState(2);
+  const [stopLoss, setStopLoss] = useState(() => formatPriceInputValue(currentPrice, 0.95));
+  const [takeProfit, setTakeProfit] = useState(() => formatPriceInputValue(currentPrice, 1.1));
+  const [sidebarView, setSidebarView] = useState<"orderbook" | "trades">("orderbook");
   const [showTradingModal, setShowTradingModal] = useState(false);
   const [modalTradeSide, setModalTradeSide] = useState<OrderSide>("buy");
-  const [sidebarView, setSidebarView] = useState<"orderbook" | "trades">("orderbook");
-  const [chartType, setChartType] = useState<"line" | "candle">("line");
-  const [leverage, setLeverage] = useState<number>(1);
-  const [stopLoss, setStopLoss] = useState("");
-  const [takeProfit, setTakeProfit] = useState("");
 
-  const currentPrice = tokenInfo?.price ?? 0.84;
+  useEffect(() => {
+    setPriceInput(formatPriceInputValue(currentPrice));
+    setStopLoss(formatPriceInputValue(currentPrice, 0.95));
+    setTakeProfit(formatPriceInputValue(currentPrice, 1.1));
+  }, [asset?.id, currentPrice]);
   const chartData = useMemo(() => buildChart((asset?.id.length ?? 2) * 3), [asset]);
   const candleData = useMemo(() => buildCandleData((asset?.id.length ?? 2) * 3), [asset]);
   const orderBook = useMemo(() => buildOrderBook(currentPrice), [currentPrice]);
   const trades = useMemo(() => buildTrades(currentPrice), [currentPrice]);
   const stats = useStats(asset, currentPrice);
+  const parsedLimitPrice = Number(priceInput);
+  const effectivePrice =
+    orderType === "market" || !parsedLimitPrice
+      ? currentPrice
+      : parsedLimitPrice;
+  const parsedOrderPrice = Number.isFinite(effectivePrice) ? Math.max(effectivePrice, 0) : 0;
+  const parsedOrderAmount = Math.max(Number(amountInput) || 0, 0);
+  const notionalValue = parsedOrderPrice * parsedOrderAmount;
+  const estimatedCost = formatCurrency(notionalValue);
+  const estimatedFeeValue = notionalValue * 0.001;
+  const estimatedFee = formatCurrency(estimatedFeeValue);
 
-  useEffect(() => {
-    setPriceInput(currentPrice.toFixed(4));
-  }, [currentPrice]);
-
-  const estimatedCost = useMemo(() => {
-    const price = Number(priceInput || 0);
-    const amount = Number(amountInput || 0);
-    if (!price || !amount) return "—";
-    return formatCurrency(price * amount);
-  }, [amountInput, priceInput]);
 
   if (!asset) {
     return (
@@ -162,7 +179,53 @@ export default function AssetTokenTrading() {
     );
   }
 
-  const primaryTone = tradeSide === "buy" ? "text-emerald-300" : "text-rose-300";
+  const isBuyingAsset = swapMode === "buy";
+  const fromTokenLabel = isBuyingAsset ? "USDC" : asset.ticker ?? asset.name;
+  const toTokenLabel = isBuyingAsset ? asset.ticker ?? asset.name : "USDC";
+  const parsedAmount = Number(fromAmount) || 0;
+  const quoteAmount =
+    !parsedAmount || !currentPrice
+      ? 0
+      : isBuyingAsset
+        ? parsedAmount / Math.max(currentPrice, 0.0001)
+        : parsedAmount * currentPrice;
+  const minReceive = quoteAmount ? quoteAmount * (1 - slippage / 100) : 0;
+  const poolDepth = orderBook.bids.concat(orderBook.asks).reduce((sum, entry) => sum + entry.amount, 0);
+  const poolShare = parsedAmount && asset.cycle.reserve ? Math.min(100, (parsedAmount / asset.cycle.reserve) * 8) : 0;
+  const priceImpact = parsedAmount ? Math.min(3, poolShare / 2.5) : 0;
+  const feeValue = parsedAmount * 0.003;
+  const routeSegments = isBuyingAsset
+    ? ["USDC", "Vault Router", asset.ticker ?? asset.name]
+    : [asset.ticker ?? asset.name, "Vault Router", "USDC"];
+  const networkLabel = "Base";
+  const slippageOptions = [0.1, 0.5, 1];
+  const formatTokenValue = (amount: number, token: string) => {
+    if (!amount) return "0";
+    if (token?.toUpperCase() === "USDC") {
+      return formatCurrency(amount);
+    }
+    return `${amount.toFixed(3)} ${token}`;
+  };
+  const highlightStats = [
+    {
+      label: "Vault Liquidity",
+      value: formatCurrency(asset.cycle.reserve),
+      helper: "Depth secured",
+      icon: BarChart3,
+    },
+    {
+      label: "24H Volume",
+      value: stats.find((s) => s.label === "24H Volume")?.value ?? formatCurrencyK(asset.cycle.reserve * 0.42),
+      helper: "Organic flow",
+      icon: TrendingUp,
+    },
+    {
+      label: "Active Holders",
+      value: stats.find((s) => s.label === "Active Holders")?.value ?? "—",
+      helper: "Connected wallets",
+      icon: Radio,
+    },
+  ] as const;
 
   return (
     <div className="min-h-screen bg-background">
@@ -325,8 +388,9 @@ export default function AssetTokenTrading() {
                           key={index}
                           dataKey={() => [candle.low, candle.high]}
                           fill={candle.isBullish ? "#8b5cf6" : "#ec4899"}
-                          shape={(props: any) => {
+                          shape={(props: CandleShapeProps) => {
                             const { x, y, width, height, payload } = props;
+                            if (!payload) return null;
                             
                             // Candlestick dimensions
                             const candleWidth = Math.min(width * 0.8, 20); // Max 20px width
@@ -555,7 +619,7 @@ export default function AssetTokenTrading() {
                     </div>
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>Execution Fee</span>
-                      <span>0.1%</span>
+                      <span>{`0.1% (~${estimatedFee})`}</span>
                     </div>
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>Settlement</span>
@@ -981,9 +1045,10 @@ export default function AssetTokenTrading() {
                           key={index}
                           dataKey={() => [candle.low, candle.high]}
                           fill={candle.isBullish ? "#8b5cf6" : "#ec4899"}
-                          shape={(props: any) => {
+                          shape={(props: CandleShapeProps) => {
                             const { x, y, width, height, payload } = props;
-                            
+                            if (!payload) return null;
+
                             const candleWidth = Math.min(width * 0.8, 20);
                             const wickWidth = 1.5;
                             const centerX = x + width / 2;
@@ -1348,7 +1413,7 @@ export default function AssetTokenTrading() {
                 </div>
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>Fee (0.1%)</span>
-                  <span>~{formatCurrency(Number(estimatedCost.replace(/[$,]/g, '')) * 0.001)}</span>
+                  <span>~{estimatedFee}</span>
                 </div>
               </div>
 

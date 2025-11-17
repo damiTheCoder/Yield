@@ -15,9 +15,9 @@ const sections = [
     ],
   },
   {
-    heading: "How the Trone Launch Rails Work",
+    heading: "How the Solaris Launch Rails Work",
     copy: [
-      "Trone’s market maker vault automates the entire process. Launch teams configure the mint price, the liquidity split, and the bonding curve shape. As collectors mint, liquidity is paired with the project’s token and deployed into pools across the supported venues.",
+      "Solaris’s market maker vault automates the entire process. Launch teams configure the mint price, the liquidity split, and the bonding curve shape. As collectors mint, liquidity is paired with the project’s token and deployed into pools across the supported venues.",
       "Because everything is automated, teams don’t need a quant desk to coordinate listings. They get instant markets with transparent fees, plus dashboards that surface health metrics like reserve depth, holder concentration, and daily volume.",
     ],
   },
@@ -43,7 +43,7 @@ export default function BlogLiquidityFundedTokens() {
             Liquidity Funded Tokens (LFTs): The Future of Sustainable Digital Assets
           </h1>
           <p className="text-base text-muted-foreground sm:text-lg">
-            Powered by Trone — a blueprint for shipping tokens that stay liquid, reward true believers, and keep runway on-chain.
+            Powered by Solaris — a blueprint for shipping tokens that stay liquid, reward true believers, and keep runway on-chain.
           </p>
         </div>
 
@@ -80,7 +80,7 @@ export default function BlogLiquidityFundedTokens() {
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-primary/70">Go deeper</p>
             <h3 className="text-xl font-semibold">Build your first LFT with Forge</h3>
             <p className="text-sm text-muted-foreground">
-              Tap into Trone’s liquidity rails, analytics, and launch partners. We’ll help design the curve, utility, and post-launch plan.
+              Tap into Solaris’s liquidity rails, analytics, and launch partners. We’ll help design the curve, utility, and post-launch plan.
             </p>
           </div>
           <Link

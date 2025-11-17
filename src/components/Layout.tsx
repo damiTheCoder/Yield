@@ -24,9 +24,9 @@ const Layout = ({ children }: LayoutProps) => {
       setAssetsMarketMode(detail);
     };
 
-    window.addEventListener("trone-assets-market-mode", handleAssetsMarketMode as EventListener);
+    window.addEventListener("solaris-assets-market-mode", handleAssetsMarketMode as EventListener);
     return () => {
-      window.removeEventListener("trone-assets-market-mode", handleAssetsMarketMode as EventListener);
+      window.removeEventListener("solaris-assets-market-mode", handleAssetsMarketMode as EventListener);
     };
   }, []);
 
@@ -38,7 +38,7 @@ const Layout = ({ children }: LayoutProps) => {
 
   const handleToggleAssetsMarket = useCallback(() => {
     if (typeof window === "undefined") return;
-    window.dispatchEvent(new CustomEvent("trone-assets-toggle-market"));
+    window.dispatchEvent(new CustomEvent("solaris-assets-toggle-market"));
   }, []);
 
   const handleSwitchClick = useCallback(() => {
@@ -129,14 +129,14 @@ const Layout = ({ children }: LayoutProps) => {
                   className={cn(
                     "flex flex-1 flex-col items-center gap-1 px-2 py-1 text-[11px] font-semibold transition-colors",
                     active
-                      ? "text-[#8B5CFF]"
+                      ? "text-black dark:text-white"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   <Icon
                     className={cn(
                       "h-4 w-4",
-                      active ? "text-[#8B5CFF]" : "text-muted-foreground"
+                      active ? "text-black dark:text-white" : "text-muted-foreground"
                     )}
                   />
                   <span>{label}</span>
@@ -152,13 +152,13 @@ const Layout = ({ children }: LayoutProps) => {
                 onClick={onClick}
                 className={cn(
                   "flex flex-1 flex-col items-center gap-1 px-2 py-1 text-[11px] font-semibold transition-colors",
-                  active ? "text-[#8B5CFF]" : "text-muted-foreground hover:text-foreground"
+                  active ? "text-black dark:text-white" : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <Icon
                   className={cn(
                     "h-4 w-4",
-                    active ? "text-[#8B5CFF]" : "text-muted-foreground"
+                    active ? "text-black dark:text-white" : "text-muted-foreground"
                   )}
                 />
                 <span>{label}</span>

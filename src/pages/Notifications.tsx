@@ -125,13 +125,13 @@ export default function Notifications() {
                       <div className="flex gap-2 mt-3">
                         <a
                           href={`/assets/${notification.asset.id}/token`}
-                          className="inline-flex items-center justify-center rounded-lg bg-[#7A3BFF] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#6a2ef0] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8b5cff]"
+                          className="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-medium transition-colors bg-black text-white hover:bg-black/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black dark:bg-white dark:text-black dark:hover:bg-white/90 dark:focus-visible:outline-white"
                         >
                           {notification.type === 'purchased_hunt' ? 'Start Hunt' : 'View Hunt'}
                         </a>
                         <a
                           href={`/assets/${notification.asset.id}`}
-                          className="inline-flex items-center justify-center rounded-lg bg-[#7A3BFF] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#6a2ef0] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8b5cff]"
+                          className="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-medium transition-colors bg-black text-white hover:bg-black/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black dark:bg-white dark:text-black dark:hover:bg-white/90 dark:focus-visible:outline-white"
                         >
                           Asset Details
                         </a>

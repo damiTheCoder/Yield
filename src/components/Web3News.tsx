@@ -14,10 +14,10 @@ const shimmerItems = Array.from({ length: 3 }, (_, index) => index);
 const FEATURED_SUBSTACK_ARTICLE: Web3NewsItem = {
   id: "substack-liquidity-funded-tokens",
   title: "Liquidity Funded Tokens (LFTs): The Future of Sustainable Digital Assets",
-  url: "https://open.substack.com/pub/daminathan/p/liquidity-funded-tokens-lfts-the?r=52dbsh&utm_campaign=post&utm_medium=web&showWelcomeOnShare=true",
+  url: "https://open.substack.com/pub/daminathan/p/liquidity-funded-tokens-lfts-the?r=52dbsh&utm_campaign=post&utm_medium=web&showWelcomeOnShare=false",
   imageUrl:
-    "https://substackcdn.com/image/fetch/$s_!tLaV!,w_1200,h_600,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F51f7a962-d6a5-42e1-813e-7ffddd758617_1822x434.png",
-  source: "Trone Substack",
+    "https://substackcdn.com/image/fetch/$s_!jW0s!,w_1200,h_600,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb940a014-a274-41a7-8a5c-c8cba578ab71_1536x1024.png",
+  source: "Solaris Substack",
   publishedAt: new Date("2024-04-29T00:00:00.000Z"),
 };
 

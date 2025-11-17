@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "react-router-dom";
 import Web3News from "./Web3News";
+import { useTheme } from "@/hooks/useTheme";
 import { Layers, Rocket, DollarSign, LineChart, Bell, type LucideIcon } from "lucide-react";
 
 const NAV_LINKS: Array<{ label: string; href: string; icon: LucideIcon }> = [
@@ -13,6 +14,10 @@ const NAV_LINKS: Array<{ label: string; href: string; icon: LucideIcon }> = [
 
 const Sidebar = () => {
   const { pathname } = useLocation();
+  const { theme } = useTheme();
+  
+  // Determine if dark mode is active
+  const isDarkMode = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   return (
     <aside className="hidden md:block fixed left-6 top-6 w-64 z-50">
@@ -59,11 +64,11 @@ const Sidebar = () => {
             <span className="block text-xs uppercase tracking-wide text-muted-foreground/70">Platform</span>
             <div className="mt-1 flex items-center gap-2">
               <img 
-                src="/OPY.png" 
-                alt="Trone" 
+                src={isDarkMode ? "/h4.png" : "/g56.png"} 
+                alt="Solaris" 
                 className="h-6 w-6 rounded-2xl object-cover"
               />
-              <span className="text-lg font-semibold text-foreground">Trone</span>
+              <span className="text-lg font-semibold text-foreground">Solaris</span>
             </div>
           </Link>
         </div>

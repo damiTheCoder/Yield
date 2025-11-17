@@ -257,8 +257,8 @@ const Header = () => {
       const detail = (event as CustomEvent<string>).detail;
       setSelectedHeaderNetwork(networkIdToOption(detail).code);
     };
-    window.addEventListener("trone-network-sync", handler as EventListener);
-    return () => window.removeEventListener("trone-network-sync", handler as EventListener);
+    window.addEventListener("solaris-network-sync", handler as EventListener);
+    return () => window.removeEventListener("solaris-network-sync", handler as EventListener);
   }, []);
 
   const handleMobileNetworkSelect = (code: string) => {
@@ -266,7 +266,7 @@ const Header = () => {
     setSelectedHeaderNetwork(option.code);
     setMobileNetworkOpen(false);
     if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("trone-network-change", { detail: option.id }));
+      window.dispatchEvent(new CustomEvent("solaris-network-change", { detail: option.id }));
     }
   };
 
@@ -358,8 +358,8 @@ const Header = () => {
               to="/"
               className="hover:opacity-80 transition-smooth md:hidden flex items-center gap-2"
             >
-              <img src="/OPY.png" alt="Trone logo" className="h-6 w-6 rounded-lg object-cover" />
-              <span className="text-lg font-extrabold text-foreground">Trone</span>
+              <img src={isDarkTheme ? "/h4.png" : "/g56.png"} alt="Solaris logo" className="h-6 w-6 rounded-lg object-cover" />
+              <span className="text-lg font-extrabold text-foreground">Solaris</span>
             </Link>
             <Button
               type="button"
@@ -496,8 +496,7 @@ const Header = () => {
                 <Button
                   variant="default"
                   size="sm"
-                  className="hidden md:inline-flex min-w-[120px] justify-center h-8 rounded-full text-white"
-                  style={{ backgroundColor: "#8B5CFF" }}
+                  className="hidden md:inline-flex min-w-[120px] justify-center h-8 rounded-full text-sm font-semibold bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
                 >
                   {connectedWallet ? (
                     <span className="flex items-center gap-1">
@@ -513,8 +512,7 @@ const Header = () => {
                 <Button
                   variant="default"
                   size="sm"
-                  className="md:hidden rounded-full h-8 px-4 text-sm font-semibold text-white"
-                  style={{ backgroundColor: "#8B5CFF" }}
+                  className="md:hidden rounded-full h-8 px-4 text-sm font-semibold bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
                 >
                   {connectedWallet ? "Wallet" : "Connect"}
                 </Button>

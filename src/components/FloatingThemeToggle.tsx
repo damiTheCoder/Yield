@@ -3,12 +3,15 @@ import { useTheme } from "@/hooks/useTheme";
 
 const FloatingThemeToggle: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
+  
+  // Determine if dark mode is active
+  const isDarkMode = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   return (
     <div className="fixed right-6 bottom-6 z-50 flex items-center gap-4 rounded-full bg-black/60 px-3 py-2 backdrop-blur-md shadow-lg border border-white/6">
       <div className="flex items-center gap-2 pl-2">
-        <img src="/OPY.png" alt="Trone" className="h-7 w-7 rounded-2xl object-cover" />
-        <span className="text-sm font-bold text-white">Trone</span>
+        <img src={isDarkMode ? "/h4.png" : "/g56.png"} alt="Solaris" className="h-7 w-7 rounded-2xl object-cover" />
+        <span className="text-sm font-bold text-white">Solaris</span>
       </div>
       <div className="h-6 w-px bg-white/10" />
       <button

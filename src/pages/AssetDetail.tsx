@@ -232,7 +232,7 @@ export default function AssetDetail() {
   const selectedCycle = analyticsData[selectedCycleIndex] ?? analyticsData[analyticsData.length - 1];
   const analyticsChartData = analyticsData.map((entry, index) => ({ ...entry, isActive: index === selectedCycleIndex }));
   const analyticsChartConfig = {
-    volume: { label: "Cycle Revenue", color: "hsl(268 90% 65%)" },
+    volume: { label: "Cycle Revenue", color: "hsl(142 70% 48%)" },
   } as const;
 
   const formatChartPriceTick = (value: number) => {
@@ -318,6 +318,16 @@ export default function AssetDetail() {
       <div className="rounded-2xl border border-border/40 bg-surface/60 p-3 sm:p-4">
         <ChartContainer config={analyticsChartConfig} className="h-56 w-full">
           <RechartsBarChart data={analyticsChartData} margin={{ top: 8, right: 6, left: -12, bottom: 0 }}>
+            <defs>
+              <linearGradient id="cycle-bar-gradient-active" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity={0.95} />
+                <stop offset="100%" stopColor="#25d366" stopOpacity={1} />
+              </linearGradient>
+              <linearGradient id="cycle-bar-gradient-inactive" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#f5f5f5" stopOpacity={0.4} />
+                <stop offset="100%" stopColor="#1b6c3b" stopOpacity={0.85} />
+              </linearGradient>
+            </defs>
             <XAxis
               dataKey="label"
               axisLine={false}
@@ -353,7 +363,7 @@ export default function AssetDetail() {
                 <Cell
                   key={entry.cycle}
                   cursor="pointer"
-                  fill={entry.isActive ? "hsl(268 90% 65%)" : "hsl(268 46% 32%)"}
+                  fill={entry.isActive ? "url(#cycle-bar-gradient-active)" : "url(#cycle-bar-gradient-inactive)"}
                   opacity={entry.isActive ? 1 : 0.45}
                 />
               ))}
@@ -444,8 +454,10 @@ export default function AssetDetail() {
         </div>
       </div>
       <Button
-        className="h-12 w-full rounded-full text-base font-semibold text-white"
-        style={{ backgroundColor: '#8B5CFF' }}
+        className={cn(
+          "h-12 w-full rounded-full text-base font-semibold transition-colors",
+          "bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90",
+        )}
         disabled={user.usd < huntFee || ua.coinTags >= 1}
         onClick={() => {
           if (ua.coinTags >= 1) {
@@ -786,8 +798,10 @@ export default function AssetDetail() {
           <div className="fixed inset-x-0 bottom-12 z-40 px-4 pb-5">
             <Button
               onClick={() => setMobileBuyOpen(true)}
-              className="w-full rounded-2xl py-3 text-base font-semibold text-white shadow-lg"
-              style={{ backgroundColor: "#8B5CFF" }}
+              className={cn(
+                "w-full rounded-2xl py-3 text-base font-semibold shadow-lg transition-colors",
+                "bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90",
+              )}
             >
               Tap to buy tag
             </Button>

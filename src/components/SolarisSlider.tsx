@@ -26,7 +26,7 @@ const data: DataItem[] = [
     place: 'The Solution',
     title: 'LIQUIDITY',
     title2: 'FUNDED TOKENS',
-    description: 'Trone redefines digital ownership with Liquidity-Funded Tokens (LFTs) — assets backed by real liquidity reserves. Every token launch creates sustainable value, not speculative bubbles.',
+    description: 'Solaris redefines digital ownership with Liquidity-Funded Tokens (LFTs) — assets backed by real liquidity reserves. Every token launch creates sustainable value, not speculative bubbles.',
     image: '/d2.png',
     cta: 'Launch Console',
     ctaLink: '/assets'
@@ -35,7 +35,7 @@ const data: DataItem[] = [
     place: 'Creative Finance',
     title: 'CREATIVE',
     title2: 'LIQUIDITY',
-    description: 'How DAOs, NFT studios, and LFT builders treat liquidity as a design medium. Turn hype into real value through liquidity-backed launches powered by Trone.',
+    description: 'How DAOs, NFT studios, and LFT builders treat liquidity as a design medium. Turn hype into real value through liquidity-backed launches powered by Solaris.',
     image: '/d3.png',
     cta: 'Read More',
     ctaLink: '/blog/creative-liquidity-web3'
@@ -44,19 +44,22 @@ const data: DataItem[] = [
     place: 'The Future',
     title: 'VALUE BACKED',
     title2: 'DIGITAL ASSETS',
-    description: 'At Trone, we believe digital assets should hold their ground — not your hope. Creators earn sustainably. Holders get real value. The future is liquidity-backed.',
+    description: 'At Solaris, we believe digital assets should hold their ground — not your hope. Creators earn sustainably. Holders get real value. The future is liquidity-backed.',
     image: '/d4.png',
     cta: 'Start Building',
     ctaLink: '/coin-tags'
   }
 ];
 
-const TroneSlider: React.FC = () => {
+const SolarisSlider: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
+  
+  // Determine if dark mode is active
+  const isDarkMode = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   const nextSlide = () => {
     if (isAnimating) return;
@@ -92,11 +95,11 @@ const TroneSlider: React.FC = () => {
   const currentData = data[currentIndex];
 
   return (
-    <div className="trone-slider">
+    <div className="solaris-slider">
       <style>{`
         @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500&display=swap");
         
-        .trone-slider {
+        .solaris-slider {
           margin: 0;
           background-color: hsl(var(--background));
           color: hsl(var(--foreground));
@@ -107,6 +110,17 @@ const TroneSlider: React.FC = () => {
           overflow: hidden;
           position: relative;
           transition: background-color 0.4s ease, color 0.4s ease;
+          --slider-accent-bg: #000;
+          --slider-accent-contrast: #fff;
+          --slider-accent-hover: rgba(0, 0, 0, 0.85);
+          --slider-accent-soft: rgba(0, 0, 0, 0.12);
+        }
+
+        [data-theme="dark"] .solaris-slider {
+          --slider-accent-bg: #fff;
+          --slider-accent-contrast: #000;
+          --slider-accent-hover: rgba(255, 255, 255, 0.85);
+          --slider-accent-soft: rgba(255, 255, 255, 0.2);
         }
 
         /* Navigation */
@@ -170,7 +184,7 @@ const TroneSlider: React.FC = () => {
         }
 
         .nav-item:hover {
-          color: #7A3BFF;
+          color: var(--slider-accent-bg);
         }
 
         .nav-item.active::after {
@@ -181,7 +195,7 @@ const TroneSlider: React.FC = () => {
           right: 0;
           height: 3px;
           border-radius: 99px;
-          background-color: #7A3BFF;
+          background-color: var(--slider-accent-bg);
         }
 
         /* Theme Toggle */
@@ -223,23 +237,23 @@ const TroneSlider: React.FC = () => {
         }
 
         /* Dark mode specific styling */
-        [data-theme="dark"] .trone-slider .theme-toggle {
+        [data-theme="dark"] .solaris-slider .theme-toggle {
           background: rgba(255, 255, 255, 0.12);
           box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
         }
 
-        [data-theme="light"] .trone-slider .theme-toggle {
+        [data-theme="light"] .solaris-slider .theme-toggle {
           background: rgba(15, 23, 42, 0.06);
           box-shadow: 0 15px 40px rgba(15, 23, 42, 0.08);
         }
 
-        [data-theme="light"] .trone-slider .theme-option:hover {
+        [data-theme="light"] .solaris-slider .theme-option:hover {
           background: rgba(15, 23, 42, 0.08);
         }
 
         .launch-btn {
-          background: #7A3BFF;
-          color: white;
+          background: var(--slider-accent-bg);
+          color: var(--slider-accent-contrast);
           border: none;
           padding: 12px 24px;
           border-radius: 24px;
@@ -252,7 +266,7 @@ const TroneSlider: React.FC = () => {
         }
 
         .launch-btn:hover {
-          background: #6a2ef0;
+          background: var(--slider-accent-hover);
           transform: translateY(-2px);
         }
 
@@ -279,7 +293,7 @@ const TroneSlider: React.FC = () => {
           font-size: 16px;
           margin-bottom: 32px;
           padding-top: 20px;
-          color: #7A3BFF;
+          color: var(--slider-accent-bg);
           font-weight: 600;
           text-transform: uppercase;
           letter-spacing: 0.2em;
@@ -293,7 +307,7 @@ const TroneSlider: React.FC = () => {
           width: 40px;
           height: 4px;
           border-radius: 99px;
-          background-color: #7A3BFF;
+          background-color: var(--slider-accent-bg);
         }
 
         .main-title {
@@ -313,7 +327,7 @@ const TroneSlider: React.FC = () => {
 
         .title-line:nth-child(2) {
           animation-delay: 0.1s;
-          color: #7A3BFF;
+          color: var(--slider-accent-bg);
         }
 
         @keyframes slideInUp {
@@ -353,11 +367,11 @@ const TroneSlider: React.FC = () => {
 
         .bookmark-btn {
           border: none;
-          background-color: #7A3BFF;
+          background-color: var(--slider-accent-bg);
           width: 44px;
           height: 44px;
           border-radius: 50%;
-          color: white;
+          color: var(--slider-accent-contrast);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -367,15 +381,15 @@ const TroneSlider: React.FC = () => {
 
         .bookmark-btn:hover {
           transform: scale(1.1);
-          background-color: #6a2ef0;
+          background-color: var(--slider-accent-hover);
         }
 
         .discover-btn {
           border: none;
-          background-color: #7A3BFF;
+          background-color: var(--slider-accent-bg);
           height: 44px;
           border-radius: 22px;
-          color: white;
+          color: var(--slider-accent-contrast);
           padding: 0 28px;
           font-size: 14px;
           font-weight: 600;
@@ -386,8 +400,8 @@ const TroneSlider: React.FC = () => {
         }
 
         .discover-btn:hover {
-          background-color: #6a2ef0;
-          color: white;
+          background-color: var(--slider-accent-hover);
+          color: var(--slider-accent-contrast);
           transform: translateY(-2px);
         }
 
@@ -460,9 +474,9 @@ const TroneSlider: React.FC = () => {
         }
 
         .arrow-btn:hover {
-          color: #7A3BFF;
+          color: var(--slider-accent-bg);
           transform: scale(1.1);
-          background: rgba(122, 59, 255, 0.1);
+          background: var(--slider-accent-soft);
         }
 
         .progress-bar-container {
@@ -475,7 +489,7 @@ const TroneSlider: React.FC = () => {
 
         .progress-bar {
           height: 100%;
-          background-color: #7A3BFF;
+          background-color: var(--slider-accent-bg);
           border-radius: 2px;
           transition: width 0.3s ease;
         }
@@ -591,9 +605,9 @@ const TroneSlider: React.FC = () => {
         <div className="navigation-inner">
           <div className="nav-brand" onClick={() => navigate('/')}>
             <div className="nav-logo">
-              <img src="/OPY.png" alt="Trone logo" />
+              <img src={isDarkMode ? "/h4.png" : "/g56.png"} alt="Solaris logo" />
             </div>
-            <div>Trone</div>
+            <div>Solaris</div>
           </div>
           <div className="theme-toggle">
             <button 
@@ -688,4 +702,4 @@ const TroneSlider: React.FC = () => {
   );
 };
 
-export default TroneSlider;
+export default SolarisSlider;

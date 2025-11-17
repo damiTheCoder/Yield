@@ -81,6 +81,9 @@ const Index = () => {
     { label: "Impact", href: "#impact" },
     { label: "Launch", href: "#cta" },
   ];
+  const accentButtonClass = isDarkMode ? "bg-white text-black hover:bg-white/90" : "bg-black text-white hover:bg-black/90";
+  const accentIconBgClass = isDarkMode ? "bg-white" : "bg-black";
+  const accentIconWithTextClass = isDarkMode ? "bg-white text-black" : "bg-black text-white";
 
   const handleCta = (location: string, href?: string, options?: { newTab?: boolean }) => {
     trackEvent("cta_click", { location });
@@ -166,10 +169,10 @@ const Index = () => {
             className="flex items-center gap-2 text-left sm:gap-3"
           >
             <span className="flex h-9 w-9 overflow-hidden rounded-full sm:h-10 sm:w-10">
-              <img src="/OPY.png" alt="Trone logo" className="h-full w-full object-cover" />
+              <img src={isDarkMode ? "/h4.png" : "/g56.png"} alt="Solaris logo" className="h-full w-full object-cover" />
             </span>
             <div className="flex flex-col leading-tight">
-              <span className={cn("text-sm font-semibold tracking-wide sm:text-base", isDarkMode ? "text-white" : "text-black")}>Trone</span>
+              <span className={cn("text-sm font-semibold tracking-wide sm:text-base", isDarkMode ? "text-white" : "text-black")}>Solaris</span>
             </div>
           </button>
 
@@ -182,7 +185,12 @@ const Index = () => {
                 className="relative transition hover:text-[#8b5cff]"
               >
                 {link.label}
-                <span className="absolute inset-x-0 -bottom-1 h-0.5 scale-x-0 bg-[#8b5cff] transition-transform duration-200 ease-out hover:scale-x-100" />
+                <span
+                  className={cn(
+                    "absolute inset-x-0 -bottom-1 h-0.5 scale-x-0 transition-transform duration-200 ease-out hover:scale-x-100",
+                    accentIconBgClass,
+                  )}
+                />
               </button>
             ))}
           </div>
@@ -190,7 +198,10 @@ const Index = () => {
           <div className="hidden md:block">
             <Button
               size="sm"
-              className="rounded-full bg-[#7A3BFF] px-4 py-2 text-xs font-semibold uppercase tracking-[0.26em] text-white transition hover:bg-[#6a2ef0] sm:text-sm"
+              className={cn(
+                "rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.26em] transition sm:text-sm",
+                accentButtonClass,
+              )}
               onClick={() => handleCta("nav_launch", "/assets")}
             >
               Launch Console
@@ -229,18 +240,18 @@ const Index = () => {
                 "Utility tokens inflate endlessly while delivering little real utility.",
               ].map((item) => (
                 <li key={item} className="flex flex-1 items-start gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#8b5cff]" />
+                  <span className={cn("mt-1 h-1.5 w-1.5 shrink-0 rounded-full", accentIconBgClass)} />
                   <span>{item}</span>
                 </li>
               ))}
             </ul>
             <p className={cn("text-base leading-relaxed sm:text-lg", isDarkMode ? "text-white" : "text-black")}>
-              Creators earn once and vanish. Holders get burned. The system feeds on exit liquidity. At Trone, we believe
+              Creators earn once and vanish. Holders get burned. The system feeds on exit liquidity. At Solaris, we believe
               digital assets should hold their ground — not your hope.
             </p>
             <Button
               size="lg"
-              className="mx-auto rounded-xl bg-[#7A3BFF] px-10 py-3 text-white transition hover:bg-[#6a2ef0]"
+              className={cn("mx-auto rounded-xl px-10 py-3 transition", accentButtonClass)}
               onClick={() => handleCta("cta_problem_future", "/assets")}
             >
               Discover the future of value-backed tokens
@@ -265,28 +276,28 @@ const Index = () => {
           <div className="order-2 space-y-6 px-6 sm:px-12 lg:pl-12">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#8b5cff]">The difference</p>
             <h2 className={cn("text-3xl font-semibold leading-tight sm:text-4xl", isDarkMode ? "text-white" : "text-black")}>
-              The Trone difference: liquidity, transparency, and growth.
+              The Solaris difference: liquidity, transparency, and growth.
             </h2>
             <p className={cn("text-base leading-relaxed sm:text-lg", isDarkMode ? "text-white" : "text-black")}>
-              Trone redefines digital ownership with Liquidity-Funded Tokens (LFTs) — assets backed by real liquidity
+              Solaris redefines digital ownership with Liquidity-Funded Tokens (LFTs) — assets backed by real liquidity
               from the first block. LFTs launch with a guaranteed redemption floor and self-appreciating mechanics. As
               the community engages, liquidity deepens automatically and every token becomes more valuable.
             </p>
             <ul className={cn("grid gap-2 text-sm sm:text-base", isDarkMode ? "text-white" : "text-black")}>
               <li className="flex items-start gap-2">
-                <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-[#8b5cff]" />
+                <span className={cn("mt-1 inline-block h-1.5 w-1.5 rounded-full", accentIconBgClass)} />
                 <span>Guaranteed floor value anchored by locked liquidity.</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-[#8b5cff]" />
+                <span className={cn("mt-1 inline-block h-1.5 w-1.5 rounded-full", accentIconBgClass)} />
                 <span>Automatic appreciation as participation expands.</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-[#8b5cff]" />
+                <span className={cn("mt-1 inline-block h-1.5 w-1.5 rounded-full", accentIconBgClass)} />
                 <span>Skill-based discovery replaces panic-driven speculation.</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-[#8b5cff]" />
+                <span className={cn("mt-1 inline-block h-1.5 w-1.5 rounded-full", accentIconBgClass)} />
                 <span>Locked pools that creators cannot drain.</span>
               </li>
             </ul>
@@ -295,7 +306,7 @@ const Index = () => {
             </blockquote>
             <Button
               size="lg"
-              className="rounded-xl bg-[#7A3BFF] px-10 py-3 text-white transition hover:bg-[#6a2ef0]"
+              className={cn("rounded-xl px-10 py-3 transition", accentButtonClass)}
               onClick={() => handleCta("cta_difference_learn", "/coin-tags")}
             >
               See how LFTs work
@@ -349,7 +360,12 @@ const Index = () => {
                 },
               ].map((step, index) => (
                 <li key={step.title} className={cn("flex gap-3 rounded-3xl px-4 py-3", isDarkMode ? "bg-[#1a1a1a]" : "bg-[#f7f5ff]")}>
-                  <span className="mt-1 inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#8b5cff] text-xs font-semibold text-white">
+                  <span
+                    className={cn(
+                      "mt-1 inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold",
+                      accentIconWithTextClass,
+                    )}
+                  >
                     {index + 1}
                   </span>
                   <div>
@@ -365,7 +381,7 @@ const Index = () => {
             </p>
             <Button
               size="lg"
-              className="rounded-xl bg-[#7A3BFF] px-10 py-3 text-white transition hover:bg-[#6a2ef0]"
+              className={cn("rounded-xl px-10 py-3 transition", accentButtonClass)}
               onClick={() => handleCta("cta_solution_join", "/portfolio")}
             >
               Join the next generation of digital assets
@@ -422,10 +438,10 @@ const Index = () => {
             </p>
             <Button
               size="lg"
-              className="rounded-xl bg-[#7A3BFF] px-10 py-3 text-white transition hover:bg-[#6a2ef0]"
+              className={cn("rounded-xl px-10 py-3 transition", accentButtonClass)}
               onClick={() => handleCta("cta_impact_explore", "/assets")}
             >
-              Explore Trone — where liquidity meets longevity
+              Explore Solaris — where liquidity meets longevity
             </Button>
           </div>
         </ScrollDrop>
@@ -439,7 +455,7 @@ const Index = () => {
             <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl lg:aspect-auto lg:h-full">
               <img
                 src="/a.png"
-                alt="Trone liquidity network"
+                alt="Solaris liquidity network"
                 className="h-full w-full object-cover"
               />
             </div>
@@ -450,20 +466,20 @@ const Index = () => {
               The future of digital assets starts here.
             </h2>
             <p className={cn("text-base leading-relaxed sm:text-lg", isDarkMode ? "text-white" : "text-black")}>
-              Trone isn’t another speculative play. It’s a financial game layer built on real liquidity, community
-              participation, and sustainable growth. The crypto world doesn’t need more hype — it needs Trone.
+              Solaris isn’t another speculative play. It’s a financial game layer built on real liquidity, community
+              participation, and sustainable growth. The crypto world doesn’t need more hype — it needs Solaris.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
               <Button
                 size="lg"
-                className="rounded-xl bg-[#7A3BFF] px-10 py-3 text-white transition hover:bg-[#6a2ef0]"
+                className={cn("rounded-xl px-10 py-3 transition", accentButtonClass)}
                 onClick={() => handleCta("cta_final_launch", "/assets")}
               >
                 Launch console
               </Button>
               <Button
                 size="lg"
-                className="rounded-xl bg-[#7A3BFF] px-10 py-3 text-white transition hover:bg-[#6a2ef0]"
+                className={cn("rounded-xl px-10 py-3 transition", accentButtonClass)}
                 onClick={() => handleCta("cta_final_learn", "/coin-tags")}
               >
                 Learn about LFTs
@@ -480,12 +496,12 @@ const Index = () => {
           <div className="max-w-md space-y-3">
             <div className="flex items-center gap-3">
               <span className={cn("flex h-10 w-10 overflow-hidden rounded-full border shadow-[0_12px_32px_rgba(139,92,255,0.2)]", isDarkMode ? "border-[#3a3a3a] bg-[#1a1a1a]" : "border-white/40 bg-white")}>
-                <img src="/OPY.png" alt="Trone logo" className="h-full w-full object-cover" />
+                <img src={isDarkMode ? "/h4.png" : "/g56.png"} alt="Solaris logo" className="h-full w-full object-cover" />
               </span>
-              <span className={cn("text-lg font-semibold tracking-wide", isDarkMode ? "text-white" : "text-black")}>Trone</span>
+              <span className={cn("text-lg font-semibold tracking-wide", isDarkMode ? "text-white" : "text-black")}>Solaris</span>
             </div>
             <p className={cn("text-sm leading-relaxed", isDarkMode ? "text-gray-400" : "text-[#4d3a7f]")}>
-              Trone curates liquidity-backed digital art experiences that reward creators, collectors, and communities in
+              Solaris curates liquidity-backed digital art experiences that reward creators, collectors, and communities in
               equal measure.
             </p>
             <p className="text-xs uppercase tracking-[0.32em] text-[#8b5cff]">
@@ -531,7 +547,7 @@ const Index = () => {
         </div>
         <div className={cn("border-t", isDarkMode ? "border-[#3a3a3a] bg-black/60" : "border-[#ede8ff] bg-white/60")}>
           <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-6 text-xs uppercase tracking-[0.3em] text-[#8b5cff] sm:flex-row sm:items-center sm:justify-between">
-            <span>© {new Date().getFullYear()} Trone. All rights reserved.</span>
+            <span>© {new Date().getFullYear()} Solaris. All rights reserved.</span>
             <div className={cn("flex flex-wrap gap-4", isDarkMode ? "text-gray-400" : "text-[#4d3a7f]")}>
               <button
                 type="button"
@@ -567,10 +583,18 @@ const Index = () => {
         >
           <span
             aria-hidden="true"
-            className="absolute inset-0 rounded-full bg-gradient-to-br from-[#8b5cff] via-[#a855f7] to-[#7c3aed] gradient-border-blink"
+            className={cn(
+              "absolute inset-0 rounded-full bg-gradient-to-br gradient-border-blink",
+              isDarkMode ? "from-white via-white/80 to-white/40" : "from-black via-neutral-700 to-neutral-900",
+            )}
           />
-          <span className={cn("relative flex h-20 w-20 items-center justify-center rounded-full shadow-[0_12px_32px_rgba(0,0,0,0.16)] transition-colors", isDarkMode ? "bg-black" : "bg-white")}>
-            <img src="/OPY.png" alt="Trone" className="h-16 w-16 rounded-full object-cover" />
+          <span
+            className={cn(
+              "relative flex h-20 w-20 items-center justify-center rounded-full shadow-[0_12px_32px_rgba(0,0,0,0.16)] transition-colors",
+              isDarkMode ? "bg-white" : "bg-black",
+            )}
+          >
+            <img src={isDarkMode ? "/h4.png" : "/g56.png"} alt="Solaris" className="h-16 w-16 rounded-full object-cover" />
           </span>
         </button>
       </div>

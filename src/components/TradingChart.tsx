@@ -5,6 +5,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { Line, LineChart as RechartsLineChart, XAxis, YAxis } from "recharts";
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { formatCurrency, formatCurrencyK } from '@/lib/utils';
+import { useTheme } from '@/hooks/useTheme';
 
 interface Transaction {
   timestamp: number;
@@ -35,6 +36,11 @@ export default function TradingChart({
     if (typeof window === "undefined") return false;
     return window.innerWidth < 768;
   });
+  
+  const { theme } = useTheme();
+  
+  // Determine if dark mode is active
+  const isDarkMode = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -195,7 +201,7 @@ export default function TradingChart({
           <div>
             <CardTitle className="text-2xl font-bold flex items-center gap-3">
               <div className="flex items-center gap-2">
-                <img src="/OPY.png" alt="cLT" className="h-8 w-8 rounded-full hidden sm:inline-block" />
+                <img src={isDarkMode ? "/h4.png" : "/g56.png"} alt="cLT" className="h-8 w-8 rounded-full hidden sm:inline-block" />
                 <span>cLT / USDC</span>
                 <div className="ml-2 px-2 py-1 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg text-xs text-blue-600 font-medium">
                   Single Asset Trading
