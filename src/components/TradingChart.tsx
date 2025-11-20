@@ -201,7 +201,7 @@ export default function TradingChart({
           <div>
             <CardTitle className="text-2xl font-bold flex items-center gap-3">
               <div className="flex items-center gap-2">
-                <img src={isDarkMode ? "/h4.png" : "/g56.png"} alt="cLT" className="h-8 w-8 rounded-full hidden sm:inline-block" />
+                <img src="/g56.png" alt="cLT" className="h-8 w-8 rounded-full hidden sm:inline-block" />
                 <span>cLT / USDC</span>
                 <div className="ml-2 px-2 py-1 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg text-xs text-blue-600 font-medium">
                   Single Asset Trading

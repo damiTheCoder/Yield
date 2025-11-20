@@ -64,7 +64,7 @@ const Sidebar = () => {
             <span className="block text-xs uppercase tracking-wide text-muted-foreground/70">Platform</span>
             <div className="mt-1 flex items-center gap-2">
               <img 
-                src={isDarkMode ? "/h4.png" : "/g56.png"} 
+                src="/g56.png" 
                 alt="Solaris" 
                 className="h-6 w-6 rounded-2xl object-cover"
               />
