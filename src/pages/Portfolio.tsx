@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useTheme } from "@/hooks/useTheme";
+
 
 const toNumeric = (value: unknown) => {
   const parsed = typeof value === "number" ? value : Number(value);
@@ -29,8 +29,7 @@ export default function Portfolio() {
   const [assetRedeemCounts, setAssetRedeemCounts] = useState<Record<string, number>>({});
   const [ownedViewMode, setOwnedViewMode] = useState<"grid" | "list">("list");
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
-  const { theme } = useTheme();
-  const isDarkTheme = theme === "dark";
+
 
   const accruedRewards = cycle?.accrued?.holderRewards ?? 0;
   const realizedRewards = user.realizedRewards ?? 0;
@@ -75,12 +74,8 @@ export default function Portfolio() {
 
     const wrapperClasses =
       variant === "grid"
-        ? isDarkTheme
-          ? "rounded-2xl border border-white/5 bg-neutral-800/80 p-4 space-y-4 text-sm"
-          : "rounded-2xl border border-gray-200 bg-white p-4 space-y-4 text-sm shadow-sm"
-        : isDarkTheme
-          ? "rounded-2xl bg-background/80 p-4 space-y-4 text-sm shadow-lg"
-          : "rounded-2xl bg-white p-4 space-y-4 text-sm shadow-lg";
+        ? "rounded-2xl border border-border bg-card p-4 space-y-4 text-sm shadow-sm"
+        : "rounded-2xl bg-card p-4 space-y-4 text-sm shadow-lg";
 
     return (
       <div key={`${variant}-${asset.id}`} className={wrapperClasses}>
@@ -275,9 +270,9 @@ export default function Portfolio() {
             <DialogContent className="mx-4 max-w-2xl rounded-3xl">
               <DialogHeader>
                 <DialogTitle>{selectedAsset.name}</DialogTitle>
-                  <p className="text-sm text-muted-foreground">
-                    Redeem LFTs or jump into token trading for this collection when available.
-                  </p>
+                <p className="text-sm text-muted-foreground">
+                  Redeem LFTs or jump into token trading for this collection when available.
+                </p>
               </DialogHeader>
               {renderOwnedAssetCard(selectedAsset, "modal")}
             </DialogContent>

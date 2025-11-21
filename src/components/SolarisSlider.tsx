@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '@/hooks/useTheme';
+import { useTheme, type ThemeMode } from '@/hooks/useTheme';
+import { Monitor, Moon, Sun } from 'lucide-react';
 
 interface DataItem {
   place: string;
@@ -57,9 +58,8 @@ const SolarisSlider: React.FC = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
-  
-  // Determine if dark mode is active
-  const isDarkMode = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  const prefersDark = typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const isDarkMode = theme === "dark" || (theme === "system" && prefersDark);
 
   const nextSlide = () => {
     if (isAnimating) return;
@@ -93,6 +93,11 @@ const SolarisSlider: React.FC = () => {
   };
 
   const currentData = data[currentIndex];
+  const themeOptions: Array<{ id: ThemeMode; icon: typeof Monitor; label: string }> = [
+    { id: "system", icon: Monitor, label: "System theme" },
+    { id: "dark", icon: Moon, label: "Dark theme" },
+    { id: "light", icon: Sun, label: "Light theme" },
+  ];
 
   return (
     <div className="solaris-slider">
@@ -130,7 +135,7 @@ const SolarisSlider: React.FC = () => {
           left: 0;
           right: 0;
           z-index: 50;
-          padding: 20px 60px;
+          padding: 14px 50px;
           font-weight: 500;
           color: inherit;
           background: transparent;
@@ -200,55 +205,67 @@ const SolarisSlider: React.FC = () => {
 
         /* Theme Toggle */
         .theme-toggle {
-          display: flex;
+          display: inline-flex;
           align-items: center;
-          gap: 4px;
-          background: hsl(var(--foreground) / 0.1);
+          gap: 8px;
+          background: rgba(7, 10, 14, 0.65);
           border: none;
-          border-radius: 20px;
-          padding: 4px;
-          backdrop-filter: blur(10px);
-          box-shadow: 0 12px 30px hsl(var(--foreground) / 0.15);
+          border-radius: 999px;
+          padding: 6px;
+          backdrop-filter: blur(12px);
+          box-shadow: 0 18px 35px rgba(0, 0, 0, 0.35);
         }
 
         .theme-option {
-          padding: 6px 10px;
-          border-radius: 14px;
-          color: hsl(var(--foreground));
-          font-size: 11px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          background: transparent;
+          width: 34px;
+          height: 34px;
+          border-radius: 999px;
           border: none;
-          outline: none;
-          text-transform: capitalize;
+          background: transparent;
+          color: rgba(226, 232, 240, 0.7);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.25s ease;
+        }
+
+        .theme-option svg {
+          width: 16px;
+          height: 16px;
+          stroke-width: 1.6;
         }
 
         .theme-option:hover {
-          background: hsl(var(--foreground) / 0.15);
-          transform: translateY(-1px);
+          background: rgba(255, 255, 255, 0.12);
+          color: hsl(var(--foreground));
         }
 
         .theme-option.active {
-          background: #00ffa1;
-          color: #000;
-          box-shadow: 0 2px 8px rgba(0, 255, 161, 0.3);
+          background: #ffffff;
+          color: #0f172a;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
         }
 
-        /* Dark mode specific styling */
+        /* Theme toggle state styling */
         [data-theme="dark"] .solaris-slider .theme-toggle {
-          background: rgba(255, 255, 255, 0.12);
-          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+          background: rgba(255, 255, 255, 0.1);
+          box-shadow: 0 18px 35px rgba(0, 0, 0, 0.5);
         }
 
         [data-theme="light"] .solaris-slider .theme-toggle {
-          background: rgba(15, 23, 42, 0.06);
-          box-shadow: 0 15px 40px rgba(15, 23, 42, 0.08);
+          background: rgba(15, 23, 42, 0.07);
+          box-shadow: 0 18px 35px rgba(15, 23, 42, 0.18);
         }
 
         [data-theme="light"] .solaris-slider .theme-option:hover {
-          background: rgba(15, 23, 42, 0.08);
+          background: rgba(15, 23, 42, 0.12);
+        }
+
+        [data-theme="light"] .solaris-slider .theme-option.active {
+          background: #111826;
+          color: #f8fafc;
+          box-shadow: 0 8px 20px rgba(15, 23, 42, 0.35);
         }
 
         .launch-btn {
@@ -285,6 +302,8 @@ const SolarisSlider: React.FC = () => {
           justify-content: center;
           position: relative;
           z-index: 10;
+          opacity: 0;
+          animation: dropUp 0.75s ease forwards;
         }
 
 
@@ -342,14 +361,14 @@ const SolarisSlider: React.FC = () => {
           margin-bottom: 40px;
           max-width: 520px;
           opacity: 0;
-          animation: fadeInUp 0.8s ease-out 0.3s forwards;
+          animation: dropUp 0.8s ease-out 0.25s forwards;
           color: hsl(var(--foreground) / 0.8);
         }
 
-        @keyframes fadeInUp {
+        @keyframes dropUp {
           from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(60px);
           }
           to {
             opacity: 1;
@@ -362,7 +381,7 @@ const SolarisSlider: React.FC = () => {
           align-items: center;
           gap: 20px;
           opacity: 0;
-          animation: fadeInUp 0.8s ease-out 0.4s forwards;
+          animation: dropUp 0.8s ease-out 0.35s forwards;
         }
 
         .bookmark-btn {
@@ -409,6 +428,8 @@ const SolarisSlider: React.FC = () => {
         .image-column {
           position: relative;
           overflow: hidden;
+          opacity: 0;
+          animation: dropUp 0.75s ease 0.1s forwards;
         }
 
         .main-image {
@@ -462,7 +483,7 @@ const SolarisSlider: React.FC = () => {
           width: 56px;
           height: 56px;
           border-radius: 50%;
-          border: 1px solid hsl(var(--foreground) / 0.15);
+          border: none;
           background: hsl(var(--background) / 0.6);
           backdrop-filter: blur(10px);
           color: hsl(var(--foreground));
@@ -505,7 +526,7 @@ const SolarisSlider: React.FC = () => {
         /* Responsive */
         @media (max-width: 1024px) {
           .navigation {
-            padding: 16px 40px;
+            padding: 12px 36px;
           }
 
           .navigation-inner {
@@ -538,7 +559,7 @@ const SolarisSlider: React.FC = () => {
 
         @media (max-width: 768px) {
           .navigation {
-            padding: 16px 20px;
+            padding: 12px 18px;
           }
 
           .navigation-inner {
@@ -587,14 +608,14 @@ const SolarisSlider: React.FC = () => {
           }
 
           .theme-toggle {
-            gap: 2px;
-            padding: 3px;
+            gap: 4px;
+            padding: 4px;
             margin-right: 0;
           }
           
           .theme-option {
-            padding: 4px 6px;
-            font-size: 9px;
+            width: 30px;
+            height: 30px;
           }
 
         }
@@ -609,25 +630,22 @@ const SolarisSlider: React.FC = () => {
             </div>
             <div>Solaris</div>
           </div>
-          <div className="theme-toggle">
-            <button 
-              className={`theme-option ${theme === 'light' ? 'active' : ''}`}
-              onClick={() => setTheme('light')}
-            >
-              Light
-            </button>
-            <button 
-              className={`theme-option ${theme === 'dark' ? 'active' : ''}`}
-              onClick={() => setTheme('dark')}
-            >
-              Dark
-            </button>
-            <button 
-              className={`theme-option ${theme === 'system' ? 'active' : ''}`}
-              onClick={() => setTheme('system')}
-            >
-              System
-            </button>
+          <div className="theme-toggle" role="group" aria-label="Select theme">
+            {themeOptions.map(({ id, icon: Icon, label }) => {
+              const isActive = theme === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  className={`theme-option ${isActive ? 'active' : ''}`}
+                  aria-pressed={isActive}
+                  aria-label={label}
+                  onClick={() => setTheme(id)}
+                >
+                  <Icon aria-hidden="true" />
+                </button>
+              );
+            })}
           </div>
         </div>
       </nav>
@@ -635,7 +653,7 @@ const SolarisSlider: React.FC = () => {
       {/* Main Content */}
       <div className="main-container">
         {/* Left Column - Content */}
-        <div className="content-column">
+        <div className="content-column" key={`content-column-${currentIndex}`}>
           <div className="place-tag" key={`place-${currentIndex}`}>
             {currentData.place}
           </div>
@@ -662,7 +680,7 @@ const SolarisSlider: React.FC = () => {
         </div>
 
         {/* Right Column - Images */}
-        <div className="image-column">
+        <div className="image-column" key={`image-column-${currentIndex}`}>
           <div 
             className="main-image active"
             style={{ backgroundImage: `url(${currentData.image})` }}

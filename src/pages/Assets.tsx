@@ -221,10 +221,10 @@ function detectWebView(): boolean {
 
   return Boolean(
     displayModeStandalone ||
-      standalone ||
-      isAndroidWebView ||
-      isIOSWebView ||
-      isSocialInApp
+    standalone ||
+    isAndroidWebView ||
+    isIOSWebView ||
+    isSocialInApp
   );
 }
 
@@ -292,7 +292,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    
+
     const mediaQuery = window.matchMedia("(min-width: 768px)");
     const handleResize = (e: MediaQueryListEvent) => {
       setIsDesktop(e.matches);
@@ -330,7 +330,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 
   const filteredAssets = useMemo(() => {
     let filtered = assets;
-    
+
     // Filter by network (assign chains based on asset ID hash for demo)
     if (selectedNetwork !== "all") {
       filtered = filtered.filter((asset) => {
@@ -340,7 +340,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
         return assignedNetwork === selectedNetwork;
       });
     }
-    
+
     // Filter by search term
     if (normalizedSearch) {
       filtered = filtered.filter((asset) => {
@@ -350,7 +350,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
         return name.includes(normalizedSearch) || ticker.includes(normalizedSearch) || id.includes(normalizedSearch);
       });
     }
-    
+
     return filtered;
   }, [assets, normalizedSearch, selectedNetwork]);
 
@@ -413,10 +413,10 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
         )}
       >
         <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 overflow-hidden rounded-xl sm:h-12 sm:w-12">
-                <img src={asset.image} alt={asset.name} className="h-full w-full object-cover" />
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 overflow-hidden rounded-xl sm:h-12 sm:w-12">
+              <img src={asset.image} alt={asset.name} className="h-full w-full object-cover" />
+            </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
                 <span className="text-sm font-semibold text-foreground sm:text-base">{asset.name}</span>
@@ -652,8 +652,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
         <section className="mb-6">
           <div className="flex items-center justify-between mb-5">
             <div className={cn(
-              "uppercase tracking-wide font-bold text-xl",
-              isDarkTheme ? "text-white" : "text-black"
+              "uppercase tracking-wide font-bold text-xl text-foreground"
             )}>
               Blog Posts
             </div>
@@ -670,9 +669,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
               className={cn(
                 "group relative overflow-hidden rounded-[28px] border transition-colors",
                 "min-h-[280px] md:min-h-[360px]",
-                isDarkTheme 
-                  ? "bg-[#1a1a1a] border-transparent"
-                  : "bg-gray-50 border border-gray-200"
+                "bg-card border-transparent"
               )}
             >
               <Link to={hero.href} className="absolute inset-0">
@@ -695,7 +692,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                 </div>
               </Link>
             </div>
-            
+
             {/* Right Column - Grid of Smaller Posts */}
             <div className="flex flex-col h-full">
               {remainder.map((item, index) => (
@@ -706,9 +703,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                     "group flex w-full items-center gap-4 rounded-2xl border px-4 transition-colors hover:border-white/40",
                     "flex-1 py-6", // Equal height distribution with more padding
                     index === 0 ? "mb-2" : "mt-2", // Spacing between items
-                    isDarkTheme 
-                      ? "bg-[#1a1a1a] border-transparent"
-                      : "bg-gray-50 border border-gray-200"
+                    "bg-card border-transparent"
                   )}
                 >
                   <div className="flex-1 space-y-2">
@@ -716,14 +711,12 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       Blog
                     </span>
                     <h4 className={cn(
-                      "text-base font-semibold leading-tight",
-                      isDarkTheme ? "text-white" : "text-gray-900"
+                      "text-base font-semibold leading-tight text-card-foreground"
                     )}>
                       {item.title}
                     </h4>
                     <p className={cn(
-                      "text-xs leading-relaxed",
-                      isDarkTheme ? "text-white/70" : "text-gray-600"
+                      "text-xs leading-relaxed text-muted-foreground"
                     )}>
                       {item.description}
                     </p>
@@ -960,11 +953,11 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       </span>
                       <ChevronDown className="h-4 w-4" />
                     </Button>
-                    
+
                     {showNetworkDropdown && (
                       <>
-                        <div 
-                          className="fixed inset-0 z-40" 
+                        <div
+                          className="fixed inset-0 z-40"
                           onClick={() => setShowNetworkDropdown(false)}
                         />
                         <div className="absolute top-full right-0 mt-2 w-56 rounded-2xl bg-card shadow-xl z-50 overflow-hidden dark:bg-neutral-950/95">
@@ -1081,7 +1074,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                   <MobileFeaturedNews />
                 </div>
               )}
-              
+
               {/* Spacer for mobile fixed bottom controls */}
               <div className="h-2 sm:hidden" />
             </div>
@@ -1102,11 +1095,11 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
       </div>
 
       {/* Search Modal */}
-      <CommandDialog 
-        open={showSearchModal} 
+      <CommandDialog
+        open={showSearchModal}
         onOpenChange={setShowSearchModal}
       >
-        <CommandInput 
+        <CommandInput
           placeholder="Search tokens, tickers, or IDs"
           value={searchTerm}
           onValueChange={setSearchTerm}

@@ -22,6 +22,185 @@ export default function AssetDetail() {
   const ua = userAssets[id ?? ""] || { coinTags: 0, lfts: 0 };
   const findable = assetAvailable[id ?? ""] ?? 0;
 
+  const [showHuntPrompt, setShowHuntPrompt] = useState(false);
+  const [purchaseMessage, setPurchaseMessage] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"chart" | "image">("chart");
+  const [mobileBuyOpen, setMobileBuyOpen] = useState(false);
+  const [showCycleModal, setShowCycleModal] = useState(false);
+  const [selectedCycleIndex, setSelectedCycleIndex] = useState(0);
+
+  const isImageMode = viewMode === "image";
+  const handleToggleView = (checked: boolean) => setViewMode(checked ? "image" : "chart");
+  const toggleTrackClass =
+    "h-7 w-12 px-[3px] py-[3px] !border !border-border/60 data-[state=unchecked]:!bg-muted/80 data-[state=checked]:!bg-emerald-400/80 transition-smooth";
+  const toggleThumbClass =
+    "!h-[18px] !w-[18px] !bg-background !shadow-none data-[state=checked]:translate-x-[1.5rem] data-[state=unchecked]:translate-x-0";
+
+  const currentLiquidity = asset?.cycle.reserve ?? 0;
+  const lpu = asset?.cycle.lpu ?? 0;
+  const huntFee = Math.max(4.2, lpu * 0.4);
+
+  const chartData = useMemo(() => {
+    if (!asset) {
+      return [];
+    }
+    const base = Math.max(currentLiquidity, 1);
+    const seed = (asset.ticker || asset.id)
+      .split("")
+      .reduce((acc, char, index) => acc + char.charCodeAt(0) * (index + 1), 0);
+
+    const ratios: number[] = [];
+    const pushSegment = (
+      length: number,
+      endRatio: number,
+      amplitude: number,
+      frequency: number,
+      bias: number = 0
+    ) => {
+      const startRatio = ratios[ratios.length - 1] ?? 0.3;
+      for (let i = 1; i <= length; i++) {
+        const progress = i / length;
+        const baseLine = startRatio + (endRatio - startRatio) * progress;
+        const noise = Math.sin((seed + ratios.length + i) * frequency) * amplitude;
+        const value = baseLine + noise + bias * progress;
+        ratios.push(value);
+      }
+    };
+
+    // Seed initial value at lower left
+    ratios.push(0.32);
+    // Sharp initial dip
+    pushSegment(4, 0.22, 0.015, 1.4);
+    // Recovery and early buildup
+    pushSegment(10, 0.55, 0.012, 0.8);
+    // Mid plateau with gentle chop
+    pushSegment(12, 0.62, 0.01, 1.1);
+    // Strong rally toward top right
+    pushSegment(14, 1.05, 0.018, 0.9, 0.01);
+    // Minor pullback and final push
+    pushSegment(8, 1.12, 0.012, 1.3);
+
+    const mapped = ratios.map((ratio, idx) => ({
+      label: `T${idx + 1}`,
+      value: Number((base * ratio).toFixed(2)),
+    }));
+
+    if (mapped.length > 0) {
+      mapped[0].value = Number((base * 0.18).toFixed(2));
+      mapped[mapped.length - 1].value = Number((base * 1.15).toFixed(2));
+    }
+    return mapped;
+  }, [asset, currentLiquidity]);
+
+  const analyticsData = useMemo(() => {
+    if (!asset) {
+      return [];
+    }
+    const totalCycles = Math.max(asset.cycle.cycle, 1);
+    const targetRevenue = Math.max(0, Number(asset.cycle.totalSales.toFixed(2)));
+    const targetPayout = Math.max(0, Number(asset.cycle.accrued.holderRewards.toFixed(2)));
+    const targetLftPerUnit = Number(asset.cycle.lpu.toFixed(2));
+    const safeHuntFee = Math.max(huntFee, 1);
+    const estimatedUsers = targetRevenue > 0 ? Math.max(1, Math.round(targetRevenue / safeHuntFee)) : 0;
+
+    const buildTrend = (target: number, minRatio: number) => {
+      if (totalCycles === 1) return [Number(target.toFixed(2))];
+      const clampedMin = Math.max(0, Math.min(minRatio, 0.95));
+      return Array.from({ length: totalCycles }, (_, index) => {
+        if (index === totalCycles - 1) return Number(target.toFixed(2));
+        const progress = index / (totalCycles - 1);
+        const eased = clampedMin + (1 - clampedMin) * Math.pow(progress, 1.2);
+        return Number((target * eased).toFixed(2));
+      });
+    };
+
+    const revenueTrend = buildTrend(targetRevenue, 0.55);
+    const payoutTrend = buildTrend(targetPayout, 0.4);
+    const lftTrend = buildTrend(targetLftPerUnit, 0.75);
+    const usersTrend =
+      totalCycles === 1
+        ? [estimatedUsers]
+        : Array.from({ length: totalCycles }, (_, index) => {
+          if (index === totalCycles - 1) return estimatedUsers;
+          const progress = index / (totalCycles - 1);
+          const eased = 0.45 + (1 - 0.45) * Math.pow(progress, 1.1);
+          return Math.max(0, Math.round(estimatedUsers * eased));
+        });
+    return Array.from({ length: totalCycles }, (_, index) => {
+      const cycle = index + 1;
+      return {
+        cycle,
+        label: `C${cycle}`,
+        users: usersTrend[index] ?? estimatedUsers,
+        revenue: revenueTrend[index] ?? targetRevenue,
+        payout: payoutTrend[index] ?? targetPayout,
+        lftPerUnit: Number((lftTrend[index] ?? targetLftPerUnit).toFixed(2)),
+        volume: revenueTrend[index] ?? targetRevenue,
+      };
+    });
+  }, [asset, huntFee]);
+
+  useEffect(() => {
+    if (analyticsData.length > 0) {
+      setSelectedCycleIndex(analyticsData.length - 1);
+    }
+  }, [analyticsData.length]);
+
+  const selectedCycle = analyticsData[selectedCycleIndex] ?? analyticsData[analyticsData.length - 1];
+  const analyticsChartData = analyticsData.map((entry, index) => ({ ...entry, isActive: index === selectedCycleIndex }));
+  const analyticsChartConfig = {
+    volume: { label: "Cycle Revenue", color: "hsl(142 70% 48%)" },
+  } as const;
+
+  const formatChartPriceTick = (value: number) => {
+    const abs = Math.abs(value);
+    if (abs >= 1000) {
+      return formatCurrencyK(value);
+    }
+    if (abs >= 100) {
+      const hundreds = value / 100;
+      const formatted = hundreds.toFixed(1).replace(/\.0$/, ".0");
+      return `$${formatted}h`;
+    }
+    return formatCurrency(value);
+  };
+
+  const chartConfig = { value: { label: "Liquidity", color: "hsl(var(--accent-yellow))" } } as const;
+
+  useEffect(() => {
+    if (ua.coinTags > 0) {
+      setShowHuntPrompt(true);
+      setPurchaseMessage("CoinTag already purchased.");
+    } else {
+      setShowHuntPrompt(false);
+      setPurchaseMessage(null);
+    }
+  }, [ua.coinTags]);
+  const transactions = useMemo(() => {
+    if (!asset) {
+      return [];
+    }
+    const base = Math.max(lpu || 1, 0.5);
+    const formatter = new Intl.DateTimeFormat(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    return Array.from({ length: 16 }, (_, index) => {
+      const timestamp = new Date(Date.now() - index * 1000 * 60 * 47);
+      const type = index % 5 === 0 ? "Sell" : "Buy";
+      const swing = Math.sin((asset.id.length + index) * 1.1) * 0.05;
+      const price = Number(Math.max(0.4, base * (1 + swing)).toFixed(2));
+      return {
+        id: `${asset.id}-tx-${index}`,
+        label: formatter.format(timestamp),
+        type,
+        price,
+      };
+    });
+  }, [asset, lpu]);
+
   if (!asset) {
     return (
       <div className="min-h-screen">
@@ -41,27 +220,11 @@ export default function AssetDetail() {
     { key: "platform", label: "Platform", value: launchDistribution.platform },
     { key: "investors", label: "Investors", value: launchDistribution.investors },
   ];
-
-  const [showHuntPrompt, setShowHuntPrompt] = useState(false);
-  const [purchaseMessage, setPurchaseMessage] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"chart" | "image">("chart");
-  const [mobileBuyOpen, setMobileBuyOpen] = useState(false);
-  const [showCycleModal, setShowCycleModal] = useState(false);
-  const isImageMode = viewMode === "image";
-  const handleToggleView = (checked: boolean) => setViewMode(checked ? "image" : "chart");
-  const toggleTrackClass =
-    "h-7 w-12 px-[3px] py-[3px] !border !border-border/60 data-[state=unchecked]:!bg-muted/80 data-[state=checked]:!bg-emerald-400/80 transition-smooth";
-  const toggleThumbClass =
-    "!h-[18px] !w-[18px] !bg-background !shadow-none data-[state=checked]:translate-x-[1.5rem] data-[state=unchecked]:translate-x-0";
-
-  const currentLiquidity = asset.cycle.reserve;
   const backingReserve = asset.params.initialReserve;
-  const lpu = asset.cycle.lpu;
   const totalSupply = asset.cycle.initialSupply ?? cycleMaxSupply;
   const nextCycleSupply = Math.max(1, Math.floor(cycleMaxSupply / 2));
   const discovered = Math.max(0, totalSupply - findable);
   const discoveryPercent = totalSupply > 0 ? (discovered / totalSupply) * 100 : 0;
-  const huntFee = Math.max(4.2, lpu * 0.4);
   const description = asset.summary?.trim()
     ? asset.summary
     : "Liquidity-backed artifacts with verifiable reserves and real-time CoinTag discovery. Hunt, redeem, and monitor live performance across every cycle.";
@@ -125,162 +288,6 @@ export default function AssetDetail() {
     Math.min(100 - multiSegmentPercent, (discoveryProgress / 100) * (100 - multiSegmentPercent))
   );
 
-  const chartData = useMemo(() => {
-    const base = Math.max(currentLiquidity, 1);
-    const seed = (asset.ticker || asset.id)
-      .split("")
-      .reduce((acc, char, index) => acc + char.charCodeAt(0) * (index + 1), 0);
-
-    const ratios: number[] = [];
-    const pushSegment = (
-      length: number,
-      endRatio: number,
-      amplitude: number,
-      frequency: number,
-      bias: number = 0
-    ) => {
-      const startRatio = ratios[ratios.length - 1] ?? 0.3;
-      for (let i = 1; i <= length; i++) {
-        const progress = i / length;
-        const baseLine = startRatio + (endRatio - startRatio) * progress;
-        const noise = Math.sin((seed + ratios.length + i) * frequency) * amplitude;
-        const value = baseLine + noise + bias * progress;
-        ratios.push(value);
-      }
-    };
-
-    // Seed initial value at lower left
-    ratios.push(0.32);
-    // Sharp initial dip
-    pushSegment(4, 0.22, 0.015, 1.4);
-    // Recovery and early buildup
-    pushSegment(10, 0.55, 0.012, 0.8);
-    // Mid plateau with gentle chop
-    pushSegment(12, 0.62, 0.01, 1.1);
-    // Strong rally toward top right
-    pushSegment(14, 1.05, 0.018, 0.9, 0.01);
-    // Minor pullback and final push
-    pushSegment(8, 1.12, 0.012, 1.3);
-
-    const mapped = ratios.map((ratio, idx) => ({
-      label: `T${idx + 1}`,
-      value: Number((base * ratio).toFixed(2)),
-    }));
-
-    if (mapped.length > 0) {
-      mapped[0].value = Number((base * 0.18).toFixed(2));
-      mapped[mapped.length - 1].value = Number((base * 1.15).toFixed(2));
-    }
-
-    return mapped;
-  }, [asset.id, asset.ticker, currentLiquidity]);
-
-  const analyticsData = useMemo(() => {
-    const totalCycles = Math.max(asset.cycle.cycle, 1);
-    const targetRevenue = Math.max(0, Number(asset.cycle.totalSales.toFixed(2)));
-    const targetPayout = Math.max(0, Number(asset.cycle.accrued.holderRewards.toFixed(2)));
-    const targetLftPerUnit = Number(asset.cycle.lpu.toFixed(2));
-    const safeHuntFee = Math.max(huntFee, 1);
-    const estimatedUsers = targetRevenue > 0 ? Math.max(1, Math.round(targetRevenue / safeHuntFee)) : 0;
-
-    const buildTrend = (target: number, minRatio: number) => {
-      if (totalCycles === 1) return [Number(target.toFixed(2))];
-      const clampedMin = Math.max(0, Math.min(minRatio, 0.95));
-      return Array.from({ length: totalCycles }, (_, index) => {
-        if (index === totalCycles - 1) return Number(target.toFixed(2));
-        const progress = index / (totalCycles - 1);
-        const eased = clampedMin + (1 - clampedMin) * Math.pow(progress, 1.2);
-        return Number((target * eased).toFixed(2));
-      });
-    };
-
-    const revenueTrend = buildTrend(targetRevenue, 0.55);
-    const payoutTrend = buildTrend(targetPayout, 0.4);
-    const lftTrend = buildTrend(targetLftPerUnit, 0.75);
-    const usersTrend =
-      totalCycles === 1
-        ? [estimatedUsers]
-        : Array.from({ length: totalCycles }, (_, index) => {
-            if (index === totalCycles - 1) return estimatedUsers;
-            const progress = index / (totalCycles - 1);
-            const eased = 0.45 + (1 - 0.45) * Math.pow(progress, 1.1);
-            return Math.max(0, Math.round(estimatedUsers * eased));
-          });
-
-    return Array.from({ length: totalCycles }, (_, index) => {
-      const cycle = index + 1;
-      return {
-        cycle,
-        label: `C${cycle}`,
-        users: usersTrend[index] ?? estimatedUsers,
-        revenue: revenueTrend[index] ?? targetRevenue,
-        payout: payoutTrend[index] ?? targetPayout,
-        lftPerUnit: Number((lftTrend[index] ?? targetLftPerUnit).toFixed(2)),
-        volume: revenueTrend[index] ?? targetRevenue,
-      };
-    });
-  }, [asset.cycle.accrued.holderRewards, asset.cycle.cycle, asset.cycle.lpu, asset.cycle.totalSales, huntFee]);
-
-  const [selectedCycleIndex, setSelectedCycleIndex] = useState(0);
-
-  useEffect(() => {
-    if (analyticsData.length > 0) {
-      setSelectedCycleIndex(analyticsData.length - 1);
-    }
-  }, [analyticsData.length]);
-
-  const selectedCycle = analyticsData[selectedCycleIndex] ?? analyticsData[analyticsData.length - 1];
-  const analyticsChartData = analyticsData.map((entry, index) => ({ ...entry, isActive: index === selectedCycleIndex }));
-  const analyticsChartConfig = {
-    volume: { label: "Cycle Revenue", color: "hsl(142 70% 48%)" },
-  } as const;
-
-  const formatChartPriceTick = (value: number) => {
-    const abs = Math.abs(value);
-    if (abs >= 1000) {
-      return formatCurrencyK(value);
-    }
-    if (abs >= 100) {
-      const hundreds = value / 100;
-      const formatted = hundreds.toFixed(1).replace(/\.0$/, ".0");
-      return `$${formatted}h`;
-    }
-    return formatCurrency(value);
-  };
-
-  const chartConfig = { value: { label: "Liquidity", color: "hsl(var(--accent-yellow))" } } as const;
-
-  useEffect(() => {
-    if (ua.coinTags > 0) {
-      setShowHuntPrompt(true);
-      setPurchaseMessage("CoinTag already purchased.");
-    } else {
-      setShowHuntPrompt(false);
-      setPurchaseMessage(null);
-    }
-  }, [ua.coinTags]);
-  const transactions = useMemo(() => {
-    const base = Math.max(lpu || 1, 0.5);
-    const formatter = new Intl.DateTimeFormat(undefined, {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    return Array.from({ length: 16 }, (_, index) => {
-      const timestamp = new Date(Date.now() - index * 1000 * 60 * 47);
-      const type = index % 5 === 0 ? "Sell" : "Buy";
-      const swing = Math.sin((asset.id.length + index) * 1.1) * 0.05;
-      const price = Number(Math.max(0.4, base * (1 + swing)).toFixed(2));
-      return {
-        id: `${asset.id}-tx-${index}`,
-        label: formatter.format(timestamp),
-        type,
-        price,
-      };
-    });
-  }, [asset.id, lpu]);
-
   const TransactionHistorySection = ({ className }: { className?: string }) => (
     <section className={cn("space-y-3", className)}>
       <div className="flex items-center justify-between">
@@ -290,7 +297,7 @@ export default function AssetDetail() {
         </div>
         <span className="hidden text-[10px] uppercase tracking-wide text-muted-foreground/60 sm:inline">Last 24h</span>
       </div>
-      <div className="rounded-2xl border border-border/50 bg-surface/50 shadow-card">
+      <div className="rounded-2xl bg-surface/50 shadow-card">
         <div className="grid grid-cols-[1.6fr_0.9fr_1fr] items-center gap-2 border-b border-border/40 px-3 py-2 text-[10px] uppercase tracking-wide text-muted-foreground">
           <span>Date</span>
           <span className="text-center">Type</span>
@@ -421,7 +428,7 @@ export default function AssetDetail() {
         </div>
       </div>
       <div className="space-y-4">
-        <div className="border border-border/40 bg-background/80 p-4 sm:p-5">
+        <div className="rounded-xl border border-border/40 bg-background/80 p-4 sm:p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
               <span className="text-[11px] uppercase tracking-wide text-muted-foreground">You pay</span>
@@ -437,7 +444,7 @@ export default function AssetDetail() {
           <div className="mt-3 text-xs text-muted-foreground">Deducted from your balance instantly.</div>
         </div>
 
-        <div className="border border-border/40 bg-background/80 p-4 sm:p-5">
+        <div className="rounded-xl border border-border/40 bg-background/80 p-4 sm:p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
               <span className="text-[11px] uppercase tracking-wide text-muted-foreground">You receive</span>
@@ -489,7 +496,7 @@ export default function AssetDetail() {
         {showHuntPrompt && (
           <Button
             onClick={() => navigate(`/assets/${asset.id}/hunt`)}
-            className="h-11 w-full rounded-full border border-violet-400/60 bg-transparent text-violet-300 hover:bg-violet-400/10"
+            className="h-11 w-full rounded-full border-none bg-gradient-to-r from-emerald-400 to-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:from-emerald-500 hover:to-emerald-700"
           >
             Start Hunt
           </Button>
@@ -550,8 +557,8 @@ export default function AssetDetail() {
                     <RechartsLineChart data={chartData} margin={{ left: 0, right: 0, top: 20, bottom: 20 }}>
                       <defs>
                         <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#84cc16" stopOpacity={0.3}/>
-                          <stop offset="100%" stopColor="#84cc16" stopOpacity={0}/>
+                          <stop offset="0%" stopColor="#84cc16" stopOpacity={0.3} />
+                          <stop offset="100%" stopColor="#84cc16" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <XAxis dataKey="label" hide />
@@ -567,12 +574,12 @@ export default function AssetDetail() {
                         padding={{ top: 10, bottom: 10 }}
                       />
                       <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                      <Line 
-                        type="monotone" 
-                        dataKey="value" 
-                        stroke="#84cc16" 
-                        strokeWidth={2.5} 
-                        dot={false} 
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#84cc16"
+                        strokeWidth={2.5}
+                        dot={false}
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         fill="url(#colorValue)"
