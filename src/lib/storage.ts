@@ -6,6 +6,8 @@
 const STORAGE_KEY = 'forge-art-hub-state';
 const STORAGE_VERSION = '1.2';
 
+import { CycleParams, CycleState } from "@/domain/tokenomics";
+
 export interface HuntProgress {
   revealed: string[]; // coordinates that have been opened
   matched: string[]; // coordinates that have been claimed
@@ -30,8 +32,8 @@ export interface StoredState {
     ticker?: string;
     summary?: string;
     image: string;
-    params: any;
-    cycle: any;
+    params: CycleParams;
+    cycle: CycleState;
   }>;
   assetAvailable: Record<string, number>;
   userAssets: Record<string, { coinTags: number; lfts: number }>;
@@ -67,7 +69,7 @@ export function loadState(): StoredState | null {
     if (!stored) return null;
 
     const parsed = JSON.parse(stored) as StoredState;
-    
+
     // Version check - if version mismatch, ignore stored data
     if (parsed.version !== STORAGE_VERSION) {
       console.warn('Storage version mismatch, clearing old data');

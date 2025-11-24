@@ -9,6 +9,17 @@ export type Web3NewsItem = {
   publishedAt: Date;
 };
 
+interface RawNewsItem {
+  id?: string;
+  guid?: string;
+  title?: string;
+  url?: string;
+  imageurl?: string;
+  source_info?: { name?: string };
+  source?: string;
+  published_on?: number;
+}
+
 const NEWS_ENDPOINT =
   "https://min-api.cryptocompare.com/data/v2/news/?lang=EN&categories=Blockchain";
 
@@ -40,8 +51,8 @@ async function fetchWeb3News(forceRefresh = false): Promise<Web3NewsItem[]> {
       }
 
       const now = Date.now();
-      const normalized = payload.Data.filter((item: any) => item?.title && item?.url)
-        .map((item: any) => ({
+      const normalized = payload.Data.filter((item: RawNewsItem) => item?.title && item?.url)
+        .map((item: RawNewsItem) => ({
           id: String(item.id ?? item.guid ?? item.url),
           title: String(item.title),
           url: String(item.url),

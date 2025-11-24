@@ -5,11 +5,16 @@ import Portfolio from "../src/pages/Portfolio";
 
 const noopStorage = {
   getItem: () => null,
-  setItem: () => {},
-  removeItem: () => {},
-};
-// @ts-ignore
-if (typeof globalThis.localStorage === "undefined") globalThis.localStorage = noopStorage;
+  setItem: () => { },
+  removeItem: () => { },
+  clear: () => { },
+  key: () => null,
+  length: 0,
+} as Storage;
+
+if (typeof globalThis.localStorage === "undefined") {
+  Object.defineProperty(globalThis, 'localStorage', { value: noopStorage });
+}
 
 const Control = ({ onReady }: { onReady: (ctx: ReturnType<typeof useApp>) => void }) => {
   const ctx = useApp();
@@ -36,6 +41,11 @@ const printOwnedState = () => {
 };
 
 printOwnedState();
+
+// Wait for effect to run
+await act(async () => {
+  await new Promise((resolve) => setTimeout(resolve, 0));
+});
 
 if (!controlRef.current) {
   throw new Error("Control not ready");

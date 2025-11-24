@@ -4,11 +4,16 @@ import { AppStateProvider, useApp } from "../src/lib/app-state";
 
 const noopStorage = {
   getItem: () => null,
-  setItem: () => {},
-  removeItem: () => {},
-};
-// @ts-ignore
-if (typeof globalThis.localStorage === "undefined") globalThis.localStorage = noopStorage;
+  setItem: () => { },
+  removeItem: () => { },
+  clear: () => { },
+  key: () => null,
+  length: 0,
+} as Storage;
+
+if (typeof globalThis.localStorage === "undefined") {
+  Object.defineProperty(globalThis, 'localStorage', { value: noopStorage });
+}
 
 const Capture = ({ onReady }: { onReady: (api: ReturnType<typeof useApp>) => void }) => {
   const ctx = useApp();
@@ -18,7 +23,7 @@ const Capture = ({ onReady }: { onReady: (api: ReturnType<typeof useApp>) => voi
   return null;
 };
 
-const result = await new Promise((resolve) => {
+const result = await new Promise<any>((resolve) => {
   let api: ReturnType<typeof useApp> | null = null;
   const handleReady = (ctx: ReturnType<typeof useApp>) => {
     api = ctx;

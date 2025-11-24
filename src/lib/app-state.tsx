@@ -154,7 +154,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [cycle, setCycle] = useState<CycleState>(() => INITIAL_CYCLE_STATE);
   const [yieldIndex, setYieldIndex] = useState<YieldIndex>(DEFAULT_INDEX);
   const [availableToFind, setAvailableToFind] = useState<number>(INITIAL_CYCLE_STATE.initialSupply);
-  
+
   // Demo assets list (separate ecosystems) for listing view
   const makeAsset = (id: string, name: string, p: CycleParams, sales: number = 0, image: string = "/placeholder.svg"): Asset => {
     const config: CycleParams = { ...p, initialSupply: TOKEN_SUPPLY };
@@ -169,9 +169,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== 'undefined' && hasStoredState()) {
       const stored = loadState();
       if (stored?.user) {
-        return { 
-          ...stored.user, 
-          withdrawn: (stored.user as any).withdrawn ?? 0 
+        return {
+          ...stored.user,
+          withdrawn: stored.user.withdrawn ?? 0
         };
       }
     }
@@ -192,23 +192,23 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       if (stored?.assets && stored.assets.length > 0) return stored.assets;
     }
     return [
-    makeAsset("alpha", "Alpha Ecosystem", { ...DEFAULT_PARAMS, initialReserve: 1200, initialSupply: 100 }, 250, "/ape.jpeg"),
-    makeAsset("beta", "Beta Studio", { ...DEFAULT_PARAMS, initialReserve: 2400, initialSupply: 150 }, 650, "/azuki.jpeg"),
-    makeAsset("gamma", "Gamma Labs", { ...DEFAULT_PARAMS, initialReserve: 800, initialSupply: 80 }, 120, "/doodles.jpeg"),
-    makeAsset("delta", "Delta Collective", { ...DEFAULT_PARAMS, initialReserve: 1500, initialSupply: 110 }, 300, "/cool-ape.jpeg"),
-    makeAsset("epsilon", "Epsilon Arts", { ...DEFAULT_PARAMS, initialReserve: 950, initialSupply: 95 }, 210, "/landers.jpeg"),
-    makeAsset("zeta", "Zeta Labs", { ...DEFAULT_PARAMS, initialReserve: 1300, initialSupply: 105 }, 275, "/alios.jpeg"),
-    makeAsset("theta", "Theta Network", { ...DEFAULT_PARAMS, initialReserve: 1700, initialSupply: 120 }, 420, "/digital-art.jpeg"),
-    makeAsset("sigma", "Sigma Studio", { ...DEFAULT_PARAMS, initialReserve: 1100, initialSupply: 90 }, 180, "/_ (17).jpeg"),
-    makeAsset("orion", "Orion Guild", { ...DEFAULT_PARAMS, initialReserve: 2200, initialSupply: 140 }, 700, "/_ (18).jpeg"),
-    makeAsset("nova", "Nova Builders", { ...DEFAULT_PARAMS, initialReserve: 1050, initialSupply: 88 }, 160, "/_ (19).jpeg"),
-    makeAsset("kappa", "Kappa Syndicate", { ...DEFAULT_PARAMS, initialReserve: 1450, initialSupply: 115 }, 360, "/k1.jpeg"),
-    makeAsset("lambda", "Lambda Atelier", { ...DEFAULT_PARAMS, initialReserve: 980, initialSupply: 92 }, 210, "/k2.jpeg"),
-    makeAsset("mu", "Mu Collective", { ...DEFAULT_PARAMS, initialReserve: 1650, initialSupply: 123 }, 410, "/k3.jpeg"),
-    makeAsset("nu", "Nu Labs", { ...DEFAULT_PARAMS, initialReserve: 890, initialSupply: 84 }, 150, "/_ (14).jpeg"),
-    makeAsset("omicron", "Omicron Vault", { ...DEFAULT_PARAMS, initialReserve: 1850, initialSupply: 132 }, 480, "/k5.jpeg"),
-    makeAsset("rho", "Rho Gallery", { ...DEFAULT_PARAMS, initialSupply: 108, initialReserve: 1420 }, 320, "/_ (5).jpeg"),
-    makeAsset("tau", "Tau Vision", { ...DEFAULT_PARAMS, initialReserve: 1010, initialSupply: 90 }, 190, "/_ (6).jpeg"),
+      makeAsset("alpha", "Alpha Ecosystem", { ...DEFAULT_PARAMS, initialReserve: 1200, initialSupply: 100 }, 250, "/ape.jpeg"),
+      makeAsset("beta", "Beta Studio", { ...DEFAULT_PARAMS, initialReserve: 2400, initialSupply: 150 }, 650, "/azuki.jpeg"),
+      makeAsset("gamma", "Gamma Labs", { ...DEFAULT_PARAMS, initialReserve: 800, initialSupply: 80 }, 120, "/doodles.jpeg"),
+      makeAsset("delta", "Delta Collective", { ...DEFAULT_PARAMS, initialReserve: 1500, initialSupply: 110 }, 300, "/cool-ape.jpeg"),
+      makeAsset("epsilon", "Epsilon Arts", { ...DEFAULT_PARAMS, initialReserve: 950, initialSupply: 95 }, 210, "/landers.jpeg"),
+      makeAsset("zeta", "Zeta Labs", { ...DEFAULT_PARAMS, initialReserve: 1300, initialSupply: 105 }, 275, "/alios.jpeg"),
+      makeAsset("theta", "Theta Network", { ...DEFAULT_PARAMS, initialReserve: 1700, initialSupply: 120 }, 420, "/digital-art.jpeg"),
+      makeAsset("sigma", "Sigma Studio", { ...DEFAULT_PARAMS, initialReserve: 1100, initialSupply: 90 }, 180, "/_ (17).jpeg"),
+      makeAsset("orion", "Orion Guild", { ...DEFAULT_PARAMS, initialReserve: 2200, initialSupply: 140 }, 700, "/_ (18).jpeg"),
+      makeAsset("nova", "Nova Builders", { ...DEFAULT_PARAMS, initialReserve: 1050, initialSupply: 88 }, 160, "/_ (19).jpeg"),
+      makeAsset("kappa", "Kappa Syndicate", { ...DEFAULT_PARAMS, initialReserve: 1450, initialSupply: 115 }, 360, "/k1.jpeg"),
+      makeAsset("lambda", "Lambda Atelier", { ...DEFAULT_PARAMS, initialReserve: 980, initialSupply: 92 }, 210, "/k2.jpeg"),
+      makeAsset("mu", "Mu Collective", { ...DEFAULT_PARAMS, initialReserve: 1650, initialSupply: 123 }, 410, "/k3.jpeg"),
+      makeAsset("nu", "Nu Labs", { ...DEFAULT_PARAMS, initialReserve: 890, initialSupply: 84 }, 150, "/_ (14).jpeg"),
+      makeAsset("omicron", "Omicron Vault", { ...DEFAULT_PARAMS, initialReserve: 1850, initialSupply: 132 }, 480, "/k5.jpeg"),
+      makeAsset("rho", "Rho Gallery", { ...DEFAULT_PARAMS, initialSupply: 108, initialReserve: 1420 }, 320, "/_ (5).jpeg"),
+      makeAsset("tau", "Tau Vision", { ...DEFAULT_PARAMS, initialReserve: 1010, initialSupply: 90 }, 190, "/_ (6).jpeg"),
     ];
   });
 
@@ -235,7 +235,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     }
     return buildInitialAvailability(assets);
   });
-  
+
   const [userAssets, setUserAssets] = useState<Record<string, AssetBalances>>(() => {
     if (typeof window !== 'undefined' && hasStoredState()) {
       const stored = loadState();
@@ -280,13 +280,13 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       setInitialized(true);
       return;
     }
-    
+
     console.log('App State Debug - Saving to localStorage:', {
       userAssets,
       user,
       assets: assets.map(a => ({ id: a.id, name: a.name }))
     });
-    
+
     saveState({
       user,
       assets,
@@ -307,7 +307,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const reset = useCallback(() => {
     // Clear localStorage
     clearState();
-    
+
     // Reset to defaults with demo assets
     const defaultAssets = [
       makeAsset("alpha", "Alpha Ecosystem", { ...DEFAULT_PARAMS, initialReserve: 1200, initialSupply: 100 }, 250, "/ape.jpeg"),
@@ -328,7 +328,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       makeAsset("rho", "Rho Gallery", { ...DEFAULT_PARAMS, initialSupply: 108, initialReserve: 1420 }, 320, "/_ (5).jpeg"),
       makeAsset("tau", "Tau Vision", { ...DEFAULT_PARAMS, initialReserve: 1010, initialSupply: 90 }, 190, "/_ (6).jpeg"),
     ];
-    
+
     setParams(DEFAULT_PARAMS);
     const resetCycle = initializeCycle(DEFAULT_PARAMS, 1);
     setCycle(resetCycle);
@@ -634,7 +634,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const claimHuntToken = useCallback(
     (assetId: string, quantity: number = 1): boolean => {
       console.log(`🎯 Hunt Debug - claimHuntToken called with assetId: ${assetId}, quantity: ${quantity}`);
-      
+
       const asset = assets.find((a) => a.id === assetId);
       if (!asset) {
         console.error(`❌ Hunt Debug - Asset not found: ${assetId}`);
@@ -654,7 +654,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         available = replenished;
       }
       console.log(`📊 Hunt Debug - Available tokens: ${available}, Requested: ${requested}`);
-      
+
       if (available <= 0) {
         console.error(`❌ Hunt Debug - No tokens available`);
         return false;
@@ -675,10 +675,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       setUserAssets((prev) => {
         const previous = normalizeAssetBalances(prev[assetId]);
         const newLfts = previous.lfts + actual;
-        
+
         console.log(`✅ Hunt Debug - Adding ${actual} LFTs to asset ${assetId}`);
         console.log(`📈 Hunt Debug - Previous LFTs: ${previous.lfts}, New LFTs: ${newLfts}`);
-        
+
         const newState = {
           ...prev,
           [assetId]: {
@@ -686,7 +686,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
             lfts: newLfts,
           },
         };
-        
+
         console.log('💾 Hunt Debug - New userAssets state:', JSON.stringify(newState, null, 2));
         return newState;
       });
@@ -754,12 +754,12 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         let createdId = baseSlug || `asset-${Date.now()}`;
         const clonedSplit = launchParams.split
           ? {
-              creator: launchParams.split.creator,
-              nextCycleLiquidity: launchParams.split.nextCycleLiquidity,
-              platform: launchParams.split.platform,
-              currentCycleLiquidity: launchParams.split.currentCycleLiquidity,
-              holderRewards: launchParams.split.holderRewards,
-            }
+            creator: launchParams.split.creator,
+            nextCycleLiquidity: launchParams.split.nextCycleLiquidity,
+            platform: launchParams.split.platform,
+            currentCycleLiquidity: launchParams.split.currentCycleLiquidity,
+            holderRewards: launchParams.split.holderRewards,
+          }
           : undefined;
         const baseSupply = TOKEN_SUPPLY;
         const paramConfig: CycleParams = {

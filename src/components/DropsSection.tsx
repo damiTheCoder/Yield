@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Brain, Infinity, Target } from "lucide-react";
+import { AlertTriangle, Brain, Infinity as InfinityIcon, Target } from "lucide-react";
 
 const challenges = [
   {
@@ -14,7 +14,7 @@ const challenges = [
     copy: "Programmable buckets stream value to the creator desk, holder rewards, seed-next, and platform in real time—fully auditable on-chain.",
   },
   {
-    icon: Infinity,
+    icon: InfinityIcon,
     headline: "Cycles stall without forward momentum",
     copy: "Reserve growth continuously seeds the next activation so your story keeps unlocking new chapters without manual fundraisers.",
   },
