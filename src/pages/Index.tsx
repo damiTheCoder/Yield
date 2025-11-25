@@ -82,7 +82,7 @@ const Index = () => {
     { label: "Impact", href: "#impact" },
     { label: "Launch", href: "#cta" },
   ];
-  const accentButtonClass = isDarkMode ? "bg-white text-black hover:bg-white/90" : "bg-black text-white hover:bg-black/90";
+  const accentButtonClass = "bg-gradient-logo text-black hover:opacity-90 border-0";
   const accentIconBgClass = isDarkMode ? "bg-white" : "bg-black";
   const accentIconWithTextClass = isDarkMode ? "bg-white text-black" : "bg-black text-white";
 

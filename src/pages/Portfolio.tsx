@@ -188,7 +188,7 @@ export default function Portfolio() {
                 </div>
               </div>
               <Button
-                className="w-full bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
+                className="w-full bg-gradient-logo text-black hover:opacity-90 border-0"
                 onClick={() => claimRewards()}
                 disabled={accruedRewards <= 0}
               >

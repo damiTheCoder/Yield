@@ -736,61 +736,35 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
       );
     }
 
-    // Mobile Carousel Layout
+    // Mobile Asset Icons Layout
+    const topAssets = listedAssets.slice(0, 8);
+
     return (
-      <section className="sm:hidden mb-3 -mx-2">
-        <div
-          className="relative mt-2 overflow-hidden rounded-2xl h-[400px]"
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        >
-          <div
-            className="flex h-full transition-transform duration-500"
-            style={{ transform: `translateX(-${activeSlide * 100}%)` }}
-          >
-            {FEATURED_NEWS_ITEMS.map((item) => (
-              <div key={item.id} className="w-full shrink-0">
-                <Link
-                  to={item.href}
-                  className={cn(
-                    "group flex flex-col h-full overflow-hidden rounded-2xl bg-[#1f1f1f] text-white shadow-[0_16px_44px_rgba(0,0,0,0.45)] transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1f1f1f]",
-                  )}
-                  aria-label={item.title}
-                >
-                  <div className="relative aspect-[16/9] w-full overflow-hidden bg-neutral-950">
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="h-full w-full object-cover object-center transition duration-300 group-hover:scale-[1.01]"
-                    />
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                  </div>
-                  <div className="flex-1 flex flex-col justify-between space-y-3 px-4 py-4">
-                    <h3 className="text-2xl font-semibold leading-tight text-white line-clamp-3">{item.title}</h3>
-                    <p className="text-sm text-white/70 line-clamp-2">{item.description}</p>
-                  </div>
-                </Link>
-              </div>
-            ))}
-          </div>
+      <section className="sm:hidden mb-4 -mx-4">
+        <div className="px-4 mb-3">
+          <h2 className="text-lg font-semibold text-foreground">Top Assets</h2>
         </div>
-        {totalSlides > 1 && (
-          <div className="flex justify-center gap-2 mt-4">
-            {FEATURED_NEWS_ITEMS.map((item, index) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setActiveSlide(index)}
-                className={cn(
-                  "h-1.5 w-6 rounded-full bg-gray-500 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500",
-                  activeSlide === index && "bg-gray-700 w-8",
-                )}
-                aria-label={`Show news item ${index + 1}`}
-                aria-pressed={activeSlide === index}
-              />
-            ))}
-          </div>
-        )}
+        <div className="flex gap-4 overflow-x-auto px-4 pb-2 no-scrollbar">
+          {topAssets.map((asset) => (
+            <button
+              key={asset.id}
+              type="button"
+              onClick={() => navigate(`/assets/${asset.id}`)}
+              className="flex flex-col items-center gap-2 min-w-[70px] group"
+            >
+              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-border/40 transition-transform duration-200 group-hover:scale-105 group-active:scale-95">
+                <img
+                  src={asset.image}
+                  alt={asset.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <span className="text-xs font-semibold text-muted-foreground">
+                {formatCurrencyK(asset.cycle.reserve)}
+              </span>
+            </button>
+          ))}
+        </div>
       </section>
     );
   };

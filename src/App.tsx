@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useLayoutEffect } from "react";
 import Layout from "./components/Layout";
 import SolarisSlider from "./components/SolarisSlider";
+import AaveLanding from "./pages/AaveLanding";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound";
 import CoinTags from "./pages/CoinTags";
@@ -22,6 +23,8 @@ import Blog from "./pages/Blog";
 import BlogLiquidityFundedTokens from "./pages/BlogLiquidityFundedTokens";
 import BlogCreativeLiquidity from "./pages/BlogCreativeLiquidity";
 import BlogTokenizedYield from "./pages/BlogTokenizedYield";
+
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -64,25 +67,28 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
-          <Routes>
-            <Route path="/" element={<SolarisSlider />} />
-            <Route path="/old-home" element={<Index />} />
-            <Route path="/coin-tags" element={<CoinTagsPage />} />
-            <Route path="/portfolio" element={<PortfolioPage />} />
-            <Route path="/revenue" element={<RevenuePage />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/assets" element={<AssetsPage />} />
-            <Route path="/assets/all" element={<ViewAllAssetsPage />} />
-            <Route path="/assets/:id" element={<AssetDetailPage />} />
-            <Route path="/assets/:id/token" element={<AssetTokenTradingPage />} />
-            <Route path="/assets/:id/hunt" element={<HuntPageWrapper />} />
-            <Route path="/blog" element={<BlogPage />} />
-            <Route path="/blog/liquidity-funded-tokens" element={<BlogLiquidityFundedTokensPage />} />
-            <Route path="/blog/creative-liquidity-web3" element={<BlogCreativeLiquidityPage />} />
-            <Route path="/blog/tokenized-yield-liquidity" element={<BlogTokenizedYieldPage />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
+          <ErrorBoundary>
+            <Routes>
+              <Route path="/" element={<SolarisSlider />} />
+              <Route path="/aave-landing" element={<AaveLanding />} />
+              <Route path="/old-home" element={<Index />} />
+              <Route path="/coin-tags" element={<CoinTagsPage />} />
+              <Route path="/portfolio" element={<PortfolioPage />} />
+              <Route path="/revenue" element={<RevenuePage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/assets" element={<AssetsPage />} />
+              <Route path="/assets/all" element={<ViewAllAssetsPage />} />
+              <Route path="/assets/:id" element={<AssetDetailPage />} />
+              <Route path="/assets/:id/token" element={<AssetTokenTradingPage />} />
+              <Route path="/assets/:id/hunt" element={<HuntPageWrapper />} />
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/blog/liquidity-funded-tokens" element={<BlogLiquidityFundedTokensPage />} />
+              <Route path="/blog/creative-liquidity-web3" element={<BlogCreativeLiquidityPage />} />
+              <Route path="/blog/tokenized-yield-liquidity" element={<BlogTokenizedYieldPage />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </ErrorBoundary>
         </BrowserRouter>
       </AppStateProvider>
     </TooltipProvider>

@@ -97,9 +97,9 @@ export default function AssetDetail() {
       return [];
     }
     const totalCycles = Math.max(asset.cycle.cycle, 1);
-    const targetRevenue = Math.max(0, Number(asset.cycle.totalSales.toFixed(2)));
-    const targetPayout = Math.max(0, Number(asset.cycle.accrued.holderRewards.toFixed(2)));
-    const targetLftPerUnit = Number(asset.cycle.lpu.toFixed(2));
+    const targetRevenue = Math.max(0, Number((asset.cycle.totalSales || 0).toFixed(2)));
+    const targetPayout = Math.max(0, Number((asset.cycle.accrued?.holderRewards || 0).toFixed(2)));
+    const targetLftPerUnit = Number((asset.cycle.lpu || 0).toFixed(2));
     const safeHuntFee = Math.max(huntFee, 1);
     const estimatedUsers = targetRevenue > 0 ? Math.max(1, Math.round(targetRevenue / safeHuntFee)) : 0;
 
@@ -463,7 +463,7 @@ export default function AssetDetail() {
       <Button
         className={cn(
           "h-12 w-full rounded-full text-base font-semibold transition-colors",
-          "bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90",
+          "bg-gradient-logo text-black hover:opacity-90 border-0",
         )}
         disabled={user.usd < huntFee || ua.coinTags >= 1}
         onClick={() => {
@@ -496,7 +496,7 @@ export default function AssetDetail() {
         {showHuntPrompt && (
           <Button
             onClick={() => navigate(`/assets/${asset.id}/hunt`)}
-            className="h-11 w-full rounded-full border-none bg-gradient-to-r from-emerald-400 to-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:from-emerald-500 hover:to-emerald-700"
+            className="h-11 w-full rounded-full border-none bg-gradient-logo text-black shadow-lg hover:opacity-90"
           >
             Start Hunt
           </Button>

@@ -208,12 +208,12 @@ const SolarisSlider: React.FC = () => {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          background: rgba(7, 10, 14, 0.65);
+          background: rgba(107, 114, 128, 0.5);
           border: none;
           border-radius: 999px;
           padding: 6px;
           backdrop-filter: blur(12px);
-          box-shadow: 0 18px 35px rgba(0, 0, 0, 0.35);
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
         }
 
         .theme-option {
@@ -249,13 +249,13 @@ const SolarisSlider: React.FC = () => {
 
         /* Theme toggle state styling */
         [data-theme="dark"] .solaris-slider .theme-toggle {
-          background: rgba(255, 255, 255, 0.1);
-          box-shadow: 0 18px 35px rgba(0, 0, 0, 0.5);
+          background: rgba(107, 114, 128, 0.5);
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
         }
 
         [data-theme="light"] .solaris-slider .theme-toggle {
-          background: rgba(15, 23, 42, 0.07);
-          box-shadow: 0 18px 35px rgba(15, 23, 42, 0.18);
+          background: rgba(107, 114, 128, 0.5);
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
         }
 
         [data-theme="light"] .solaris-slider .theme-option:hover {
@@ -269,8 +269,8 @@ const SolarisSlider: React.FC = () => {
         }
 
         .launch-btn {
-          background: var(--slider-accent-bg);
-          color: var(--slider-accent-contrast);
+          background: linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%);
+          color: #000;
           border: none;
           padding: 12px 24px;
           border-radius: 24px;
@@ -283,7 +283,7 @@ const SolarisSlider: React.FC = () => {
         }
 
         .launch-btn:hover {
-          background: var(--slider-accent-hover);
+          opacity: 0.9;
           transform: translateY(-2px);
         }
 
@@ -386,11 +386,11 @@ const SolarisSlider: React.FC = () => {
 
         .bookmark-btn {
           border: none;
-          background-color: var(--slider-accent-bg);
+          background: linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%);
           width: 44px;
           height: 44px;
           border-radius: 50%;
-          color: var(--slider-accent-contrast);
+          color: #000; /* Contrast text for gold/orange */
           display: flex;
           align-items: center;
           justify-content: center;
@@ -400,15 +400,15 @@ const SolarisSlider: React.FC = () => {
 
         .bookmark-btn:hover {
           transform: scale(1.1);
-          background-color: var(--slider-accent-hover);
+          opacity: 0.9;
         }
 
         .discover-btn {
           border: none;
-          background-color: var(--slider-accent-bg);
+          background: linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%);
           height: 44px;
           border-radius: 22px;
-          color: var(--slider-accent-contrast);
+          color: #000; /* Contrast text for gold/orange */
           padding: 0 28px;
           font-size: 14px;
           font-weight: 600;
@@ -419,8 +419,7 @@ const SolarisSlider: React.FC = () => {
         }
 
         .discover-btn:hover {
-          background-color: var(--slider-accent-hover);
-          color: var(--slider-accent-contrast);
+          opacity: 0.9;
           transform: translateY(-2px);
         }
 
@@ -657,16 +656,16 @@ const SolarisSlider: React.FC = () => {
           <div className="place-tag" key={`place-${currentIndex}`}>
             {currentData.place}
           </div>
-          
+
           <div className="main-title" key={`title-${currentIndex}`}>
             <div className="title-line">{currentData.title}</div>
             <div className="title-line">{currentData.title2}</div>
           </div>
-          
+
           <div className="description" key={`desc-${currentIndex}`}>
             {currentData.description}
           </div>
-          
+
           <div className="cta-buttons">
             <button className="bookmark-btn" onClick={() => handleCTA(currentData.ctaLink)}>
               <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -681,7 +680,7 @@ const SolarisSlider: React.FC = () => {
 
         {/* Right Column - Images */}
         <div className="image-column" key={`image-column-${currentIndex}`}>
-          <div 
+          <div
             className="main-image active"
             style={{ backgroundImage: `url(${currentData.image})` }}
             key={`main-${currentIndex}`}
@@ -697,21 +696,21 @@ const SolarisSlider: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.75 19.5L8.25 12l7.5-7.5" />
             </svg>
           </button>
-          
+
           <button className="arrow-btn" onClick={nextSlide}>
             <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
             </svg>
           </button>
-          
+
           <div className="slide-counter">
             {String(currentIndex + 1).padStart(2, '0')}
           </div>
         </div>
-        
+
         <div className="progress-bar-container">
-          <div 
-            className="progress-bar" 
+          <div
+            className="progress-bar"
             style={{ width: `${((currentIndex + 1) / data.length) * 100}%` }}
           ></div>
         </div>

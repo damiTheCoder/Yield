@@ -80,11 +80,13 @@ const Header = () => {
   );
 
   const trendingAssets = useMemo(() => {
-    return [...assets].sort((a, b) => b.cycle.totalSales - a.cycle.totalSales).slice(0, 6);
+    if (!assets || !Array.isArray(assets)) return [];
+    return [...assets].sort((a, b) => (b.cycle?.totalSales || 0) - (a.cycle?.totalSales || 0)).slice(0, 6);
   }, [assets]);
 
   const orderedAssets = useMemo(() => {
-    return [...assets].sort((a, b) => a.name.localeCompare(b.name));
+    if (!assets || !Array.isArray(assets)) return [];
+    return [...assets].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   }, [assets]);
 
   useEffect(() => {
@@ -291,7 +293,7 @@ const Header = () => {
               type="button"
               onClick={() => setSearchFilter(tab.id)}
               className={`rounded-full px-3 py-1 text-xs transition-colors ${searchFilter === tab.id
-                ? "bg-foreground text-background"
+                ? "bg-gradient-logo text-black font-medium"
                 : "bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
             >
@@ -495,7 +497,7 @@ const Header = () => {
                   <Button
                     variant="default"
                     size="sm"
-                    className="hidden md:inline-flex min-w-[120px] justify-center h-8 rounded-full text-sm font-semibold bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
+                    className="hidden md:inline-flex min-w-[120px] justify-center h-8 rounded-full text-sm font-semibold bg-gradient-logo text-black hover:opacity-90 border-0"
                   >
                     {connectedWallet ? (
                       <span className="flex items-center gap-1">
@@ -511,7 +513,7 @@ const Header = () => {
                   <Button
                     variant="default"
                     size="sm"
-                    className="md:hidden rounded-full h-8 px-4 text-sm font-semibold bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
+                    className="md:hidden rounded-full h-8 px-4 text-sm font-semibold bg-gradient-logo text-black hover:opacity-90 border-0"
                   >
                     {connectedWallet ? "Wallet" : "Connect"}
                   </Button>

@@ -178,18 +178,20 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     return { usd: 1000000, coinTags: 0, lfts: 0, yieldUnits: 0, realizedRewards: 0, withdrawn: 0 };
   });
 
-  const buildInitialAvailability = (assetList: Asset[]) =>
-    Object.fromEntries(
+  const buildInitialAvailability = (assetList: Asset[]) => {
+    if (!assetList || !Array.isArray(assetList)) return {};
+    return Object.fromEntries(
       assetList.map((asset) => [
         asset.id,
-        asset.id === "nova" ? 0 : asset.cycle.initialSupply,
+        asset.id === "nova" ? 0 : (asset.cycle?.initialSupply || 0),
       ]),
     );
+  };
 
   const [assets, setAssets] = useState<Asset[]>(() => {
     if (typeof window !== 'undefined' && hasStoredState()) {
       const stored = loadState();
-      if (stored?.assets && stored.assets.length > 0) return stored.assets;
+      if (stored?.assets && Array.isArray(stored.assets) && stored.assets.length > 0) return stored.assets;
     }
     return [
       makeAsset("alpha", "Alpha Ecosystem", { ...DEFAULT_PARAMS, initialReserve: 1200, initialSupply: 100 }, 250, "/ape.jpeg"),
@@ -219,11 +221,12 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       if (stored?.assetAvailable) {
         const next: Record<string, number> = {};
         assets.forEach((asset) => {
+          if (!asset) return;
           if (asset.id === "nova") {
             next[asset.id] = 0;
             return;
           }
-          const maxSupply = asset.cycle.maxSupply ?? asset.cycle.initialSupply;
+          const maxSupply = asset.cycle?.maxSupply ?? asset.cycle?.initialSupply ?? 0;
           const value = stored.assetAvailable?.[asset.id];
           next[asset.id] =
             typeof value === "number" && value > 0

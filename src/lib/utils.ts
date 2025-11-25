@@ -19,6 +19,7 @@ export function formatCurrency(value: number, options?: { decimals?: number; sym
 }
 
 export function formatCurrencyK(value: number, decimals: number = 2, symbol: string = "$") {
+  if (typeof value !== 'number' || isNaN(value)) return `${symbol}0.00`;
   const abs = Math.abs(value);
   if (abs >= 1000) {
     const k = value / 1000;
