@@ -462,8 +462,8 @@ export default function AssetDetail() {
       </div>
       <Button
         className={cn(
-          "h-12 w-full rounded-full text-base font-semibold transition-colors",
-          "bg-gradient-logo text-black hover:opacity-90 border-0",
+          "h-12 w-full rounded-full text-base font-semibold transition-colors border border-border/60 shadow-md",
+          "bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90",
         )}
         disabled={user.usd < huntFee || ua.coinTags >= 1}
         onClick={() => {
@@ -496,7 +496,7 @@ export default function AssetDetail() {
         {showHuntPrompt && (
           <Button
             onClick={() => navigate(`/assets/${asset.id}/hunt`)}
-            className="h-11 w-full rounded-full border-none bg-gradient-logo text-black shadow-lg hover:opacity-90"
+            className="h-11 w-full rounded-full border border-border/60 bg-white text-black shadow-lg hover:bg-white/90 dark:bg-black dark:text-white dark:hover:bg-black/90"
           >
             Start Hunt
           </Button>
@@ -802,11 +802,11 @@ export default function AssetDetail() {
 
       <div className="sm:hidden">
         {!mobileBuyOpen && (
-          <div className="fixed inset-x-0 bottom-12 z-40 px-4 pb-5">
+          <div className="fixed inset-x-0 bottom-12 z-40 px-4 pb-5 flex justify-center">
             <Button
               onClick={() => setMobileBuyOpen(true)}
               className={cn(
-                "w-full rounded-2xl py-3 text-base font-semibold shadow-lg transition-colors",
+                "w-full max-w-xs rounded-2xl py-3 text-base font-semibold shadow-lg transition-colors",
                 "bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90",
               )}
             >

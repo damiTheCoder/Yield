@@ -359,7 +359,6 @@ const Header = () => {
                 to="/"
                 className="hover:opacity-80 transition-smooth md:hidden flex items-center gap-2"
               >
-                <img src="/g56.png" alt="Solaris logo" className="h-6 w-6 rounded-lg object-cover" />
                 <span className="text-lg font-extrabold text-foreground">Solaris</span>
               </Link>
               <Button
@@ -495,9 +494,9 @@ const Header = () => {
               <Dialog open={walletDialogOpen} onOpenChange={setWalletDialogOpen}>
                 <DialogTrigger asChild>
                   <Button
-                    variant="default"
+                    variant="neutral"
                     size="sm"
-                    className="hidden md:inline-flex min-w-[120px] justify-center h-8 rounded-full text-sm font-semibold bg-gradient-logo text-black hover:opacity-90 border-0"
+                    className="hidden md:inline-flex min-w-[120px] justify-center h-8 rounded-full text-sm font-semibold"
                   >
                     {connectedWallet ? (
                       <span className="flex items-center gap-1">
@@ -511,16 +510,15 @@ const Header = () => {
                 </DialogTrigger>
                 <DialogTrigger asChild>
                   <Button
-                    variant="default"
+                    variant="neutral"
                     size="sm"
-                    className="md:hidden rounded-full h-8 px-4 text-sm font-semibold bg-gradient-logo text-black hover:opacity-90 border-0"
+                    className="md:hidden rounded-full h-8 px-4 text-sm font-semibold"
                   >
                     {connectedWallet ? "Wallet" : "Connect"}
                   </Button>
                 </DialogTrigger>
                 <DialogContent
-                  className={`w-[calc(100%-2rem)] max-w-[420px] border-0 mx-auto rounded-3xl p-0 shadow-xl transition-colors duration-200 sm:max-w-md ${isDarkTheme ? "bg-[#0f0f10] text-neutral-100" : "bg-neutral-100"
-                    }`}
+                  className={`w-[calc(100%-2rem)] max-w-[420px] border-0 mx-auto rounded-3xl p-0 shadow-xl transition-colors duration-200 sm:max-w-md ${isDarkTheme ? "bg-[#0f0f10] text-neutral-100" : "bg-neutral-100"}`}
                 >
                   <DialogHeader className="space-y-1 px-6 pt-6">
                     <DialogTitle className="text-lg font-semibold">Connect a Wallet</DialogTitle>
@@ -632,7 +630,7 @@ const Header = () => {
                           View all posts
                         </Link>
                       </nav>
-                      <div className={cn("px-4 py-4 text-sm border-t", isDarkTheme ? "text-gray-200 border-neutral-800/70" : "text-gray-800 border-gray-200/80")}>
+                      <div className={cn("px-4 py-4 text-sm", isDarkTheme ? "text-gray-200" : "text-gray-800")}>
                         <div
                           className={cn(
                             "mb-3 text-center font-semibold uppercase tracking-wide text-xs",

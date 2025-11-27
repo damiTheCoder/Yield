@@ -82,9 +82,11 @@ const Index = () => {
     { label: "Impact", href: "#impact" },
     { label: "Launch", href: "#cta" },
   ];
-  const accentButtonClass = "bg-gradient-logo text-black hover:opacity-90 border-0";
-  const accentIconBgClass = isDarkMode ? "bg-white" : "bg-black";
-  const accentIconWithTextClass = isDarkMode ? "bg-white text-black" : "bg-black text-white";
+  const accentButtonClass = isDarkMode
+    ? "bg-neutral-800 text-white hover:bg-neutral-700 border border-neutral-700"
+    : "bg-neutral-200 text-black hover:bg-neutral-300 border border-neutral-200";
+  const accentIconBgClass = isDarkMode ? "bg-neutral-700" : "bg-neutral-300";
+  const accentIconWithTextClass = isDarkMode ? "bg-neutral-700 text-white" : "bg-neutral-200 text-black";
 
   const handleCta = (location: string, href?: string, options?: { newTab?: boolean }) => {
     trackEvent("cta_click", { location });
@@ -169,8 +171,13 @@ const Index = () => {
               onClick={() => handleCta("nav_logo", "/")}
               className="flex items-center gap-2 text-left sm:gap-3"
             >
-              <span className="flex h-9 w-9 overflow-hidden rounded-full sm:h-10 sm:w-10">
-                <img src={isDarkMode ? "/h4.png" : "/g56.png"} alt="Solaris logo" className="h-full w-full object-cover" />
+              <span
+                className={cn(
+                  "flex h-9 w-9 items-center justify-center rounded-full border text-base font-semibold sm:h-10 sm:w-10",
+                  isDarkMode ? "bg-neutral-900 text-white border-neutral-700" : "bg-white text-black border-neutral-200",
+                )}
+              >
+                S
               </span>
               <div className="flex flex-col leading-tight">
                 <span className={cn("text-sm font-semibold tracking-wide sm:text-base", isDarkMode ? "text-white" : "text-black")}>Solaris</span>
@@ -585,17 +592,17 @@ const Index = () => {
             <span
               aria-hidden="true"
               className={cn(
-                "absolute inset-0 rounded-full bg-gradient-to-br gradient-border-blink",
-                isDarkMode ? "from-white via-white/80 to-white/40" : "from-black via-neutral-700 to-neutral-900",
+                "absolute inset-0 rounded-full border",
+                isDarkMode ? "border-neutral-700 bg-neutral-900/80" : "border-neutral-200 bg-white/80",
               )}
             />
             <span
               className={cn(
-                "relative flex h-20 w-20 items-center justify-center rounded-full shadow-[0_12px_32px_rgba(0,0,0,0.16)] transition-colors",
-                isDarkMode ? "bg-white" : "bg-black",
+                "relative flex h-20 w-20 items-center justify-center rounded-full border text-3xl font-semibold shadow-[0_12px_32px_rgba(0,0,0,0.16)] transition-colors",
+                isDarkMode ? "bg-neutral-900 border-neutral-700 text-white" : "bg-white border-neutral-200 text-black",
               )}
             >
-              <img src={isDarkMode ? "/h4.png" : "/g56.png"} alt="Solaris" className="h-16 w-16 rounded-full object-cover" />
+              S
             </span>
           </button>
         </div>

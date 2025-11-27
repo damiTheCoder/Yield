@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme, type ThemeMode } from '@/hooks/useTheme';
 import { Monitor, Moon, Sun } from 'lucide-react';
@@ -52,10 +52,11 @@ const data: DataItem[] = [
   }
 ];
 
+const DEFAULT_SLIDE_INDEX = 1;
+
 const SolarisSlider: React.FC = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(() => Math.min(DEFAULT_SLIDE_INDEX, data.length - 1));
   const [isAnimating, setIsAnimating] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const prefersDark = typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -74,19 +75,6 @@ const SolarisSlider: React.FC = () => {
     setCurrentIndex((prev) => (prev - 1 + data.length) % data.length);
     setTimeout(() => setIsAnimating(false), 1000);
   };
-
-  // Auto-slide functionality
-  useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      nextSlide();
-    }, 6000);
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [currentIndex]);
 
   const handleCTA = (link: string) => {
     navigate(link);
@@ -119,6 +107,8 @@ const SolarisSlider: React.FC = () => {
           --slider-accent-contrast: #fff;
           --slider-accent-hover: rgba(0, 0, 0, 0.85);
           --slider-accent-soft: rgba(0, 0, 0, 0.12);
+          --slider-cta-bg: #f4f4f5;
+          --slider-cta-color: #000;
         }
 
         [data-theme="dark"] .solaris-slider {
@@ -126,6 +116,8 @@ const SolarisSlider: React.FC = () => {
           --slider-accent-contrast: #000;
           --slider-accent-hover: rgba(255, 255, 255, 0.85);
           --slider-accent-soft: rgba(255, 255, 255, 0.2);
+          --slider-cta-bg: #1f1f23;
+          --slider-cta-color: #fff;
         }
 
         /* Navigation */
@@ -385,12 +377,11 @@ const SolarisSlider: React.FC = () => {
         }
 
         .bookmark-btn {
-          border: none;
-          background: linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%);
+          background: var(--slider-cta-bg);
           width: 44px;
           height: 44px;
           border-radius: 50%;
-          color: #000; /* Contrast text for gold/orange */
+          color: var(--slider-cta-color);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -404,11 +395,10 @@ const SolarisSlider: React.FC = () => {
         }
 
         .discover-btn {
-          border: none;
-          background: linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%);
+          background: var(--slider-cta-bg);
           height: 44px;
           border-radius: 22px;
-          color: #000; /* Contrast text for gold/orange */
+          color: var(--slider-cta-color);
           padding: 0 28px;
           font-size: 14px;
           font-weight: 600;

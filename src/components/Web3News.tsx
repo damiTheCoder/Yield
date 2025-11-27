@@ -21,6 +21,12 @@ const FEATURED_SUBSTACK_ARTICLE: Web3NewsItem = {
   publishedAt: new Date("2024-04-29T00:00:00.000Z"),
 };
 
+const isFeaturedSubstackArticle = (item?: Web3NewsItem | null) =>
+  !!item &&
+  (item.id === FEATURED_SUBSTACK_ARTICLE.id ||
+    item.url === FEATURED_SUBSTACK_ARTICLE.url ||
+    item.title === FEATURED_SUBSTACK_ARTICLE.title);
+
 function formatRelativeTime(date?: Date) {
   if (!date) return "";
   const diff = Date.now() - date.getTime();
@@ -156,15 +162,15 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
 
   displayedItems = Array.from(realItemsMap.values()).slice(0, MIN_REAL_ITEMS);
 
-  const hasFeaturedArticle = displayedItems.some(
-    (item) =>
-      item.id === FEATURED_SUBSTACK_ARTICLE.id ||
-      item.url === FEATURED_SUBSTACK_ARTICLE.url ||
-      item.title === FEATURED_SUBSTACK_ARTICLE.title,
-  );
+  const hasFeaturedArticle = displayedItems.some((item) => isFeaturedSubstackArticle(item));
 
   if (!hasFeaturedArticle) {
-    displayedItems = [FEATURED_SUBSTACK_ARTICLE, ...displayedItems];
+    const insertIndex = variant === "webview" ? Math.min(1, displayedItems.length) : 0;
+    displayedItems = [
+      ...displayedItems.slice(0, insertIndex),
+      FEATURED_SUBSTACK_ARTICLE,
+      ...displayedItems.slice(insertIndex),
+    ];
   }
 
   displayedItems = displayedItems.slice(0, MIN_REAL_ITEMS);

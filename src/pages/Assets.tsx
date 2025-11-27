@@ -361,7 +361,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   const cardMediaBorderClass = isDarkTheme ? "border-b-0" : "border-b border-slate-200/60";
 
   const selectedNetworkInfo = NETWORKS.find(n => n.id === selectedNetwork) || NETWORKS[0];
-  const brandHeadingGradient = "linear-gradient(92deg, #9FFFAE 0%, #5BEF8A 50%, #21C262 100%)";
+  const brandHeadingGradient = "linear-gradient(135deg, #E0C3FC 0%, #B0D4FD 45%, #8EC5FC 100%)";
   const isGridView = viewMode === "grid";
   const isListView = viewMode === "list";
 
