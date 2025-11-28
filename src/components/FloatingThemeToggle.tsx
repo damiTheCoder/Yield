@@ -10,7 +10,7 @@ const FloatingThemeToggle: React.FC = () => {
   return (
     <div className="fixed right-6 bottom-6 z-50 flex items-center gap-4 rounded-full bg-black/60 px-3 py-2 backdrop-blur-md shadow-lg border border-white/6">
       <div className="flex items-center gap-2 pl-2">
-        <img src="/g56.png" alt="Solaris" className="h-7 w-7 rounded-2xl object-cover" />
+        <img src="/h4.png" alt="Solaris" className="h-7 w-7 rounded-2xl object-cover" />
         <span className="text-sm font-bold text-white">Solaris</span>
       </div>
       <div className="h-6 w-px bg-white/10" />

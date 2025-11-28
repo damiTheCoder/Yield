@@ -171,13 +171,12 @@ const Index = () => {
               onClick={() => handleCta("nav_logo", "/")}
               className="flex items-center gap-2 text-left sm:gap-3"
             >
-              <span
-                className={cn(
-                  "flex h-9 w-9 items-center justify-center rounded-full border text-base font-semibold sm:h-10 sm:w-10",
-                  isDarkMode ? "bg-neutral-900 text-white border-neutral-700" : "bg-white text-black border-neutral-200",
-                )}
-              >
-                S
+              <span className="flex h-9 w-9 overflow-hidden rounded-full sm:h-10 sm:w-10">
+                <img
+                  src="/h4.png"
+                  alt="Solaris logo"
+                  className="h-full w-full object-cover"
+                />
               </span>
               <div className="flex flex-col leading-tight">
                 <span className={cn("text-sm font-semibold tracking-wide sm:text-base", isDarkMode ? "text-white" : "text-black")}>Solaris</span>
@@ -504,7 +503,7 @@ const Index = () => {
             <div className="max-w-md space-y-3">
               <div className="flex items-center gap-3">
                 <span className={cn("flex h-10 w-10 overflow-hidden rounded-full border shadow-[0_12px_32px_rgba(139,92,255,0.2)]", isDarkMode ? "border-[#3a3a3a] bg-[#1a1a1a]" : "border-white/40 bg-white")}>
-                  <img src={isDarkMode ? "/h4.png" : "/g56.png"} alt="Solaris logo" className="h-full w-full object-cover" />
+                  <img src="/h4.png" alt="Solaris logo" className="h-full w-full object-cover" />
                 </span>
                 <span className={cn("text-lg font-semibold tracking-wide", isDarkMode ? "text-white" : "text-black")}>Solaris</span>
               </div>

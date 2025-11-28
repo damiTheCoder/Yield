@@ -45,7 +45,7 @@
 <body>
     <div class="container">
         <h1>Icon Border Radius Generator</h1>
-        <p>Upload your g56.png image to create a rounded version for favicon use.</p>
+        <p>Upload your h4.png image to create a rounded version for favicon use.</p>
         
         <input type="file" id="fileInput" accept="image/*">
         <br><br>
@@ -145,7 +145,7 @@
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'g56-rounded.png';
+                a.download = 'h4-rounded.png';
                 a.click();
                 URL.revokeObjectURL(url);
             });
@@ -158,10 +158,10 @@
             }
             
             const sizes = [
-                { size: 16, name: 'g56-rounded-16x16.png' },
-                { size: 32, name: 'g56-rounded-32x32.png' },
-                { size: 192, name: 'g56-rounded-192x192.png' },
-                { size: 512, name: 'g56-rounded-512x512.png' }
+                { size: 16, name: 'h4-rounded-16x16.png' },
+                { size: 32, name: 'h4-rounded-32x32.png' },
+                { size: 192, name: 'h4-rounded-192x192.png' },
+                { size: 512, name: 'h4-rounded-512x512.png' }
             ];
             
             sizes.forEach(({ size, name }) => {

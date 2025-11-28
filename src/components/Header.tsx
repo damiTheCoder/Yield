@@ -359,6 +359,11 @@ const Header = () => {
                 to="/"
                 className="hover:opacity-80 transition-smooth md:hidden flex items-center gap-2"
               >
+                <img
+                  src="/h4.png"
+                  alt="Solaris logo"
+                  className="h-6 w-6 rounded-full object-cover"
+                />
                 <span className="text-lg font-extrabold text-foreground">Solaris</span>
               </Link>
               <Button

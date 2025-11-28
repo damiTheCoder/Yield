@@ -615,7 +615,7 @@ const SolarisSlider: React.FC = () => {
         <div className="navigation-inner">
           <div className="nav-brand" onClick={() => navigate('/')}>
             <div className="nav-logo">
-              <img src={isDarkMode ? "/h4.png" : "/g56.png"} alt="Solaris logo" />
+              <img src="/h4.png" alt="Solaris logo" />
             </div>
             <div>Solaris</div>
           </div>
