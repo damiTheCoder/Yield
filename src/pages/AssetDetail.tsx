@@ -297,7 +297,7 @@ export default function AssetDetail() {
         </div>
         <span className="hidden text-[10px] uppercase tracking-wide text-muted-foreground/60 sm:inline">Last 24h</span>
       </div>
-      <div className="rounded-2xl bg-surface/50 shadow-card">
+      <div className="rounded-2xl bg-neutral-100 dark:bg-surface/50 shadow-card">
         <div className="grid grid-cols-[1.6fr_0.9fr_1fr] items-center gap-2 border-b border-border/40 px-3 py-2 text-[10px] uppercase tracking-wide text-muted-foreground">
           <span>Date</span>
           <span className="text-center">Type</span>

@@ -42,7 +42,7 @@ const FEATURED_NEWS_VIEW_ALL = "/blog";
 type Network = "all" | "bitcoin" | "ethereum" | "solana" | "base";
 
 const NETWORKS = [
-  { id: "all" as const, name: "All networks", icon: "⚡", image: "/22.png" },
+  { id: "all" as const, name: "All networks", icon: "⚡", image: "/22.jpeg" },
   { id: "bitcoin" as const, name: "Bitcoin", icon: "₿", image: "/bitcoin.jpeg" },
   { id: "ethereum" as const, name: "Ethereum", icon: "Ξ", image: "/ethereum.jpeg" },
   { id: "solana" as const, name: "Solana", icon: "◎", image: "/solana.png" },
@@ -361,7 +361,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   const cardMediaBorderClass = isDarkTheme ? "border-b-0" : "border-b border-slate-200/60";
 
   const selectedNetworkInfo = NETWORKS.find(n => n.id === selectedNetwork) || NETWORKS[0];
-  const brandHeadingGradient = "linear-gradient(135deg, #E0C3FC 0%, #B0D4FD 45%, #8EC5FC 100%)";
+  const brandHeadingGradient = "linear-gradient(135deg, #34D399 0%, #10B981 45%, #059669 100%)";
   const isGridView = viewMode === "grid";
   const isListView = viewMode === "list";
 

@@ -199,7 +199,7 @@ export default function Portfolio() {
 
         </div>
 
-        <Card className="rounded-3xl border-0 bg-transparent p-0 backdrop-blur text-foreground sm:bg-surface/60 sm:px-6 sm:py-6 sm:border sm:border-border/60">
+        <Card className="rounded-3xl border-0 bg-transparent p-0 backdrop-blur text-foreground shadow-none sm:bg-surface/60 sm:px-6 sm:py-6 sm:border sm:border-border/60">
           <CardHeader className="px-0 pt-0 sm:px-0 sm:pt-0">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <div>

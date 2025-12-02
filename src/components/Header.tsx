@@ -55,7 +55,7 @@ const Header = () => {
   const isMobileAssetsView = location.pathname.startsWith("/assets");
 
   const MOBILE_NETWORK_OPTIONS = [
-    { code: "ALL", id: "all", buttonLabel: "Chain", name: "All chains", image: "/22.png" },
+    { code: "ALL", id: "all", buttonLabel: "Chain", name: "All chains", image: "/22.jpeg" },
     { code: "BTC", id: "bitcoin", buttonLabel: "Bitcoin", name: "Bitcoin", image: "/bitcoin.jpeg" },
     { code: "ETH", id: "ethereum", buttonLabel: "Ethereum", name: "Ethereum", image: "/ethereum.jpeg" },
     { code: "SOL", id: "solana", buttonLabel: "Solana", name: "Solana", image: "/solana.png" },
@@ -582,8 +582,8 @@ const Header = () => {
                       Need help? Install your preferred wallet extension and refresh this page to detect it automatically.
                     </p>
                   </div>
-                </DialogContent>
-              </Dialog>
+              </DialogContent>
+            </Dialog>
 
               <div className="relative md:hidden">
                 <Button

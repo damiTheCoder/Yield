@@ -40,7 +40,7 @@ function generateHuntData(seed: string): HuntData {
       coords.push(`${letter}${row}`);
     });
   });
-  
+
   // Generate all coordinate values
   const values: Record<string, string> = {};
   coords.forEach((coord) => {
@@ -52,17 +52,17 @@ function generateHuntData(seed: string): HuntData {
       .padStart(2, "0");
     values[coord] = `${left}, ${right}`;
   });
-  
+
   // Shuffle all coordinates
   const shuffled = [...coords];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
-  
+
   // Select boxes to display (320 boxes)
   const boxes: string[] = shuffled.slice(0, 320);
-  
+
   const numWinningBoxes = Math.floor(boxes.length * 0.35); // ~112 winning boxes out of 320
   const winningBoxes = boxes.slice(0, numWinningBoxes);
   const winningCoordinates = new Set(winningBoxes);
@@ -70,7 +70,7 @@ function generateHuntData(seed: string): HuntData {
   winningBoxes.forEach((coord) => {
     bundles[coord] = TOKEN_BUNDLE;
   });
-  
+
   return { boxes, values, winningCoordinates, tokenBundles: bundles, totalTokens: TOTAL_HUNT_TOKENS };
 }
 
@@ -123,7 +123,7 @@ type HuntExperienceProps = {
 
 function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit, image }: HuntExperienceProps) {
   const { getHuntProgress, updateHuntProgress, claimHuntToken } = useApp();
-  
+
   // Load saved progress or initialize
   const [revealed, setRevealed] = useState<Set<string>>(() => {
     const saved = getHuntProgress(assetId);
@@ -167,10 +167,10 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
     setRevealed((prevRevealed) => {
       if (matched.has(coordinate)) return prevRevealed;
       if (prevRevealed.has(coordinate)) return prevRevealed; // Already revealed
-      
+
       const nextRevealed = new Set(prevRevealed);
       nextRevealed.add(coordinate);
-      
+
       // Save progress after state update
       setTimeout(() => {
         updateHuntProgress(assetId, {
@@ -180,7 +180,7 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
           foundTokens,
         });
       }, 0);
-      
+
       return nextRevealed;
     });
   }, [assetId, matched, failed, foundTokens, updateHuntProgress]);
@@ -203,14 +203,14 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
       setStatus("You already claimed that coordinate.");
       return;
     }
-    
+
     // Check if this coordinate actually contains a token
     if (!huntData.winningCoordinates.has(coord)) {
       // Mark this coordinate as failed (red box)
       setFailed((prevFailed) => {
         const nextFailed = new Set(prevFailed);
         nextFailed.add(coord);
-        
+
         // Save progress immediately with failed state
         setTimeout(() => {
           updateHuntProgress(assetId, {
@@ -220,7 +220,7 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
             foundTokens,
           });
         }, 0);
-        
+
         return nextFailed;
       });
       setStatusType("error");
@@ -228,36 +228,36 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
       setInputValue("");
       return;
     }
-    
+
     if (foundTokens >= maxTokens) {
       setStatusType("error");
       setStatus("You've already claimed the maximum tokens for this hunt.");
       return;
     }
-    
+
     const bundle = huntData.tokenBundles[coord] ?? 0;
     if (bundle <= 0) {
       setStatusType("error");
       setStatus("That coordinate has already been claimed.");
       return;
     }
-    
+
     // Try to claim the token from the app state
     console.log(`🎮 Hunt Page - Attempting to claim ${bundle} tokens for asset ${assetId}`);
     const claimed = claimHuntToken(assetId, bundle);
     console.log(`🎮 Hunt Page - Claim result: ${claimed}`);
-    
+
     if (!claimed) {
       setStatusType("error");
       setStatus("No more tokens available in this asset's pool.");
       return;
     }
-    
+
     const nextMatched = new Set(matched);
     nextMatched.add(coord);
     const nextFoundTokens = Math.min(foundTokens + bundle, maxTokens);
     const awardValue = bundle * pricePerUnit;
-    
+
     setMatched(nextMatched);
     setFoundTokens(nextFoundTokens);
     setStatusType("success");
@@ -267,7 +267,7 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
       })} added to your wallet.`
     );
     setInputValue("");
-    
+
     // Save progress after state updates
     setTimeout(() => {
       updateHuntProgress(assetId, {
@@ -418,15 +418,14 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
                           return (
                             <td
                               key={coord}
-                              className={`w-12 sm:w-14 md:w-16 h-6 sm:h-7 text-center font-mono transition-colors p-1 ${
-                                isMatched 
-                                  ? "bg-emerald-500/30 text-emerald-100 font-semibold" 
+                              className={`w-12 sm:w-14 md:w-16 h-6 sm:h-7 text-center font-mono transition-colors p-1 ${isMatched
+                                  ? "bg-emerald-500/30 text-emerald-100 font-semibold"
                                   : isFailed
-                                  ? "bg-red-500/20 text-red-100 font-semibold"
-                                  : isRevealed 
-                                  ? "bg-muted text-foreground" 
-                                  : "text-muted-foreground bg-background/50"
-                              }`}
+                                    ? "bg-red-500/20 text-red-100 font-semibold"
+                                    : isRevealed
+                                      ? "bg-muted text-foreground"
+                                      : "text-muted-foreground bg-background/50"
+                                }`}
                             >
                               <div className="text-center leading-none">{value}</div>
                             </td>
@@ -456,7 +455,13 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
                     placeholder="E.g. G12"
                     className="flex-1 min-w-0 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground"
                   />
-                  <Button onClick={handleSubmit} className="px-4 py-2 text-sm">Submit</Button>
+                  <Button
+                    onClick={handleSubmit}
+                    variant="ghost"
+                    className="px-4 py-2 text-sm font-semibold text-emerald-900 bg-gradient-to-r from-emerald-100 via-emerald-200 to-emerald-100 hover:!bg-emerald-200 focus-visible:ring-emerald-400 shadow-[0_8px_20px_rgba(16,185,129,0.25)]"
+                  >
+                    Submit
+                  </Button>
                 </div>
               </div>
               {status && <p className={`text-xs sm:text-sm ${statusType === "success" ? "text-emerald-400" : "text-destructive"}`}>{status}</p>}
@@ -480,7 +485,13 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
                       placeholder="E.g. G12"
                       className="flex-1 min-w-0 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground"
                     />
-                    <Button onClick={handleSubmit} className="px-4 py-2 text-sm">Submit</Button>
+                    <Button
+                      onClick={handleSubmit}
+                      variant="ghost"
+                      className="px-4 py-2 text-sm font-semibold text-emerald-900 bg-gradient-to-r from-emerald-100 via-emerald-200 to-emerald-100 hover:!bg-emerald-200 focus-visible:ring-emerald-400 shadow-[0_8px_20px_rgba(16,185,129,0.25)]"
+                    >
+                      Submit
+                    </Button>
                   </div>
                   {status && <p className={`text-xs ${statusType === "success" ? "text-emerald-400" : "text-destructive"}`}>{status}</p>}
                 </div>
@@ -503,15 +514,14 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
                         type="button"
                         onClick={() => handleReveal(coord)}
                         disabled={isMatched}
-                        className={`aspect-square rounded border text-[8px] sm:text-[9px] md:text-[10px] font-semibold transition-colors flex items-center justify-center min-w-[32px] sm:min-w-[40px] min-h-[32px] sm:min-h-[40px] ${
-                          isMatched
+                        className={`aspect-square rounded border text-[8px] sm:text-[9px] md:text-[10px] font-semibold transition-colors flex items-center justify-center min-w-[32px] sm:min-w-[40px] min-h-[32px] sm:min-h-[40px] ${isMatched
                             ? "border-emerald-400/70 bg-emerald-500/25 text-emerald-50 cursor-not-allowed"
                             : isFailed
-                            ? "border-red-400/70 bg-red-500/20 text-red-100 cursor-pointer"
-                            : isRevealed
-                            ? "border-border bg-muted text-foreground cursor-pointer"
-                            : "border-border/60 bg-background text-muted-foreground hover:border-border hover:text-foreground active:scale-95 cursor-pointer"
-                        }`}
+                              ? "border-red-400/70 bg-red-500/20 text-red-100 cursor-pointer"
+                              : isRevealed
+                                ? "border-border bg-muted text-foreground cursor-pointer"
+                                : "border-neutral-300 dark:border-border/60 bg-background text-muted-foreground hover:border-border hover:text-foreground active:scale-95 cursor-pointer"
+                          }`}
                       >
                         <span className="block text-center leading-none p-0.5 break-all">
                           {isMatched ? "" : isFailed ? "" : isRevealed ? value : ""}

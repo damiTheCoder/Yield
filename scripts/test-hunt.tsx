@@ -15,7 +15,7 @@ if (typeof globalThis.localStorage === "undefined") {
   Object.defineProperty(globalThis, 'localStorage', { value: noopStorage });
 }
 
-const Capture = ({ onReady }: { onReady: (api: ReturnType<typeof useApp>) => void }) => {
+const Control = ({ onReady }: { onReady: (ctx: ReturnType<typeof useApp>) => void }) => {
   const ctx = useApp();
   React.useEffect(() => {
     onReady(ctx);
@@ -23,32 +23,34 @@ const Capture = ({ onReady }: { onReady: (api: ReturnType<typeof useApp>) => voi
   return null;
 };
 
-const result = await new Promise<any>((resolve) => {
-  let api: ReturnType<typeof useApp> | null = null;
-  const handleReady = (ctx: ReturnType<typeof useApp>) => {
-    api = ctx;
-  };
+const controlRef: { current: ReturnType<typeof useApp> | null } = { current: null };
 
-  TestRenderer.create(
-    <AppStateProvider>
-      <Capture onReady={handleReady} />
-    </AppStateProvider>
-  );
+TestRenderer.create(
+  <AppStateProvider>
+    <Control onReady={(ctx) => (controlRef.current = ctx)} />
+  </AppStateProvider>
+);
 
-  const wait = () =>
-    new Promise((r) => {
-      setTimeout(r, 0);
-    });
-
-  (async () => {
-    await wait();
-    if (!api) throw new Error("ctx not ready");
-    act(() => {
-      api!.claimHuntToken("alpha", 20);
-    });
-    await wait();
-    resolve(api!.userAssets["alpha"]);
-  })();
+// Wait for effect to run
+await act(async () => {
+  await new Promise((resolve) => setTimeout(resolve, 0));
 });
 
-console.log(result);
+if (!controlRef.current) {
+  throw new Error("Control not ready");
+}
+
+console.log("Initial state ready");
+
+await act(async () => {
+  const success = controlRef.current!.claimHuntToken("alpha", 20);
+  console.log("Claim result:", success);
+});
+
+// Wait for state update
+await act(async () => {
+  await new Promise((resolve) => setTimeout(resolve, 0));
+});
+
+const alphaAssets = controlRef.current.userAssets["alpha"];
+console.log("Alpha assets after claim:", alphaAssets);
