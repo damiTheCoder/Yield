@@ -4,7 +4,6 @@ import { cn, formatCurrency } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 
@@ -27,7 +26,6 @@ export default function Portfolio() {
   console.log('🔄 Portfolio Page - Total assets available:', assets.length);
 
   const [assetRedeemCounts, setAssetRedeemCounts] = useState<Record<string, number>>({});
-  const [ownedViewMode, setOwnedViewMode] = useState<"grid" | "list">("list");
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
 
 
@@ -76,6 +74,10 @@ export default function Portfolio() {
       variant === "grid"
         ? "rounded-2xl border border-border bg-card p-4 space-y-4 text-sm shadow-sm"
         : "rounded-2xl bg-card p-4 space-y-4 text-sm shadow-lg";
+    const redeemButtonClasses =
+      variant === "modal"
+        ? "bg-gradient-to-r from-violet-200 via-violet-300 to-violet-200 text-violet-900 shadow-[0_6px_16px_rgba(167,139,250,0.35)] hover:opacity-95"
+        : "bg-gradient-to-r from-violet-300 via-violet-400 to-violet-500 text-white hover:opacity-95";
 
     return (
       <div key={`${variant}-${asset.id}`} className={wrapperClasses}>
@@ -122,7 +124,10 @@ export default function Portfolio() {
               }
             />
             <Button
-              className="w-full flex-col items-center justify-center gap-0 whitespace-normal text-center leading-tight"
+              className={cn(
+                "w-full flex-col items-center justify-center gap-0 whitespace-normal text-center leading-tight border-0",
+                redeemButtonClasses,
+              )}
               onClick={() => handleRedeemAsset(asset.id)}
               disabled={balances.lfts <= 0 || redeemCount <= 0}
             >
@@ -151,7 +156,7 @@ export default function Portfolio() {
 
   return (
     <div className="min-h-screen">
-      <main className="container mx-auto px-4 pt-6 pb-10 space-y-8 sm:pt-10">
+      <main className="container mx-auto px-4 pt-3 pb-10 space-y-8 sm:pt-8">
         <div className="portfolio-badge inline-block rounded-xl px-3 py-1.5">
           <h1 className="portfolio-badge__text text-lg font-semibold">Portfolio</h1>
         </div>
@@ -188,7 +193,7 @@ export default function Portfolio() {
                 </div>
               </div>
               <Button
-                className="w-full bg-gradient-logo text-black hover:opacity-90 border-0"
+                className="w-full border-0 bg-gradient-to-r from-violet-300 via-violet-400 to-violet-500 text-white font-semibold shadow-[0_8px_20px_rgba(167,139,250,0.35)] hover:opacity-95"
                 onClick={() => claimRewards()}
                 disabled={accruedRewards <= 0}
               >
@@ -208,17 +213,6 @@ export default function Portfolio() {
                   Redeem LFTs for their reserve value and access the ecosystem token once discovery completes.
                 </p>
               </div>
-              {ownedAssetLfts.length > 0 && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span className={ownedViewMode === "list" ? "font-semibold text-foreground" : undefined}>List</span>
-                  <Switch
-                    checked={ownedViewMode === "grid"}
-                    onCheckedChange={(checked) => setOwnedViewMode(checked ? "grid" : "list")}
-                    aria-label="Toggle owned LFT collections layout"
-                  />
-                  <span className={ownedViewMode === "grid" ? "font-semibold text-foreground" : undefined}>Grid</span>
-                </div>
-              )}
             </div>
           </CardHeader>
           <CardContent className="space-y-4 px-0 pb-0 sm:px-0 sm:pb-0">
@@ -226,48 +220,49 @@ export default function Portfolio() {
               <p className="text-sm text-muted-foreground">
                 No asset-specific LFTs yet. Hunt CoinTags to populate this section.
               </p>
-            ) : ownedViewMode === "grid" ? (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {ownedAssetLfts.map((asset) => renderOwnedAssetCard(asset, "grid"))}
-              </div>
             ) : (
-              <div className="space-y-3 -mx-2 sm:mx-0">
-                {ownedAssetLfts.map((asset) => {
-                  const rawBalances = userAssets[asset.id];
-                  const balances = {
-                    coinTags: toNumeric(rawBalances?.coinTags),
-                    lfts: toNumeric(rawBalances?.lfts),
-                  };
-                  const assetValue = balances.lfts * asset.cycle.lpu;
+              <div className="overflow-hidden rounded-2xl border border-border/60 bg-background/50">
+                <div className="divide-y divide-border/50">
+                  {ownedAssetLfts.map((asset) => {
+                    const rawBalances = userAssets[asset.id];
+                    const balances = {
+                      coinTags: toNumeric(rawBalances?.coinTags),
+                      lfts: toNumeric(rawBalances?.lfts),
+                    };
+                    const assetValue = balances.lfts * asset.cycle.lpu;
 
-                  return (
-                    <button
-                      type="button"
-                      key={`list-${asset.id}`}
-                      onClick={() => setSelectedAssetId(asset.id)}
-                      className="flex w-full items-center justify-between gap-4 rounded-2xl px-2 py-3 text-left transition sm:px-4"
-                    >
-                      <div className="flex items-center gap-3">
-                        <img src={asset.image} alt={asset.name} className="h-12 w-12 rounded-2xl object-cover" />
-                        <span className="font-medium text-foreground">{asset.name}</span>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total value</p>
-                        <p className="font-mono text-sm font-semibold text-emerald-400">
-                          {formatCurrency(assetValue)}
-                          <span className="ml-1 text-xs text-muted-foreground">/{balances.lfts} LFTs</span>
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
+                    return (
+                      <button
+                        type="button"
+                        key={`list-${asset.id}`}
+                        onClick={() => setSelectedAssetId(asset.id)}
+                        className="flex w-full items-center justify-between gap-4 px-3 py-3 text-left transition hover:bg-muted/30 sm:px-4"
+                      >
+                        <div className="flex items-center gap-3">
+                          <img src={asset.image} alt={asset.name} className="h-11 w-11 rounded-2xl object-cover" />
+                          <div className="flex flex-col">
+                            <span className="font-medium text-foreground">{asset.name}</span>
+                            <span className="text-[11px] text-muted-foreground">Cycle {asset.cycle.cycle}</span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total value</p>
+                          <p className="font-mono text-sm font-semibold text-violet-400">
+                            {formatCurrency(assetValue)}
+                            <span className="ml-1 text-xs text-muted-foreground">/{balances.lfts} LFTs</span>
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </CardContent>
         </Card>
         <Dialog open={Boolean(selectedAsset)} onOpenChange={(open) => !open && setSelectedAssetId(null)}>
           {selectedAsset && (
-            <DialogContent className="mx-4 max-w-2xl rounded-3xl">
+            <DialogContent className="mx-auto max-w-2xl rounded-[32px] border-0 bg-[#0d0d0f]/95 p-6 sm:p-8">
               <DialogHeader>
                 <DialogTitle>{selectedAsset.name}</DialogTitle>
                 <p className="text-sm text-muted-foreground">
