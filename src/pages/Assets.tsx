@@ -1118,6 +1118,22 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
           )}
         </CommandList>
       </CommandDialog>
+      <footer className="bg-background/80">
+        <div className="container mx-auto flex flex-col gap-4 px-4 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-semibold text-foreground">Solaris</p>
+            <p className="text-xs text-muted-foreground">
+              © {new Date().getFullYear()} Solaris. Liquidity orchestration for tokenized markets.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-4 text-xs">
+            <a href="/assets/all" className="hover:text-foreground">All assets</a>
+            <a href="/portfolio" className="hover:text-foreground">Portfolio</a>
+            <a href="/coin-tags" className="hover:text-foreground">LaunchPad</a>
+            <a href="/revenue" className="hover:text-foreground">Revenue</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

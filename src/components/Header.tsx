@@ -501,11 +501,11 @@ const Header = () => {
                   <Button
                     variant="neutral"
                     size="sm"
-                    className="hidden md:inline-flex min-w-[120px] justify-center h-8 rounded-full text-sm font-semibold"
+                    className="hidden md:inline-flex min-w-[120px] justify-center h-8 rounded-full text-sm font-semibold border-0 bg-gradient-to-r from-violet-300 via-violet-400 to-violet-500 text-white hover:opacity-95"
                   >
                     {connectedWallet ? (
                       <span className="flex items-center gap-1">
-                        <Check className="h-4 w-4 text-emerald-300" />
+                        <Check className="h-4 w-4 text-white" />
                         <span className="truncate max-w-[80px]">{connectedWallet}</span>
                       </span>
                     ) : (
@@ -517,7 +517,7 @@ const Header = () => {
                   <Button
                     variant="neutral"
                     size="sm"
-                    className="md:hidden rounded-full h-8 px-4 text-sm font-semibold"
+                    className="md:hidden rounded-full h-8 px-4 text-sm font-semibold border-0 bg-gradient-to-r from-violet-300 via-violet-400 to-violet-500 text-white hover:opacity-95"
                   >
                     {connectedWallet ? "Wallet" : "Connect"}
                   </Button>

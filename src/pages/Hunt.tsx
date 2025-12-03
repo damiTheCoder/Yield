@@ -458,7 +458,7 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
                   <Button
                     onClick={handleSubmit}
                     variant="ghost"
-                    className="px-4 py-2 text-sm font-semibold text-emerald-900 bg-gradient-to-r from-emerald-100 via-emerald-200 to-emerald-100 hover:!bg-emerald-200 focus-visible:ring-emerald-400 shadow-[0_8px_20px_rgba(16,185,129,0.25)]"
+                    className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-violet-300 via-violet-400 to-violet-500 border-0 hover:opacity-95"
                   >
                     Submit
                   </Button>
@@ -488,7 +488,7 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
                     <Button
                       onClick={handleSubmit}
                       variant="ghost"
-                      className="px-4 py-2 text-sm font-semibold text-emerald-900 bg-gradient-to-r from-emerald-100 via-emerald-200 to-emerald-100 hover:!bg-emerald-200 focus-visible:ring-emerald-400 shadow-[0_8px_20px_rgba(16,185,129,0.25)]"
+                      className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-violet-300 via-violet-400 to-violet-500 border-0 hover:opacity-95"
                     >
                       Submit
                     </Button>
