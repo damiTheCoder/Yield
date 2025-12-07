@@ -3,11 +3,15 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
-import { Layers, DollarSign, Bell, ArrowLeftRight } from "lucide-react";
+import SiteFooter from "./SiteFooter";
 
 interface LayoutProps {
   children: ReactNode;
 }
+
+type MobileNavItem =
+  | { type: "link"; label: string; href: string }
+  | { type: "action"; label: string; active: boolean; onClick: () => void };
 
 const Layout = ({ children }: LayoutProps) => {
   const { pathname } = useLocation();
@@ -49,45 +53,79 @@ const Layout = ({ children }: LayoutProps) => {
     handleToggleAssetsMarket();
   }, [handleToggleAssetsMarket, navigate, pathname]);
 
-  const mobileNavLinks = useMemo(() => {
-    const links = [
-      { type: "link" as const, label: "Assets", href: "/assets", icon: Layers },
-      { type: "link" as const, label: "Portfolio", href: "/portfolio", icon: DollarSign },
-      { type: "link" as const, label: "Notifications", href: "/notifications", icon: Bell },
-      ({
-        type: "action" as const,
+  const mobileNavLinks = useMemo<MobileNavItem[]>(() => {
+    return [
+      { type: "link", label: "Assets", href: "/assets" },
+      { type: "link", label: "Portfolio", href: "/portfolio" },
+      { type: "link", label: "Notifications", href: "/notifications" },
+      { type: "link", label: "LaunchPad", href: "/coin-tags" },
+      { type: "link", label: "Revenue", href: "/revenue" },
+      { type: "link", label: "View all posts", href: "/blog" },
+      {
+        type: "action",
         label:
           assetsMarketMode === "live"
             ? "Live"
             : assetsMarketMode === "listed"
               ? "Listed"
               : "Switch",
-        icon: ArrowLeftRight,
         active: pathname.startsWith("/assets") && assetsMarketMode === "live",
         onClick: handleSwitchClick,
-      } satisfies {
-        type: "action";
-        label: string;
-        icon: typeof ArrowLeftRight;
-        active: boolean;
-        onClick: () => void;
-      }),
+      },
     ];
-
-    return links as Array<
-      | { type: "link"; label: string; href: string; icon: typeof Layers }
-      | {
-          type: "action";
-          label: string;
-          icon: typeof ArrowLeftRight;
-          active: boolean;
-          onClick: () => void;
-        }
-    >;
   }, [assetsMarketMode, handleSwitchClick, pathname]);
 
   const isActivePath = (href: string) =>
     pathname === href || (href !== "/" && pathname.startsWith(href));
+
+  const mobileNavBar = (
+    <div
+      className="md:hidden relative z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:backdrop-blur-lg"
+      role="navigation"
+      aria-label="Mobile primary"
+    >
+      <div
+        className="flex gap-5 overflow-x-auto px-4 py-3 no-scrollbar"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
+        {mobileNavLinks.map((item) => {
+          if (item.type === "link") {
+            const { label, href } = item;
+            const active = isActivePath(href);
+            return (
+              <Link
+                key={href}
+                to={href}
+                className={cn(
+                  "relative inline-flex flex-shrink-0 items-center whitespace-nowrap px-1 pb-3 text-sm font-semibold text-muted-foreground transition-colors",
+                  active && "text-foreground"
+                )}
+              >
+                {label}
+              </Link>
+            );
+          }
+
+          const { label, active, onClick } = item;
+
+          return (
+            <button
+              key={`action-${label}`}
+              type="button"
+              onClick={onClick}
+              aria-pressed={active}
+              className={cn(
+                "relative inline-flex flex-shrink-0 items-center whitespace-nowrap px-1 pb-3 text-sm font-semibold text-muted-foreground transition-colors",
+                active && "text-foreground"
+              )}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 
   return (
     <div
@@ -98,76 +136,19 @@ const Layout = ({ children }: LayoutProps) => {
     >
       {!hideShell && (
         <>
-          <Header />
+          <Header mobileNav={mobileNavBar} />
           <Sidebar />
         </>
       )}
       <main
         className={cn(
           "transition-all duration-300",
-          hideShell ? "pb-16" : "md:ml-[19rem] md:mr-6 pb-16 md:pb-8"
+          hideShell ? "pb-16" : "md:ml-[19rem] md:mr-6 pb-8"
         )}
       >
         {children}
       </main>
-      {!hideShell && (
-        <nav className="md:hidden fixed inset-x-0 bottom-0 z-40">
-          <div
-            className={cn(
-              "flex items-center justify-between gap-2 px-3 py-1 backdrop-blur-lg",
-              hideShell ? "bg-background/90" : "bg-background/95"
-            )}
-          >
-          {mobileNavLinks.map((item) => {
-            if (item.type === "link") {
-              const { label, href, icon: Icon } = item;
-              const active = isActivePath(href);
-              return (
-                <Link
-                  key={href}
-                  to={href}
-                  className={cn(
-                    "flex flex-1 flex-col items-center gap-1 px-2 py-1 text-[11px] font-semibold transition-colors",
-                    active
-                      ? "text-black dark:text-white"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <Icon
-                    className={cn(
-                      "h-4 w-4",
-                      active ? "text-black dark:text-white" : "text-muted-foreground"
-                    )}
-                  />
-                  <span>{label}</span>
-                </Link>
-              );
-            }
-
-            const { label, icon: Icon, active, onClick } = item;
-            return (
-              <button
-                key={`action-${label}`}
-                type="button"
-                onClick={onClick}
-                className={cn(
-                  "flex flex-1 flex-col items-center gap-1 px-2 py-1 text-[11px] font-semibold transition-colors",
-                  active ? "text-black dark:text-white" : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <Icon
-                  className={cn(
-                    "h-4 w-4",
-                    active ? "text-black dark:text-white" : "text-muted-foreground"
-                  )}
-                />
-                <span>{label}</span>
-              </button>
-            );
-          })}
-          </div>
-        </nav>
-      )}
+      {!hideShell && <SiteFooter className="sm:hidden" />}
     </div>
   );
 };

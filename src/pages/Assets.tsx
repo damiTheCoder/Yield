@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import Web3News from "@/components/Web3News";
 import type { TouchEvent } from "react";
+import SiteFooter from "@/components/SiteFooter";
 
 const MAX_TRENDING = 10;
 const FEATURED_NEWS_ITEMS = [
@@ -230,7 +231,7 @@ function detectWebView(): boolean {
 
 export function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit, showSearchBar = false }: AssetsPageProps) {
   const { assets } = useApp();
-  const { theme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const isDarkTheme = theme === "dark";
   const navigate = useNavigate();
   const [selectedNetwork, setSelectedNetwork] = useState<Network>("all");
@@ -361,7 +362,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   const cardMediaBorderClass = isDarkTheme ? "border-b-0" : "border-b border-slate-200/60";
 
   const selectedNetworkInfo = NETWORKS.find(n => n.id === selectedNetwork) || NETWORKS[0];
-  const brandHeadingGradient = "linear-gradient(135deg, #34D399 0%, #10B981 45%, #059669 100%)";
+const brandHeadingGradient = "linear-gradient(130deg, #c084fc 0%, #a855f7 45%, #7c3aed 100%)";
   const isGridView = viewMode === "grid";
   const isListView = viewMode === "list";
 
@@ -1058,7 +1059,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
       </main>
 
       {/* Fixed Search Button - Mobile Only */}
-      <div className="md:hidden fixed bottom-16 left-0 right-0 z-30 px-4 pb-3 flex justify-center">
+      <div className="md:hidden fixed bottom-16 left-0 right-0 z-10 px-4 pb-3 flex justify-center">
         <button
           onClick={() => setShowSearchModal(true)}
           className="h-11 bg-[#1a1d2e] hover:bg-[#222639] rounded-[22px] flex items-center justify-center gap-2.5 text-white shadow-lg transition-colors px-6"
@@ -1118,22 +1119,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
           )}
         </CommandList>
       </CommandDialog>
-      <footer className="bg-background/80">
-        <div className="container mx-auto flex flex-col gap-4 px-4 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="font-semibold text-foreground">Solaris</p>
-            <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} Solaris. Liquidity orchestration for tokenized markets.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-4 text-xs">
-            <a href="/assets/all" className="hover:text-foreground">All assets</a>
-            <a href="/portfolio" className="hover:text-foreground">Portfolio</a>
-            <a href="/coin-tags" className="hover:text-foreground">LaunchPad</a>
-            <a href="/revenue" className="hover:text-foreground">Revenue</a>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter className="hidden sm:block" />
     </div>
   );
 }

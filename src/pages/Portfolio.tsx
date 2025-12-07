@@ -157,10 +157,6 @@ export default function Portfolio() {
   return (
     <div className="min-h-screen">
       <main className="container mx-auto px-4 pt-3 pb-10 space-y-8 sm:pt-8">
-        <div className="portfolio-badge inline-block rounded-xl px-3 py-1.5">
-          <h1 className="portfolio-badge__text text-lg font-semibold">Portfolio</h1>
-        </div>
-
         <Card className="rounded-3xl border-none bg-transparent p-0 text-white shadow-none">
           <CardContent className="p-0">
             <div className="grid grid-cols-2 items-center gap-4 text-foreground">
@@ -262,9 +258,9 @@ export default function Portfolio() {
         </Card>
         <Dialog open={Boolean(selectedAsset)} onOpenChange={(open) => !open && setSelectedAssetId(null)}>
           {selectedAsset && (
-            <DialogContent className="mx-auto max-w-2xl rounded-[32px] border-0 bg-[#0d0d0f]/95 p-6 sm:p-8">
+            <DialogContent className="mx-auto max-w-2xl rounded-[32px] border border-border/60 bg-surface/95 p-6 shadow-xl sm:p-8">
               <DialogHeader>
-                <DialogTitle>{selectedAsset.name}</DialogTitle>
+                <DialogTitle className="text-xl font-semibold text-foreground">{selectedAsset.name}</DialogTitle>
                 <p className="text-sm text-muted-foreground">
                   Redeem LFTs or jump into token trading for this collection when available.
                 </p>

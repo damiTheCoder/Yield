@@ -1,6 +1,6 @@
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { ReactNode, useMemo, useState, useEffect, useCallback } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Search, Menu, Gift, Sun, Moon, Check, Loader2, ChevronDown } from "lucide-react";
+import { Search, Gift, Sun, Moon, Check, Loader2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
@@ -36,9 +36,11 @@ const NAV_LINKS = [
   { label: "Revenue", href: "/revenue" },
 ];
 
-const BOTTOM_NAV_PATHS = new Set<string>(["/assets", "/portfolio", "/notifications"]);
+type HeaderProps = {
+  mobileNav?: ReactNode;
+};
 
-const Header = () => {
+const Header = ({ mobileNav }: HeaderProps) => {
   const { assets } = useApp();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
@@ -49,7 +51,6 @@ const Header = () => {
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
   const [connectingWallet, setConnectingWallet] = useState<string | null>(null);
   const [connectedWallet, setConnectedWallet] = useState<string | null>(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileNetworkOpen, setMobileNetworkOpen] = useState(false);
   const location = useLocation();
   const isMobileAssetsView = location.pathname.startsWith("/assets");
@@ -145,16 +146,6 @@ const Header = () => {
       },
     ];
   }, [walletDialogOpen]);
-
-  const getThemeButtonClass = useCallback(
-    (mode: string) => {
-      const isActive = theme === mode;
-      const activeClass = isDarkTheme ? "!bg-white text-black" : "!bg-gray-900 text-white";
-      const inactiveClass = isDarkTheme ? "bg-transparent text-gray-400" : "bg-transparent text-gray-500";
-      return cn("h-7 w-7 rounded-full hover:bg-transparent p-0 transition-all", isActive ? activeClass : inactiveClass);
-    },
-    [theme, isDarkTheme],
-  );
 
   const renderAssetCommandItem = (asset: Asset, context: "trending" | "all") => (
     <CommandItem
@@ -347,7 +338,7 @@ const Header = () => {
 
       <header className="sticky top-0 z-50 w-full">
         <div
-          className="relative bg-background/70 md:bg-background/60"
+          className="relative z-20 bg-background/70 md:bg-background/60"
           style={{
             WebkitBackdropFilter: 'saturate(180%) blur(20px)',
             backdropFilter: 'saturate(180%) blur(20px)',
@@ -585,112 +576,10 @@ const Header = () => {
               </DialogContent>
             </Dialog>
 
-              <div className="relative md:hidden">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="bg-neutral-800 hover:bg-neutral-700 text-white h-8 w-8 rounded-lg"
-                >
-                  <Menu className="h-4 w-4" />
-                </Button>
-
-                {mobileMenuOpen && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setMobileMenuOpen(false)} />
-                    <div
-                      className={cn(
-                        "absolute top-full right-0 mt-2 w-56 rounded-2xl shadow-xl z-50 overflow-hidden text-center border",
-                        isDarkTheme
-                          ? "bg-neutral-900 border-neutral-800 text-gray-200"
-                          : "bg-white border-gray-200 text-gray-900",
-                      )}
-                    >
-                      <nav className="flex flex-col">
-                        {NAV_LINKS.filter((link) => !BOTTOM_NAV_PATHS.has(link.href)).map((link) => (
-                          <Link
-                            key={link.href}
-                            to={link.href}
-                            onClick={() => {
-                              setMobileMenuOpen(false);
-                            }}
-                            className={cn(
-                              "block w-full px-4 py-3 text-sm font-medium transition-colors",
-                              isDarkTheme ? "text-gray-200 hover:bg-neutral-800/60" : "text-gray-900 hover:bg-gray-100",
-                            )}
-                          >
-                            {link.label}
-                          </Link>
-                        ))}
-                        <Link
-                          to="/blog"
-                          onClick={() => {
-                            setMobileMenuOpen(false);
-                          }}
-                          className={cn(
-                            "block w-full px-4 py-3 text-sm font-medium transition-colors",
-                            isDarkTheme ? "text-gray-200 hover:bg-neutral-800/60" : "text-gray-900 hover:bg-gray-100",
-                          )}
-                        >
-                          View all posts
-                        </Link>
-                      </nav>
-                      <div className={cn("px-4 py-4 text-sm", isDarkTheme ? "text-gray-200" : "text-gray-800")}>
-                        <div
-                          className={cn(
-                            "mb-3 text-center font-semibold uppercase tracking-wide text-xs",
-                            isDarkTheme ? "text-gray-400" : "text-gray-500",
-                          )}
-                        >
-                          Appearance
-                        </div>
-                        <div
-                          className={cn(
-                            "flex items-center justify-center gap-2 rounded-full p-1",
-                            isDarkTheme ? "bg-neutral-800" : "bg-gray-100",
-                          )}
-                        >
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setTheme("system")}
-                            aria-label="System theme"
-                            className={getThemeButtonClass("system")}
-                          >
-                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <rect x="3" y="3" width="18" height="14" rx="2" strokeWidth="2" />
-                              <line x1="3" y1="20" x2="21" y2="20" strokeWidth="2" />
-                              <line x1="8" y1="17" x2="8" y2="20" strokeWidth="2" />
-                              <line x1="16" y1="17" x2="16" y2="20" strokeWidth="2" />
-                            </svg>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setTheme("dark")}
-                            aria-label="Dark theme"
-                            className={getThemeButtonClass("dark")}
-                          >
-                            <Moon className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setTheme("light")}
-                            aria-label="Light theme"
-                            className={getThemeButtonClass("light")}
-                          >
-                            <Sun className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
             </div>
           </div>
         </div>
+        {mobileNav}
       </header>
     </>
   );

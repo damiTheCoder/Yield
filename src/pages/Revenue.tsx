@@ -456,7 +456,7 @@ type KpiCardProps = {
 
 function KpiCard({ icon: Icon, label, primary, caption }: KpiCardProps) {
   return (
-    <div className="rounded-3xl border border-border/60 bg-surface/80 p-5 shadow-lg backdrop-blur">
+    <div className="rounded-3xl border border-border/60 bg-transparent p-5 shadow-none">
       <div className="flex items-center justify-between">
         <div className="rounded-2xl bg-emerald-500/10 p-2 text-emerald-300">
           <Icon className="h-5 w-5" />

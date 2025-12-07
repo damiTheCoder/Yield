@@ -254,24 +254,6 @@
 
 
 @layer components {
-  .portfolio-badge {
-    border: 1px solid rgba(0, 0, 0, 0.3);
-    background: linear-gradient(135deg, #000000, #4a4a4a);
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-  }
-
-  .portfolio-badge__text {
-    color: #ffffff;
-  }
-
-  html[data-theme="dark"] .portfolio-badge {
-    border-color: rgba(255, 255, 255, 0.35);
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.08));
-  }
-
-  html[data-theme="dark"] .portfolio-badge__text {
-    color: #fefefe;
-  }
 
   html[data-theme="dark"] .listed-asset-card,
   html[data-theme="dark"] .live-asset-card {
