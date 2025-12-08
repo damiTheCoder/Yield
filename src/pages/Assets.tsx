@@ -5,10 +5,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { cn, formatCurrency, formatCurrencyK } from "@/lib/utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeftRight, ArrowUpRight, ChevronDown, Search } from "lucide-react";
+import { ArrowLeftRight, ArrowUpRight, ChevronDown } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/input";
-import { CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import Web3News from "@/components/Web3News";
 import type { TouchEvent } from "react";
 import SiteFooter from "@/components/SiteFooter";
@@ -237,7 +236,6 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   const [selectedNetwork, setSelectedNetwork] = useState<Network>("all");
   const [showNetworkDropdown, setShowNetworkDropdown] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [showSearchModal, setShowSearchModal] = useState(false);
   const [marketMode, setMarketMode] = useState<"listed" | "live">("listed");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [isWebview, setIsWebview] = useState(() => detectWebView());
@@ -614,7 +612,7 @@ const brandHeadingGradient = "linear-gradient(130deg, #c084fc 0%, #a855f7 45%, #
       </button>
     );
   };
-  const MobileFeaturedNews = () => {
+  const MobileFeaturedNews = ({ className }: { className?: string }) => {
     const totalSlides = FEATURED_NEWS_ITEMS.length;
     const [activeSlide, setActiveSlide] = useState(0);
     const touchStartX = useRef<number | null>(null);
@@ -650,7 +648,7 @@ const brandHeadingGradient = "linear-gradient(130deg, #c084fc 0%, #a855f7 45%, #
       const remainder = FEATURED_NEWS_ITEMS.slice(1);
 
       return (
-        <section className="mb-6">
+        <section className={cn("mb-6", className)}>
           <div className="flex items-center justify-between mb-5">
             <div className={cn(
               "uppercase tracking-wide font-bold text-xl text-foreground"
@@ -741,7 +739,7 @@ const brandHeadingGradient = "linear-gradient(130deg, #c084fc 0%, #a855f7 45%, #
     const topAssets = listedAssets.slice(0, 8);
 
     return (
-      <section className="sm:hidden mb-4 -mx-4">
+      <section className={cn("sm:hidden -mx-4", className ?? "mb-4")}>
         <div className="px-4 mb-3">
           <h2 className="text-lg font-semibold text-foreground">Top Assets</h2>
         </div>
@@ -776,9 +774,6 @@ const brandHeadingGradient = "linear-gradient(130deg, #c084fc 0%, #a855f7 45%, #
         <div className="flex flex-col gap-2">
           <div className="space-y-2">
             <div className="space-y-2 px-0">
-              <div className="sm:hidden">
-                <MobileFeaturedNews />
-              </div>
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex-1">
                   <div className="flex items-center justify-between gap-2">
@@ -876,6 +871,9 @@ const brandHeadingGradient = "linear-gradient(130deg, #c084fc 0%, #a855f7 45%, #
                       </Button>
                     </div>
                   )}
+                  <div className="sm:hidden mt-4">
+                    <MobileFeaturedNews className="mb-0" />
+                  </div>
                 </div>
                 <div className="flex w-full items-center gap-3 text-xs text-muted-foreground sm:w-auto sm:justify-end" />
               </div>
@@ -1050,75 +1048,11 @@ const brandHeadingGradient = "linear-gradient(130deg, #c084fc 0%, #a855f7 45%, #
                 </div>
               )}
 
-              {/* Spacer for mobile fixed bottom controls */}
-              <div className="h-2 sm:hidden" />
             </div>
 
           </div>
         </div>
       </main>
-
-      {/* Fixed Search Button - Mobile Only */}
-      <div className="md:hidden fixed bottom-16 left-0 right-0 z-10 px-4 pb-3 flex justify-center">
-        <button
-          onClick={() => setShowSearchModal(true)}
-          className="h-11 bg-[#1a1d2e] hover:bg-[#222639] rounded-[22px] flex items-center justify-center gap-2.5 text-white shadow-lg transition-colors px-6"
-        >
-          <Search className="h-4 w-4 text-gray-400" />
-          <span className="text-sm font-normal text-gray-400">Search</span>
-        </button>
-      </div>
-
-      {/* Search Modal */}
-      <CommandDialog
-        open={showSearchModal}
-        onOpenChange={setShowSearchModal}
-      >
-        <CommandInput
-          placeholder="Search tokens, tickers, or IDs"
-          value={searchTerm}
-          onValueChange={setSearchTerm}
-        />
-        <CommandList>
-          <CommandEmpty>No tokens found</CommandEmpty>
-          {displayListedAssets.length > 0 && (
-            <CommandGroup heading="Listed Assets">
-              {displayListedAssets.slice(0, 20).map((asset) => (
-                <CommandItem
-                  key={asset.id}
-                  value={`${asset.name} ${asset.ticker ?? ""} ${asset.id}`}
-                  onSelect={() => {
-                    navigate(`/assets/${asset.id}`);
-                    setShowSearchModal(false);
-                    setSearchTerm("");
-                  }}
-                  className="data-[selected=true]:bg-surface/90"
-                >
-                  <div className="flex w-full items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={asset.image}
-                        alt={asset.name}
-                        className="h-9 w-9 rounded-full border border-border/50 object-cover"
-                      />
-                      <div className="flex flex-col">
-                        <span className="text-sm font-semibold text-foreground">{asset.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {asset.ticker || asset.id.toUpperCase()} · LPU {formatCurrency(asset.cycle.lpu)}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs font-semibold text-foreground">{formatCurrencyK(asset.cycle.reserve)}</div>
-                      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">TVL</div>
-                    </div>
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
-        </CommandList>
-      </CommandDialog>
       <SiteFooter className="hidden sm:block" />
     </div>
   );

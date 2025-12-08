@@ -195,12 +195,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
     return (
       <section className={cn("flex flex-col gap-5", className)}>
         <div className="flex items-center justify-between">
-          <div
-            className={cn("uppercase tracking-wide font-bold", headingSize, headingColorClass)}
-            style={{ color: activeTheme === "dark" ? "#ffffff" : "#000000" }}
-          >
-            Web3 Headlines
-          </div>
+          <div className={cn("font-bold text-foreground", headingSize)}>Web3 Headlines</div>
           <a
             href="/blog"
             className="text-xs font-semibold uppercase tracking-widest text-primary hover:text-primary/80"
@@ -295,10 +290,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
 
   return (
     <section className={cn("flex flex-col gap-3", className)}>
-      <div
-        className={cn("uppercase tracking-wide", headingSize, "font-bold", headingColorClass)}
-        style={{ color: activeTheme === "dark" ? "#ffffff" : "#000000" }}
-      >
+      <div className={cn("font-bold text-foreground", headingSize)}>
         Web3 Headlines
       </div>
       <div className={listWrapperClass}>

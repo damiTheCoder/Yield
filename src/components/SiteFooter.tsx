@@ -27,8 +27,8 @@ const SiteFooter = ({ className }: SiteFooterProps) => {
     );
 
   return (
-    <footer className={cn("bg-background/80 border-t border-border/40", className)}>
-      <div className="container mx-auto flex flex-col gap-4 px-4 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+    <footer className={cn("bg-background/80", className)}>
+      <div className="container mx-auto flex flex-col gap-3 px-4 py-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center justify-between gap-4 sm:block">
           <div>
             <p className="font-semibold text-foreground">Solaris</p>

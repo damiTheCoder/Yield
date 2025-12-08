@@ -157,6 +157,13 @@ export default function Portfolio() {
   return (
     <div className="min-h-screen">
       <main className="container mx-auto px-4 pt-3 pb-10 space-y-8 sm:pt-8">
+        <div className="mb-4 flex justify-center">
+          <img
+            src="/G3.png"
+            alt="Solaris portfolio highlight"
+            className="w-full max-w-2xl rounded-2xl object-cover sm:rounded-3xl"
+          />
+        </div>
         <Card className="rounded-3xl border-none bg-transparent p-0 text-white shadow-none">
           <CardContent className="p-0">
             <div className="grid grid-cols-2 items-center gap-4 text-foreground">

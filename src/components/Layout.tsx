@@ -86,7 +86,14 @@ const Layout = ({ children }: LayoutProps) => {
     >
       <div
         className="flex gap-5 overflow-x-auto px-4 py-3 no-scrollbar"
-        style={{ WebkitOverflowScrolling: "touch" }}
+        style={{
+          WebkitOverflowScrolling: "touch",
+          paddingLeft: "1rem",
+          paddingRight: "1rem",
+          scrollPaddingLeft: "1rem",
+          scrollPaddingRight: "1rem",
+          scrollSnapType: "x mandatory",
+        }}
       >
         {mobileNavLinks.map((item) => {
           if (item.type === "link") {
@@ -97,7 +104,7 @@ const Layout = ({ children }: LayoutProps) => {
                 key={href}
                 to={href}
                 className={cn(
-                  "relative inline-flex flex-shrink-0 items-center whitespace-nowrap px-1 pb-3 text-sm font-semibold text-muted-foreground transition-colors",
+                  "relative inline-flex flex-shrink-0 items-center whitespace-nowrap px-1 pb-3 text-sm font-semibold text-muted-foreground transition-colors first:ml-2 last:mr-2 scroll-snap-start",
                   active && "text-foreground"
                 )}
               >
@@ -115,7 +122,7 @@ const Layout = ({ children }: LayoutProps) => {
               onClick={onClick}
               aria-pressed={active}
               className={cn(
-                "relative inline-flex flex-shrink-0 items-center whitespace-nowrap px-1 pb-3 text-sm font-semibold text-muted-foreground transition-colors",
+                "relative inline-flex flex-shrink-0 items-center whitespace-nowrap px-1 pb-3 text-sm font-semibold text-muted-foreground transition-colors first:ml-2 last:mr-2 scroll-snap-start",
                 active && "text-foreground"
               )}
             >
