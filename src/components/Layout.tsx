@@ -103,7 +103,7 @@ const Layout = ({ children }: LayoutProps) => {
                 key={href}
                 to={href}
                 className={cn(
-                  "relative inline-flex flex-shrink-0 items-center whitespace-nowrap px-1 py-1 text-sm font-medium text-muted-foreground transition-colors first:ml-2 last:mr-2 scroll-snap-start",
+                  "relative inline-flex flex-shrink-0 items-center whitespace-nowrap px-0 py-1 text-sm font-medium text-muted-foreground transition-colors first:ml-2 last:mr-2 scroll-snap-start",
                   active && "text-foreground"
                 )}
               >
@@ -121,7 +121,7 @@ const Layout = ({ children }: LayoutProps) => {
               onClick={onClick}
               aria-pressed={active}
               className={cn(
-                "relative inline-flex flex-shrink-0 items-center whitespace-nowrap px-1 py-1 text-sm font-medium text-muted-foreground transition-colors first:ml-2 last:mr-2 scroll-snap-start",
+                "relative inline-flex flex-shrink-0 items-center whitespace-nowrap px-0 py-1 text-sm font-medium text-muted-foreground transition-colors first:ml-2 last:mr-2 scroll-snap-start",
                 active && "text-foreground"
               )}
             >
