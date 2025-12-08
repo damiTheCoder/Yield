@@ -17,6 +17,7 @@ const Layout = ({ children }: LayoutProps) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const hideShell = pathname === "/";
+  const isHuntPage = pathname.includes("/hunt");
   const [assetsMarketMode, setAssetsMarketMode] = useState<"listed" | "live" | null>(null);
 
   useEffect(() => {
@@ -80,16 +81,14 @@ const Layout = ({ children }: LayoutProps) => {
 
   const mobileNavBar = (
     <div
-      className="md:hidden relative z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:backdrop-blur-lg"
+      className="md:hidden relative z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:backdrop-blur-lg px-4"
       role="navigation"
       aria-label="Mobile primary"
     >
       <div
-        className="flex gap-5 overflow-x-auto px-4 py-3 no-scrollbar"
+        className="flex gap-5 overflow-x-auto py-2 no-scrollbar"
         style={{
           WebkitOverflowScrolling: "touch",
-          paddingLeft: "1rem",
-          paddingRight: "1rem",
           scrollPaddingLeft: "1rem",
           scrollPaddingRight: "1rem",
           scrollSnapType: "x mandatory",
@@ -104,7 +103,7 @@ const Layout = ({ children }: LayoutProps) => {
                 key={href}
                 to={href}
                 className={cn(
-                  "relative inline-flex flex-shrink-0 items-center whitespace-nowrap px-1 pb-3 text-sm font-semibold text-muted-foreground transition-colors first:ml-2 last:mr-2 scroll-snap-start",
+                  "relative inline-flex flex-shrink-0 items-center whitespace-nowrap px-1 py-1 text-sm font-medium text-muted-foreground transition-colors first:ml-2 last:mr-2 scroll-snap-start",
                   active && "text-foreground"
                 )}
               >
@@ -122,7 +121,7 @@ const Layout = ({ children }: LayoutProps) => {
               onClick={onClick}
               aria-pressed={active}
               className={cn(
-                "relative inline-flex flex-shrink-0 items-center whitespace-nowrap px-1 pb-3 text-sm font-semibold text-muted-foreground transition-colors first:ml-2 last:mr-2 scroll-snap-start",
+                "relative inline-flex flex-shrink-0 items-center whitespace-nowrap px-1 py-1 text-sm font-medium text-muted-foreground transition-colors first:ml-2 last:mr-2 scroll-snap-start",
                 active && "text-foreground"
               )}
             >
@@ -155,7 +154,7 @@ const Layout = ({ children }: LayoutProps) => {
       >
         {children}
       </main>
-      {!hideShell && <SiteFooter className="sm:hidden" />}
+      {!hideShell && !isHuntPage && <SiteFooter className="sm:hidden" />}
     </div>
   );
 };

@@ -320,12 +320,8 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   const normalizedSearch = searchTerm.trim().toLowerCase();
 
   const handleToggleViewMode = useCallback(() => {
-    if (isWebview || isDesktop) {
-      setViewMode("list");
-      return;
-    }
-    setViewMode((prev) => (prev === "list" ? "grid" : "list"));
-  }, [isWebview, isDesktop]);
+    setViewMode("list");
+  }, []);
 
   const filteredAssets = useMemo(() => {
     let filtered = assets;
@@ -361,9 +357,8 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 
   const selectedNetworkInfo = NETWORKS.find(n => n.id === selectedNetwork) || NETWORKS[0];
 const brandHeadingGradient = "linear-gradient(130deg, #c084fc 0%, #a855f7 45%, #7c3aed 100%)";
-  const isGridView = viewMode === "grid";
-  const isListView = viewMode === "list";
-
+  const isGridView = false;
+  const isListView = true;
   const getAssetChange = (asset: Asset) => {
     const baseHash = hashString(`${asset.id}-${asset.name}`);
     const raw = ((baseHash % 140) - 60) / 10;
@@ -801,54 +796,26 @@ const brandHeadingGradient = "linear-gradient(130deg, #c084fc 0%, #a855f7 45%, #
                       )}
                     </h1>
                     {!isWebview && !isDesktop && (
-                      <div className="ml-4 flex items-center gap-2 sm:hidden">
+                      <div className="ml-2 flex items-center gap-1 sm:hidden">
                         <button
                           type="button"
                           onClick={handleToggleViewMode}
-                          role="switch"
-                          aria-checked={isListView}
-                          aria-label={isListView ? "Switch to grid view" : "Switch to list view"}
-                          className={cn(
-                            "relative h-6 w-11 rounded-full transition-colors",
-                            isListView ? "bg-gray-300" : "bg-gray-600",
-                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-foreground focus-visible:ring-offset-background",
-                          )}
+                          aria-label="Toggle asset layout"
+                          className="flex h-9 w-9 items-center justify-start rounded-full border border-border/40 pl-2 hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-foreground focus-visible:ring-offset-background"
                         >
-                          <span className="sr-only">Toggle asset layout</span>
-                          <span
-                            className={cn(
-                              "absolute top-[2px] h-5 w-5 rounded-full transition-all duration-200 ease-out",
-                              isListView
-                                ? "left-[calc(100%-22px)] bg-gray-700"
-                                : "left-[2px] bg-gray-200",
-                            )}
-                          />
+                          <img src="/coin.png" alt="Toggle view" className="h-5 w-5 object-contain" />
                         </button>
                       </div>
                     )}
-                    {!isWebview && !isDesktop && (
-                      <div className="ml-4 hidden items-center gap-2 sm:flex">
+                    {(isWebview || isDesktop) && (
+                      <div className="ml-2 hidden items-center gap-1 sm:flex">
                         <button
                           type="button"
                           onClick={handleToggleViewMode}
-                          role="switch"
-                          aria-checked={isListView}
-                          aria-label={isListView ? "Switch to grid view" : "Switch to list view"}
-                          className={cn(
-                            "relative h-6 w-11 rounded-full transition-colors",
-                            isListView ? "bg-gray-300" : "bg-gray-600",
-                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-foreground focus-visible:ring-offset-background",
-                          )}
+                          aria-label="Toggle asset layout"
+                          className="flex h-9 w-9 items-center justify-start rounded-full border border-border/40 pl-2 hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-foreground focus-visible:ring-offset-background"
                         >
-                          <span className="sr-only">Toggle asset layout</span>
-                          <span
-                            className={cn(
-                              "absolute top-[2px] h-5 w-5 rounded-full transition-all duration-200 ease-out",
-                              isListView
-                                ? "left-[calc(100%-22px)] bg-gray-700"
-                                : "left-[2px] bg-gray-200",
-                            )}
-                          />
+                          <img src="/coin.png" alt="Toggle view" className="h-5 w-5 object-contain" />
                         </button>
                       </div>
                     )}
