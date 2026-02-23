@@ -90,13 +90,11 @@ const SolarisSlider: React.FC = () => {
   return (
     <div className="solaris-slider">
       <style>{`
-        @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500&display=swap");
-        
         .solaris-slider {
           margin: 0;
           background-color: hsl(var(--background));
           color: hsl(var(--foreground));
-          font-family: "Inter", sans-serif;
+          font-family: "Glacial Indifference", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
           height: 100vh;
           min-height: 100vh;
           width: 100vw;
@@ -322,7 +320,7 @@ const SolarisSlider: React.FC = () => {
         }
 
         .main-title {
-          font-family: "Oswald", sans-serif;
+          font-family: "Glacial Indifference", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
           font-weight: 600;
           font-size: clamp(48px, 8vw, 80px);
           line-height: 0.9;

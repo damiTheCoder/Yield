@@ -58,6 +58,7 @@ const Layout = ({ children }: LayoutProps) => {
     return [
       { type: "link", label: "Assets", href: "/assets" },
       { type: "link", label: "Portfolio", href: "/portfolio" },
+      { type: "link", label: "Wallet", href: "/wallet" },
       { type: "link", label: "Notifications", href: "/notifications" },
       { type: "link", label: "LaunchPad", href: "/coin-tags" },
       { type: "link", label: "Revenue", href: "/revenue" },
@@ -79,59 +80,7 @@ const Layout = ({ children }: LayoutProps) => {
   const isActivePath = (href: string) =>
     pathname === href || (href !== "/" && pathname.startsWith(href));
 
-  const mobileNavBar = (
-    <div
-      className="md:hidden relative z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:backdrop-blur-lg px-4"
-      role="navigation"
-      aria-label="Mobile primary"
-    >
-      <div
-        className="flex gap-5 overflow-x-auto py-2 no-scrollbar"
-        style={{
-          WebkitOverflowScrolling: "touch",
-          scrollPaddingLeft: "1rem",
-          scrollPaddingRight: "1rem",
-          scrollSnapType: "x mandatory",
-        }}
-      >
-        {mobileNavLinks.map((item) => {
-          if (item.type === "link") {
-            const { label, href } = item;
-            const active = isActivePath(href);
-            return (
-              <Link
-                key={href}
-                to={href}
-                className={cn(
-                  "relative inline-flex flex-shrink-0 items-center whitespace-nowrap px-0 py-1 text-sm font-medium text-muted-foreground transition-colors first:ml-2 last:mr-2 scroll-snap-start",
-                  active && "text-foreground"
-                )}
-              >
-                {label}
-              </Link>
-            );
-          }
 
-          const { label, active, onClick } = item;
-
-          return (
-            <button
-              key={`action-${label}`}
-              type="button"
-              onClick={onClick}
-              aria-pressed={active}
-              className={cn(
-                "relative inline-flex flex-shrink-0 items-center whitespace-nowrap px-0 py-1 text-sm font-medium text-muted-foreground transition-colors first:ml-2 last:mr-2 scroll-snap-start",
-                active && "text-foreground"
-              )}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
 
   return (
     <div
@@ -142,7 +91,7 @@ const Layout = ({ children }: LayoutProps) => {
     >
       {!hideShell && (
         <>
-          <Header mobileNav={mobileNavBar} />
+          <Header mobileNavItems={mobileNavLinks} />
           <Sidebar />
         </>
       )}

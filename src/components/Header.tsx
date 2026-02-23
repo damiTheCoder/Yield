@@ -1,10 +1,11 @@
-import { ReactNode, useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Search, Gift, Sun, Moon, Check, Loader2, ChevronDown } from "lucide-react";
+import { Search, Sun, Moon, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem, CommandSeparator } from "@/components/ui/command";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { useApp } from "@/lib/app-state";
 import type { Asset } from "@/lib/app-state";
 import { useTheme } from "@/hooks/useTheme";
@@ -28,19 +29,24 @@ type WalletOption = {
   detected: boolean;
 };
 
+export type MobileNavItem =
+  | { type: "link"; label: string; href: string }
+  | { type: "action"; label: string; active: boolean; onClick: () => void };
+
 const NAV_LINKS = [
   { label: "Assets", href: "/assets" },
   { label: "Portfolio", href: "/portfolio" },
+  { label: "Wallet", href: "/wallet" },
   { label: "Notifications", href: "/notifications" },
   { label: "LaunchPad", href: "/coin-tags" },
   { label: "Revenue", href: "/revenue" },
 ];
 
 type HeaderProps = {
-  mobileNav?: ReactNode;
+  mobileNavItems?: MobileNavItem[];
 };
 
-const Header = ({ mobileNav }: HeaderProps) => {
+const Header = ({ mobileNavItems = [] }: HeaderProps) => {
   const { assets } = useApp();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
@@ -51,22 +57,8 @@ const Header = ({ mobileNav }: HeaderProps) => {
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
   const [connectingWallet, setConnectingWallet] = useState<string | null>(null);
   const [connectedWallet, setConnectedWallet] = useState<string | null>(null);
-  const [mobileNetworkOpen, setMobileNetworkOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const location = useLocation();
-  const isMobileAssetsView = location.pathname.startsWith("/assets");
-
-  const MOBILE_NETWORK_OPTIONS = [
-    { code: "ALL", id: "all", buttonLabel: "Chain", name: "All chains", image: "/22.jpeg" },
-    { code: "BTC", id: "bitcoin", buttonLabel: "Bitcoin", name: "Bitcoin", image: "/bitcoin.jpeg" },
-    { code: "ETH", id: "ethereum", buttonLabel: "Ethereum", name: "Ethereum", image: "/ethereum.jpeg" },
-    { code: "SOL", id: "solana", buttonLabel: "Solana", name: "Solana", image: "/solana.png" },
-    { code: "BASE", id: "base", buttonLabel: "Base", name: "Base", image: "/base.jpeg" },
-  ] as const;
-
-  const networkIdToOption = (id: string) => MOBILE_NETWORK_OPTIONS.find((option) => option.id === id) ?? MOBILE_NETWORK_OPTIONS[0];
-  const networkCodeToOption = (code: string) => MOBILE_NETWORK_OPTIONS.find((option) => option.code === code) ?? MOBILE_NETWORK_OPTIONS[0];
-
-  const [selectedHeaderNetwork, setSelectedHeaderNetwork] = useState<string>("ALL");
 
   const staticPages = useMemo<SearchResult[]>(
     () => [
@@ -74,6 +66,7 @@ const Header = ({ mobileNav }: HeaderProps) => {
       { type: "page", label: "Assets", path: "/assets", description: "Browse all listed LFTs" },
       { type: "page", label: "LaunchPad", path: "/coin-tags", description: "Configure a new campaign" },
       { type: "page", label: "Portfolio", path: "/portfolio", description: "View balances and redeem" },
+      { type: "page", label: "Wallet", path: "/wallet", description: "See CoinTag codes by asset" },
       { type: "page", label: "Revenue", path: "/revenue", description: "Track live revenue splits" },
       { type: "page", label: "Notifications", path: "/notifications", description: "Hunt alerts and activity" },
     ],
@@ -89,12 +82,6 @@ const Header = ({ mobileNav }: HeaderProps) => {
     if (!assets || !Array.isArray(assets)) return [];
     return [...assets].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   }, [assets]);
-
-  useEffect(() => {
-    if (!isMobileAssetsView && mobileNetworkOpen) {
-      setMobileNetworkOpen(false);
-    }
-  }, [isMobileAssetsView, mobileNetworkOpen]);
 
   const walletOptions = useMemo<WalletOption[]>(() => {
     const win = typeof window === "undefined" ? undefined : (window as unknown as { ethereum?: { isTrust?: boolean; isMetaMask?: boolean }; solana?: { isPhantom?: boolean }; gatewallet?: boolean; coinbaseWalletExtension?: boolean });
@@ -120,7 +107,7 @@ const Header = ({ mobileNav }: HeaderProps) => {
         id: "phantom",
         name: "Phantom",
         icon: "/r1.jpeg",
-        gradient: "from-violet-500 via-purple-500 to-fuchsia-500",
+        gradient: "from-blue-500 via-sky-500 to-cyan-500",
         detected: Boolean(win?.solana?.isPhantom),
       },
       {
@@ -229,6 +216,7 @@ const Header = ({ mobileNav }: HeaderProps) => {
       navigate(path);
       setSearchOpen(false);
       setSearchFilter("all");
+      setSheetOpen(false);
     },
     [navigate],
   );
@@ -243,27 +231,6 @@ const Header = ({ mobileNav }: HeaderProps) => {
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
   }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const handler = (event: Event) => {
-      const detail = (event as CustomEvent<string>).detail;
-      setSelectedHeaderNetwork(networkIdToOption(detail).code);
-    };
-    window.addEventListener("solaris-network-sync", handler as EventListener);
-    return () => window.removeEventListener("solaris-network-sync", handler as EventListener);
-  }, [networkIdToOption]);
-
-  const handleMobileNetworkSelect = (code: string) => {
-    const option = networkCodeToOption(code);
-    setSelectedHeaderNetwork(option.code);
-    setMobileNetworkOpen(false);
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("solaris-network-change", { detail: option.id }));
-    }
-  };
-
-  const selectedMobileOption = networkCodeToOption(selectedHeaderNetwork);
 
   return (
     <>
@@ -383,75 +350,6 @@ const Header = ({ mobileNav }: HeaderProps) => {
                 </span>
               </Button>
 
-              {isMobileAssetsView && (
-                <div className="relative md:hidden">
-                  <Button
-                    variant="ghost"
-                    onClick={() => setMobileNetworkOpen((prev) => !prev)}
-                    className="inline-flex h-8 items-center gap-2 rounded-full bg-muted/70 px-2.5 text-sm font-semibold leading-none text-foreground transition-colors hover:bg-muted/40"
-                  >
-                    {selectedMobileOption.image ? (
-                      <img
-                        src={selectedMobileOption.image}
-                        alt={selectedMobileOption.name}
-                        className="h-5 w-5 rounded-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-lg">⚡</span>
-                    )}
-                    <span className="sr-only">
-                      {selectedMobileOption.buttonLabel}
-                    </span>
-                    <ChevronDown className="h-3.5 w-3.5" />
-                  </Button>
-                  {mobileNetworkOpen && (
-                    <>
-                      <div className="fixed inset-0 z-40" onClick={() => setMobileNetworkOpen(false)} />
-                      <div className="absolute top-full right-0 mt-2 w-44 rounded-3xl bg-muted text-foreground shadow-xl z-50 overflow-hidden">
-                        {MOBILE_NETWORK_OPTIONS.map((option) => (
-                          <button
-                            key={option.code}
-                            type="button"
-                            onClick={() => handleMobileNetworkSelect(option.code)}
-                            className={cn(
-                              "flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors",
-                              selectedHeaderNetwork === option.code
-                                ? "bg-muted/70 font-semibold text-foreground"
-                                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-                            )}
-                          >
-                            {option.image ? (
-                              <img
-                                src={option.image}
-                                alt={option.name}
-                                className="h-6 w-6 rounded-full object-cover"
-                              />
-                            ) : (
-                              <span className="text-lg">⚡</span>
-                            )}
-                            <span>{option.name}</span>
-                            {selectedHeaderNetwork === option.code && (
-                              <span className="ml-auto text-emerald-400">
-                                <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-                                  <path
-                                    d="M20 6L9 17l-5-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                              </span>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-
               <div className="hidden md:flex items-center gap-0 rounded-full bg-neutral-800 dark:bg-neutral-800 p-0.5">
                 <Button
                   variant="ghost"
@@ -492,7 +390,7 @@ const Header = ({ mobileNav }: HeaderProps) => {
                   <Button
                     variant="neutral"
                     size="sm"
-                    className="hidden md:inline-flex min-w-[120px] justify-center h-8 rounded-full text-sm font-semibold border-0 bg-gradient-to-r from-violet-300 via-violet-400 to-violet-500 text-white hover:opacity-95"
+                    className="hidden md:inline-flex min-w-[120px] justify-center h-8 rounded-full text-sm font-semibold border-0 bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 text-white hover:opacity-95"
                   >
                     {connectedWallet ? (
                       <span className="flex items-center gap-1">
@@ -508,11 +406,75 @@ const Header = ({ mobileNav }: HeaderProps) => {
                   <Button
                     variant="neutral"
                     size="sm"
-                    className="md:hidden rounded-full h-8 px-4 text-sm font-semibold border-0 bg-gradient-to-r from-violet-300 via-violet-400 to-violet-500 text-white hover:opacity-95"
+                    className="md:hidden rounded-full h-8 px-4 text-sm font-semibold border-0 bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 text-white hover:opacity-95"
                   >
                     {connectedWallet ? "Wallet" : "Connect"}
                   </Button>
                 </DialogTrigger>
+
+                {/* Mobile Menu Trigger */}
+                <div className="md:hidden ml-0">
+                  <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+                    <SheetTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 p-0 bg-transparent text-foreground hover:bg-transparent"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          className="h-9 w-9"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.8"
+                          strokeLinecap="round"
+                        >
+                          <line x1="2.5" y1="6.5" x2="22" y2="6.5" />
+                          <line x1="5.5" y1="12" x2="22" y2="12" />
+                          <line x1="8.5" y1="17.5" x2="22" y2="17.5" />
+                        </svg>
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="w-[300px] sm:w-[340px] pt-12">
+                      <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                      <div className="flex flex-col gap-4">
+                        {mobileNavItems.map((item, index) => {
+                          if (item.type === 'link') {
+                            return (
+                              <Link
+                                key={index}
+                                to={item.href}
+                                onClick={() => setSheetOpen(false)}
+                                className={cn(
+                                  "text-lg font-medium transition-colors hover:text-primary",
+                                  location.pathname === item.href || (item.href !== '/' && location.pathname.startsWith(item.href)) ? "text-primary" : "text-muted-foreground"
+                                )}
+                              >
+                                {item.label}
+                              </Link>
+                            )
+                          }
+                          return (
+                            <button
+                              key={index}
+                              onClick={() => {
+                                item.onClick();
+                                setSheetOpen(false);
+                              }}
+                              className={cn(
+                                "text-lg font-medium text-left transition-colors hover:text-primary",
+                                item.active ? "text-primary" : "text-muted-foreground"
+                              )}
+                            >
+                              {item.label}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                </div>
+
                 <DialogContent
                   className={`w-[calc(100%-2rem)] max-w-[420px] border-0 mx-auto rounded-3xl p-0 shadow-xl transition-colors duration-200 sm:max-w-md ${isDarkTheme ? "bg-[#0f0f10] text-neutral-100" : "bg-neutral-100"}`}
                 >
@@ -573,13 +535,12 @@ const Header = ({ mobileNav }: HeaderProps) => {
                       Need help? Install your preferred wallet extension and refresh this page to detect it automatically.
                     </p>
                   </div>
-              </DialogContent>
-            </Dialog>
+                </DialogContent>
+              </Dialog>
 
             </div>
           </div>
         </div>
-        {mobileNav}
       </header>
     </>
   );

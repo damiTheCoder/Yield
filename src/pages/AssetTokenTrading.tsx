@@ -37,22 +37,61 @@ type CandleShapeProps = {
   payload: CandleData;
 };
 
-const buildChart = (seed: number): ChartPoint[] =>
-  Array.from({ length: 48 }).map((_, index) => ({
-    label: `${index + 1}`,
-    value: Number((0.76 + Math.sin((index + seed) / 5) * 0.06 + Math.random() * 0.02).toFixed(3)),
-  }));
+const hashString = (value: string) =>
+  value.split("").reduce((sum, char, index) => sum + char.charCodeAt(0) * (index + 1), 0);
 
-const buildCandleData = (seed: number): CandleData[] =>
-  Array.from({ length: 30 }).map((_, index) => {
-    const base = 0.76 + Math.sin((index + seed) / 5) * 0.06;
-    const volatility = 0.008 + Math.random() * 0.015; // More realistic volatility
-    const direction = Math.random() > 0.45 ? 1 : -1; // Slight bullish bias
-    const open = Number((base + (Math.random() - 0.5) * 0.008).toFixed(3));
-    const close = Number((open + direction * volatility).toFixed(3));
-    const wickRange = Math.random() * 0.01;
-    const high = Number((Math.max(open, close) + wickRange).toFixed(3));
-    const low = Number((Math.min(open, close) - wickRange * 0.8).toFixed(3));
+const getTimeframeLength = (timeframe: (typeof TIMEFRAMES)[number]) => {
+  switch (timeframe) {
+    case "1H":
+      return 24;
+    case "4H":
+      return 32;
+    case "1D":
+      return 48;
+    case "1W":
+      return 56;
+    case "1M":
+      return 64;
+    default:
+      return 48;
+  }
+};
+
+const buildChart = (asset: Asset, currentPrice: number, timeframe: (typeof TIMEFRAMES)[number]): ChartPoint[] => {
+  const length = getTimeframeLength(timeframe);
+  const seed = hashString(`${asset.id}-${asset.cycle.cycle}-${asset.cycle.totalSales.toFixed(2)}`);
+  const base = Math.max(currentPrice, asset.cycle.lpu, 0.0001);
+  const momentum = Math.tanh(asset.cycle.totalSales / Math.max(asset.params.initialReserve, 1)) * 0.12;
+  const volatility = Math.min(
+    0.12,
+    0.015 +
+      asset.cycle.cycle * 0.004 +
+      ((asset.cycle.accrued.currentCycleLiquidity ?? 0) / Math.max(asset.cycle.reserve, 1)) * 0.05,
+  );
+
+  return Array.from({ length }).map((_, index) => {
+    const progress = length > 1 ? index / (length - 1) : 0;
+    const fastWave = Math.sin((index + (seed % 13)) * 0.45) * volatility;
+    const slowWave = Math.cos((index + (seed % 17)) * 0.14) * (volatility * 0.6);
+    const drift = (progress - 0.5) * momentum;
+    const value = Math.max(0.0001, base * (1 + fastWave + slowWave + drift));
+    return {
+      label: `${index + 1}`,
+      value: Number(value.toFixed(4)),
+    };
+  });
+};
+
+const buildCandleData = (chartData: ChartPoint[]): CandleData[] => {
+  if (chartData.length === 0) return [];
+  const source = chartData.slice(Math.max(0, chartData.length - 30));
+  const baseline = source[0]?.value ?? 0.0001;
+  return source.map((point, index) => {
+    const open = Number((source[index - 1]?.value ?? baseline).toFixed(4));
+    const close = Number(point.value.toFixed(4));
+    const wick = Math.max(baseline * 0.002, Math.abs(close - open) * 0.35);
+    const high = Number((Math.max(open, close) + wick).toFixed(4));
+    const low = Number((Math.max(0.0001, Math.min(open, close) - wick)).toFixed(4));
     return {
       label: `${index + 1}`,
       open,
@@ -62,59 +101,83 @@ const buildCandleData = (seed: number): CandleData[] =>
       isBullish: close >= open,
     };
   });
+};
 
-const buildOrderBook = (price: number): OrderBook => {
+const buildOrderBook = (price: number, asset: Asset): OrderBook => {
   const scale = Math.max(price, 0.0001);
+  const baseQuantity = Math.max(
+    500,
+    Math.round((asset.cycle.reserve / Math.max(asset.cycle.supply, 1)) * 2_500),
+  );
+  const demandFactor = Math.max(
+    1,
+    Math.round(asset.cycle.totalSales / Math.max(asset.cycle.lpu * 0.4, 1)),
+  );
   return {
     bids: Array.from({ length: 10 }).map((_, index) => ({
-      price: Number((scale * (1 - 0.003 * (index + 1))).toFixed(4)),
-      amount: 1200 + index * 360,
+      price: Number((scale * (1 - 0.0025 * (index + 1))).toFixed(4)),
+      amount: baseQuantity + (10 - index) * Math.round(baseQuantity * 0.18) + demandFactor * 25,
     })),
     asks: Array.from({ length: 10 }).map((_, index) => ({
-      price: Number((scale * (1 + 0.003 * (index + 1))).toFixed(4)),
-      amount: 900 + index * 320,
+      price: Number((scale * (1 + 0.0025 * (index + 1))).toFixed(4)),
+      amount: baseQuantity + (index + 1) * Math.round(baseQuantity * 0.16) + demandFactor * 20,
     })),
   };
 };
 
-const buildTrades = (price: number): Trade[] =>
+const buildTrades = (orderBook: OrderBook): Trade[] =>
   Array.from({ length: 16 }).map((_, index) => {
     const side: OrderSide = index % 2 === 0 ? "buy" : "sell";
-    const variance = side === "buy" ? 0.006 : -0.005;
+    const level = index % Math.min(orderBook.bids.length, orderBook.asks.length);
+    const price = side === "buy" ? orderBook.bids[level]?.price ?? 0 : orderBook.asks[level]?.price ?? 0;
+    const amountBase = side === "buy" ? orderBook.bids[level]?.amount ?? 0 : orderBook.asks[level]?.amount ?? 0;
+    const hour = 11 + Math.floor(index / 4);
+    const minute = (index * 7 + 12) % 60;
     return {
       id: `trade-${index}`,
-      time: `${11 + Math.floor(index / 4)}:${(index * 4 + 12) % 60}`.padStart(4, "0"),
+      time: `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`,
       side,
-      price: Number((price * (1 + variance + (Math.random() - 0.5) * 0.008)).toFixed(4)),
-      amount: Number((Math.random() * 1800 + 420).toFixed(2)),
+      price: Number(price.toFixed(4)),
+      amount: Number((amountBase * (0.18 + (index % 5) * 0.06)).toFixed(2)),
     };
   });
 
 const formatPriceInputValue = (price: number, multiplier = 1) =>
   price > 0 ? (price * multiplier).toFixed(4) : "";
 
-const useStats = (asset: Asset | undefined, latestPrice: number): Stat[] => {
+const useStats = (
+  asset: Asset | undefined,
+  latestPrice: number,
+  tokenInfo?: { remainingLfts: number; supply: number; phase: "hunt" | "market" } | null,
+): Stat[] => {
   if (!asset) {
     return [];
   }
 
   const reserve = asset.cycle.reserve;
-  const liquidityDelta = asset.cycle.reserve * 0.014;
-  const holders = 1250 + Math.round(Math.random() * 500); // Mock holder count
+  const liquidityDelta = asset.cycle.accrued.currentCycleLiquidity ?? 0;
+  const estimatedTagPrice = Math.max(4.2, asset.cycle.lpu * 0.4);
+  const holders = Math.max(1, Math.round(asset.cycle.totalSales / estimatedTagPrice));
+  const revealProgress =
+    tokenInfo?.phase === "market"
+      ? 100
+      : tokenInfo && tokenInfo.supply > 0
+      ? Math.min(100, Math.max(0, ((tokenInfo.supply - tokenInfo.remainingLfts) / tokenInfo.supply) * 100))
+      : 0;
 
   return [
     { label: "TVL", value: formatCurrencyK(reserve), helper: "Vault-backed" },
     { label: "Last Price", value: formatCurrency(latestPrice), helper: asset.ticker ?? "—" },
-    { label: "24H Volume", value: formatCurrencyK(asset.cycle.reserve * 0.42) },
+    { label: "24H Volume", value: formatCurrencyK(Math.max(asset.cycle.totalSales, asset.cycle.reserve * 0.24)) },
     { label: "Active Holders", value: holders.toLocaleString() },
     { label: "Cycle Liquidity Δ", value: `${liquidityDelta >= 0 ? "+" : ""}${formatCurrencyK(liquidityDelta)}` },
-    { label: "Reveal Progress", value: `${Math.min(96, Math.round(asset.cycle.lpu * 1.8))}%` },
+    { label: "Reveal Progress", value: `${Math.round(revealProgress)}%` },
   ];
 };
 
 export default function AssetTokenTrading() {
   const { id } = useParams<{ id: string }>();
-  const { assets, getAssetTokenInfo } = useApp();
+  const { assets, user, userAssets, getAssetTokenInfo } = useApp();
   const { theme } = useTheme();
   const navigate = useNavigate();
   
@@ -145,11 +208,14 @@ export default function AssetTokenTrading() {
     setStopLoss(formatPriceInputValue(currentPrice, 0.95));
     setTakeProfit(formatPriceInputValue(currentPrice, 1.1));
   }, [asset?.id, currentPrice]);
-  const chartData = useMemo(() => buildChart((asset?.id.length ?? 2) * 3), [asset]);
-  const candleData = useMemo(() => buildCandleData((asset?.id.length ?? 2) * 3), [asset]);
-  const orderBook = useMemo(() => buildOrderBook(currentPrice), [currentPrice]);
-  const trades = useMemo(() => buildTrades(currentPrice), [currentPrice]);
-  const stats = useStats(asset, currentPrice);
+  const chartData = useMemo(
+    () => (asset ? buildChart(asset, currentPrice, timeframe) : []),
+    [asset, currentPrice, timeframe],
+  );
+  const candleData = useMemo(() => buildCandleData(chartData), [chartData]);
+  const orderBook = useMemo(() => (asset ? buildOrderBook(currentPrice, asset) : { bids: [], asks: [] }), [asset, currentPrice]);
+  const trades = useMemo(() => buildTrades(orderBook), [orderBook]);
+  const stats = useStats(asset, currentPrice, tokenInfo);
   const parsedLimitPrice = Number(priceInput);
   const effectivePrice =
     orderType === "market" || !parsedLimitPrice
@@ -161,6 +227,23 @@ export default function AssetTokenTrading() {
   const estimatedCost = formatCurrency(notionalValue);
   const estimatedFeeValue = notionalValue * 0.001;
   const estimatedFee = formatCurrency(estimatedFeeValue);
+  const tradingEnabled = Boolean(tokenInfo && (tokenInfo.unlocked || tokenInfo.phase === "market"));
+  const phaseLabel = tokenInfo?.phase === "market" ? "Market Phase (WALV)" : tokenInfo?.unlocked ? "Trading Enabled" : "Hunt Phase";
+  const phaseHelper =
+    tokenInfo?.phase === "market"
+      ? "Redemption is closed. Trading price follows WALV."
+      : tokenInfo?.unlocked
+      ? "Discovery complete. Token trading is active."
+      : "Trading unlocks after hunt discovery completes.";
+  const priceChangePct = useMemo(() => {
+    if (chartData.length < 2) return 0;
+    const start = chartData[0]?.value ?? currentPrice;
+    const end = chartData[chartData.length - 1]?.value ?? currentPrice;
+    if (start <= 0) return 0;
+    return Number((((end - start) / start) * 100).toFixed(2));
+  }, [chartData, currentPrice]);
+  const priceChangeLabel = `${priceChangePct >= 0 ? "+" : ""}${priceChangePct.toFixed(2)}% (24h)`;
+  const priceChangeTone = priceChangePct >= 0 ? "text-emerald-500" : "text-rose-500";
 
 
   if (!asset) {
@@ -226,6 +309,11 @@ export default function AssetTokenTrading() {
       icon: Radio,
     },
   ] as const;
+  const avgEntry = trades.length > 0 ? trades.reduce((sum, trade) => sum + trade.price, 0) / trades.length : currentPrice;
+  const queueNotional = orderBook.bids.slice(0, 5).reduce((sum, bid) => sum + bid.price * bid.amount, 0);
+  const longPositionValue = (userAssets[asset.id]?.lfts ?? 0) * currentPrice;
+  const executionWindow = poolDepth > 150_000 ? "~20s" : poolDepth > 75_000 ? "~1 min" : "~2 mins";
+  const liquidityLabel = poolDepth > 100_000 ? "Deep" : poolDepth > 40_000 ? "Healthy" : "Thin";
 
   return (
     <div className="min-h-screen bg-background">
@@ -252,9 +340,10 @@ export default function AssetTokenTrading() {
                 <div className="flex items-center gap-3 text-xs sm:text-sm text-muted-foreground">
                   <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-medium">
                     <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                    Live
+                    {phaseLabel}
                   </span>
                 </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">{phaseHelper}</p>
               </div>
               
               {/* Timeframe Selector */}
@@ -281,7 +370,7 @@ export default function AssetTokenTrading() {
             <div className="mb-6 flex items-start justify-between">
               <div>
                 <p className="text-3xl sm:text-4xl font-bold text-foreground">{formatCurrency(currentPrice)}</p>
-                <p className="text-sm font-semibold text-emerald-500">+3.84% (24h)</p>
+                <p className={cn("text-sm font-semibold", priceChangeTone)}>{priceChangeLabel}</p>
               </div>
               <button
                 onClick={() => setChartType(chartType === "line" ? "candle" : "line")}
@@ -631,11 +720,11 @@ export default function AssetTokenTrading() {
                   <div className="grid grid-cols-3 gap-3 text-center">
                     <div className="space-y-1">
                       <div className="text-xs text-muted-foreground">Slippage</div>
-                      <div className="text-sm font-semibold text-foreground">0.12%</div>
+                      <div className="text-sm font-semibold text-foreground">{priceImpact.toFixed(2)}%</div>
                     </div>
                     <div className="space-y-1">
                       <div className="text-xs text-muted-foreground">Liquidity</div>
-                      <div className="text-sm font-semibold text-emerald-500">Deep</div>
+                      <div className="text-sm font-semibold text-emerald-500">{liquidityLabel}</div>
                     </div>
                     <div className="space-y-1">
                       <div className="text-xs text-muted-foreground">Speed</div>
@@ -644,17 +733,17 @@ export default function AssetTokenTrading() {
                   </div>
 
                   {/* Submit Button */}
-                  <Button 
-                    className={cn(
-                      "w-full h-12 font-semibold transition-colors",
+                    <Button 
+                      className={cn(
+                        "w-full h-12 font-semibold transition-colors",
                       tradeSide === "buy" 
                         ? "bg-emerald-500 hover:bg-emerald-600 text-white"
                         : "bg-rose-500 hover:bg-rose-600 text-white"
-                    )}
-                    disabled={!tokenInfo?.unlocked}
+                      )}
+                    disabled={!tradingEnabled}
                   >
-                    {tokenInfo?.unlocked 
-                      ? `${tradeSide === "buy" ? "Buy" : "Sell"} ${asset.ticker || asset.name}` 
+                    {tradingEnabled
+                      ? `${tradeSide === "buy" ? "Buy" : "Sell"} ${asset.ticker || asset.name}`
                       : "Trading Unlocks After Discovery"
                     }
                   </Button>
@@ -673,15 +762,15 @@ export default function AssetTokenTrading() {
                     <div className="space-y-2 text-sm">
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Pending Orders</span>
-                        <span className="font-mono text-foreground">{formatCurrencyK(4200)}</span>
+                        <span className="font-mono text-foreground">{formatCurrencyK(queueNotional)}</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Avg. Entry</span>
-                        <span className="font-mono text-foreground">{formatCurrency(currentPrice * 0.98)}</span>
+                        <span className="font-mono text-foreground">{formatCurrency(avgEntry)}</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Execution Time</span>
-                        <span className="font-mono text-foreground">~2 mins</span>
+                        <span className="font-mono text-foreground">{executionWindow}</span>
                       </div>
                     </div>
                   </div>
@@ -694,11 +783,13 @@ export default function AssetTokenTrading() {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between bg-emerald-50 dark:bg-emerald-500/10 px-3 py-2">
                         <span className="text-sm text-emerald-700 dark:text-emerald-300">Long Position</span>
-                        <span className="font-mono text-sm font-semibold text-emerald-600 dark:text-emerald-400">+$4,820</span>
+                        <span className="font-mono text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                          {longPositionValue > 0 ? `+${formatCurrency(longPositionValue)}` : formatCurrency(0)}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between bg-muted/50 px-3 py-2">
                         <span className="text-sm text-muted-foreground">Available Balance</span>
-                        <span className="font-mono text-sm text-foreground">$12,340</span>
+                        <span className="font-mono text-sm text-foreground">{formatCurrency(user.usd)}</span>
                       </div>
                     </div>
                   </div>
@@ -909,9 +1000,10 @@ export default function AssetTokenTrading() {
                 <div className="flex items-center gap-3 text-xs sm:text-sm text-muted-foreground">
                   <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-medium">
                     <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                    Live
+                    {phaseLabel}
                   </span>
                 </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">{phaseHelper}</p>
               </div>
               
               {/* Timeframe Selector */}
@@ -938,7 +1030,7 @@ export default function AssetTokenTrading() {
             <div className="mb-4 flex items-start justify-between">
               <div>
                 <p className="text-3xl sm:text-4xl font-bold text-foreground">{formatCurrency(currentPrice)}</p>
-                <p className="text-sm font-semibold text-emerald-500">+3.84% (24h)</p>
+                <p className={cn("text-sm font-semibold", priceChangeTone)}>{priceChangeLabel}</p>
               </div>
               <button
                 onClick={() => setChartType(chartType === "line" ? "candle" : "line")}
@@ -1140,19 +1232,23 @@ export default function AssetTokenTrading() {
           <div className="grid grid-cols-2 gap-3 max-w-md mx-auto">
             <Button
               onClick={() => {
+                if (!tradingEnabled) return;
                 setModalTradeSide("buy");
                 setShowTradingModal(true);
               }}
               className="h-12 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold"
+              disabled={!tradingEnabled}
             >
               Buy {asset.ticker || asset.name}
             </Button>
             <Button
               onClick={() => {
+                if (!tradingEnabled) return;
                 setModalTradeSide("sell");
                 setShowTradingModal(true);
               }}
               className="h-12 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white font-semibold"
+              disabled={!tradingEnabled}
             >
               Sell {asset.ticker || asset.name}
             </Button>
@@ -1298,7 +1394,9 @@ export default function AssetTokenTrading() {
               <div className="bg-muted/30 p-4 text-center rounded-lg">
                 <p className="text-sm text-muted-foreground">Current Price</p>
                 <p className="text-2xl font-bold text-foreground">{formatCurrency(currentPrice)}</p>
-                <span className="text-sm font-semibold text-emerald-500">+3.84%</span>
+                <span className={cn("text-sm font-semibold", priceChangeTone)}>
+                  {priceChangePct >= 0 ? "+" : ""}{priceChangePct.toFixed(2)}%
+                </span>
               </div>
 
               {/* Order Type Selector */}
@@ -1462,8 +1560,11 @@ export default function AssetTokenTrading() {
                     : "bg-rose-500 hover:bg-rose-600 text-white"
                 )}
                 onClick={() => setShowTradingModal(false)}
+                disabled={!tradingEnabled}
               >
-                {modalTradeSide === "buy" ? "Place Buy Order" : "Place Sell Order"}
+                {tradingEnabled
+                  ? modalTradeSide === "buy" ? "Place Buy Order" : "Place Sell Order"
+                  : "Trading Unlocks After Discovery"}
               </Button>
             </div>
           </DialogContent>

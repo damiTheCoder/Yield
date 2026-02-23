@@ -8,30 +8,34 @@ export default function Notifications() {
 
   const notifications = useMemo(() => {
     const huntNotifications = assets.slice(0, 8).map((asset, index) => {
-      const notificationType = index % 4;
+      const marketOnly = Boolean(asset.secondaryMarket?.active);
+      const notificationType = marketOnly ? 3 : index % 4;
+      const hoursAgo = Math.max(1, ((index + 1) * 3 + asset.cycle.cycle) % 24);
       return {
         id: `${asset.id}-${index}`,
         type: notificationType === 0 ? 'purchased_hunt' : 
               notificationType === 1 ? 'new_hunt' : 
-              notificationType === 2 ? 'hunt_ending' : 'platform_update',
+              notificationType === 2 ? 'hunt_ending' : (marketOnly ? 'market_phase' : 'platform_update'),
         asset,
         title: notificationType === 0 ? 'Hunt Ready' :
                notificationType === 1 ? 'New Hunt Available' :
-               notificationType === 2 ? 'Hunt Ending Soon' : 'Platform Update',
+               notificationType === 2 ? 'Hunt Ending Soon' : (marketOnly ? 'Market Phase Active' : 'Platform Update'),
         content: notificationType === 0 
           ? `Your CoinTags for ${asset.name} are ready! Hunt cycle ${asset.cycle.cycle} has begun with ${formatCurrencyK(asset.cycle.reserve)} liquidity.`
           : notificationType === 1
           ? `New hunt opportunity: ${asset.name} cycle ${asset.cycle.cycle} is now available. ${formatCurrencyK(asset.cycle.reserve)} in liquidity rewards.`
           : notificationType === 2
           ? `${asset.name} hunt cycle ${asset.cycle.cycle} ends in 6 hours. Last chance to use your CoinTags!`
+          : marketOnly
+          ? `${asset.name} has moved into market-only trading. WALV now anchors token pricing and redemptions are closed.`
           : `Platform maintenance scheduled for tomorrow 2AM UTC. All hunts will be temporarily paused.`,
-        timestamp: `${Math.floor(Math.random() * 24) + 1}h`,
+        timestamp: `${hoursAgo}h`,
         metrics: {
           found: Math.max(0, asset.cycle.initialSupply - asset.cycle.supply),
-          lpu: asset.cycle.lpu,
+          lpu: asset.secondaryMarket?.active ? asset.secondaryMarket.walv : asset.cycle.lpu,
           liquidity: asset.cycle.reserve
         },
-        priority: notificationType === 0 ? 'high' : notificationType === 2 ? 'medium' : 'normal'
+        priority: notificationType === 0 ? 'high' : notificationType === 2 ? 'medium' : (marketOnly ? 'high' : 'normal')
       };
     });
     
@@ -44,7 +48,8 @@ export default function Notifications() {
       case 'purchased_hunt': return <Bell className={`${baseClasses} text-green-500`} />;
       case 'new_hunt': return <Bell className={`${baseClasses} text-blue-500`} />;
       case 'hunt_ending': return <Bell className={`${baseClasses} text-orange-500`} />;
-      case 'platform_update': return <Bell className={`${baseClasses} text-purple-500`} />;
+      case 'platform_update': return <Bell className={`${baseClasses} text-blue-500`} />;
+      case 'market_phase': return <Bell className={`${baseClasses} text-blue-500`} />;
       default: return <Bell className={`${baseClasses} text-muted-foreground`} />;
     }
   };
@@ -114,7 +119,7 @@ export default function Notifications() {
                     {(notification.type === 'purchased_hunt' || notification.type === 'new_hunt') && (
                       <div className="flex gap-2 mt-3">
                         <a
-                          href={`/assets/${notification.asset.id}/token`}
+                          href={`/assets/${notification.asset.id}/hunt`}
                           className="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-medium transition-colors bg-black text-white hover:bg-black/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black dark:bg-white dark:text-black dark:hover:bg-white/90 dark:focus-visible:outline-white"
                         >
                           {notification.type === 'purchased_hunt' ? 'Start Hunt' : 'View Hunt'}

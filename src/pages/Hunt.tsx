@@ -106,8 +106,9 @@ export default function HuntPage() {
       assetName={asset.name}
       ticker={asset.ticker}
       cycleNumber={asset.cycle.cycle}
-      pricePerUnit={asset.cycle.lpu}
+      pricePerUnit={asset.secondaryMarket?.active ? asset.secondaryMarket.walv : asset.cycle.lpu}
       image={asset.image}
+      marketOnly={Boolean(asset.secondaryMarket?.active)}
     />
   );
 }
@@ -119,10 +120,11 @@ type HuntExperienceProps = {
   cycleNumber: number;
   pricePerUnit: number;
   image: string;
+  marketOnly: boolean;
 };
 
-function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit, image }: HuntExperienceProps) {
-  const { getHuntProgress, updateHuntProgress, claimHuntToken } = useApp();
+function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit, image, marketOnly }: HuntExperienceProps) {
+  const { getHuntProgress, updateHuntProgress, claimHuntToken, spendAssetCoinTag } = useApp();
 
   // Load saved progress or initialize
   const [revealed, setRevealed] = useState<Set<string>>(() => {
@@ -186,6 +188,11 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
   }, [assetId, matched, failed, foundTokens, updateHuntProgress]);
 
   const handleSubmit = useCallback(() => {
+    if (marketOnly) {
+      setStatusType("error");
+      setStatus("Hunt phase has ended for this asset. Trading is now market-only.");
+      return;
+    }
     const coord = inputValue.trim().toUpperCase();
     if (!coord) return;
     if (!huntData.values[coord]) {
@@ -201,6 +208,19 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
     if (matched.has(coord)) {
       setStatusType("error");
       setStatus("You already claimed that coordinate.");
+      return;
+    }
+
+    if (foundTokens >= maxTokens) {
+      setStatusType("error");
+      setStatus("You've already claimed the maximum tokens for this hunt.");
+      return;
+    }
+
+    const spent = spendAssetCoinTag(assetId, 1);
+    if (!spent) {
+      setStatusType("error");
+      setStatus("You need at least 1 CoinTag to submit a hunt attempt.");
       return;
     }
 
@@ -226,12 +246,6 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
       setStatusType("error");
       setStatus(`No token at ${coord}. Keep searching!`);
       setInputValue("");
-      return;
-    }
-
-    if (foundTokens >= maxTokens) {
-      setStatusType("error");
-      setStatus("You've already claimed the maximum tokens for this hunt.");
       return;
     }
 
@@ -277,7 +291,7 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
         foundTokens: nextFoundTokens,
       });
     }, 0);
-  }, [inputValue, huntData, revealed, matched, failed, foundTokens, maxTokens, claimHuntToken, assetId, pricePerUnit, updateHuntProgress]);
+  }, [marketOnly, inputValue, huntData, revealed, matched, failed, foundTokens, maxTokens, claimHuntToken, assetId, pricePerUnit, updateHuntProgress, spendAssetCoinTag]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -458,7 +472,7 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
                   <Button
                     onClick={handleSubmit}
                     variant="ghost"
-                    className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-violet-300 via-violet-400 to-violet-500 border-0 hover:opacity-95"
+                    className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 border-0 hover:opacity-95"
                   >
                     Submit
                   </Button>
@@ -488,7 +502,7 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
                     <Button
                       onClick={handleSubmit}
                       variant="ghost"
-                      className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-violet-300 via-violet-400 to-violet-500 border-0 hover:opacity-95"
+                      className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 border-0 hover:opacity-95"
                     >
                       Submit
                     </Button>

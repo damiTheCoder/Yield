@@ -37,6 +37,7 @@ export interface StoredState {
   }>;
   assetAvailable: Record<string, number>;
   userAssets: Record<string, { coinTags: number; lfts: number }>;
+  assetCoinTagCodes: Record<string, string[]>;
   huntProgress: Record<string, HuntProgress>; // per-asset hunt progress
 }
 
@@ -52,6 +53,7 @@ export function saveState(state: Partial<StoredState>): void {
       assets: state.assets || [],
       assetAvailable: state.assetAvailable || {},
       userAssets: state.userAssets || {},
+      assetCoinTagCodes: state.assetCoinTagCodes || {},
       huntProgress: state.huntProgress || {},
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToStore));

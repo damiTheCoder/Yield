@@ -53,7 +53,7 @@ export default function OrderBook({ sellers, transactions, currentPrice, vwapPri
     .map((tx, index) => ({
       id: `B${tx.timestamp}`,
       price: tx.price * 0.99, // Slightly below execution price for realistic bid
-      quantity: tx.amount * (0.8 + Math.random() * 0.4), // Realistic quantity variation
+      quantity: tx.amount * (0.85 + ((index % 5) * 0.07)), // Deterministic quantity variation
       type: 'buy' as const,
       timestamp: tx.timestamp
     }))

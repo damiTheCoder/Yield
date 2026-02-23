@@ -1,4 +1,4 @@
-/* Removed DM Sans import, using Glacial Indifference as default font */
+/* Global Glacial Indifference font setup */
 
 @font-face {
   font-family: "Glacial Indifference";
@@ -797,7 +797,7 @@
     background: hsl(var(--background));
     min-height: 100vh;
     overflow-x: hidden;
-    font-family: 'Glacial Indifference', 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Glacial Indifference', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-weight: 700;
   }
   
@@ -808,7 +808,7 @@
   th, td, li,
   .font-mono,
   [class*="font-mono"] {
-    font-family: 'Glacial Indifference', 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    font-family: 'Glacial Indifference', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
     font-weight: 700 !important;
   }
 

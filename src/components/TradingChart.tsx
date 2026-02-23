@@ -203,7 +203,7 @@ export default function TradingChart({
               <div className="flex items-center gap-2">
                 <img src="/h4.png" alt="cLT" className="h-8 w-8 rounded-full hidden sm:inline-block" />
                 <span>cLT / USDC</span>
-                <div className="ml-2 px-2 py-1 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg text-xs text-blue-600 font-medium">
+                <div className="ml-2 px-2 py-1 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-lg text-xs text-blue-600 font-medium">
                   Single Asset Trading
                 </div>
               </div>

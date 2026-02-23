@@ -139,7 +139,7 @@ export default function Index() {
           <div className="text-center">
             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-foreground mb-6">
               The Future of{" "}
-              <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 bg-clip-text text-transparent">
                 Digital Assets
               </span>
             </h1>

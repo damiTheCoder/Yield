@@ -52,7 +52,7 @@ const DropsSection = () => {
               <div className="space-y-3 text-sm">
                 <SplitRow label="Creator desk" value="50%" color="bg-blue-400" />
                 <SplitRow label="Liquidity contribution" value="10%" color="bg-emerald-400" />
-                <SplitRow label="Reserve growth" value="20%" color="bg-purple-400" />
+                <SplitRow label="Reserve growth" value="20%" color="bg-blue-400" />
                 <SplitRow label="Holder rewards" value="5%" color="bg-orange-400" />
                 <SplitRow label="Platform + operations" value="15%" color="bg-pink-400" />
               </div>

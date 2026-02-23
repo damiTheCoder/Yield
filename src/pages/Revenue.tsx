@@ -1,21 +1,21 @@
 import { useMemo, useState } from "react";
-import { TrendingUp, Users, PiggyBank, ArrowDownCircle, Activity } from "lucide-react";
+import { TrendingUp, Users, PiggyBank, ArrowDownCircle, Activity, Trophy, Wallet } from "lucide-react";
 import {
   Bar,
   BarChart,
+  Cell,
   CartesianGrid,
   Line,
   LineChart,
-  ResponsiveContainer,
   XAxis,
   YAxis,
-  Tooltip as RechartsTooltip,
 } from "recharts";
 import { useApp } from "@/lib/app-state";
 import { formatCurrency, formatCurrencyK, cn } from "@/lib/utils";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type SeriesPoint = {
   name: string;
@@ -25,13 +25,14 @@ type SeriesPoint = {
 };
 
 const palette = {
-  primary: "hsl(142 76% 45%)",
-  secondary: "hsl(222 89% 63%)",
-  accent: "hsl(268 90% 65%)",
+  primary: "hsl(200 90% 56%)",
+  secondary: "hsl(214 92% 62%)",
+  accent: "hsl(188 92% 50%)",
 };
 
 export default function Revenue() {
   const { assets } = useApp();
+  const isMobile = useIsMobile();
   const [selectedId, setSelectedId] = useState(() => assets[0]?.id ?? "");
   const selectedAsset = assets.find((asset) => asset.id === selectedId) ?? assets[0] ?? null;
 
@@ -94,35 +95,66 @@ export default function Revenue() {
       .sort((a, b) => b.sales - a.sales);
   }, [assets]);
 
+  const topPerformer = leaderboard[0] ?? null;
+  const averageSales = assets.length > 0 ? globalStats.totalSales / assets.length : 0;
+  const payoutToSalesRatio = globalStats.totalSales > 0 ? (globalStats.totalPayouts / globalStats.totalSales) * 100 : 0;
+
   const chartConfig = {
     sales: { label: "Gross Sales", color: palette.primary },
     liquidity: { label: "Current Liquidity Added", color: palette.secondary },
     payouts: { label: "Holder Payouts", color: palette.accent },
     nextCycleLiquidity: { label: "Next Cycle Liquidity Seed", color: "hsl(199 89% 60%)" },
-    creator: { label: "Creator Share", color: palette.primary },
-    platform: { label: "Platform Share", color: palette.accent },
+    creator: { label: "Creator Share", color: "hsl(222 89% 63%)" },
+    platform: { label: "Platform Share", color: "hsl(188 92% 50%)" },
   } as const;
 
   const multiStreamMinWidth = useMemo(
-    () => Math.max(performanceSeries.length * 200, 720),
-    [performanceSeries.length],
+    () => Math.max(performanceSeries.length * (isMobile ? 144 : 180), isMobile ? 560 : 760),
+    [isMobile, performanceSeries.length],
   );
 
-  const detailChartData = useMemo(
+  const selectedSplitSeries = useMemo(
     () =>
       selectedAsset
         ? [
             {
-              label: selectedAsset.ticker || selectedAsset.name,
-              creator: selectedAsset.cycle.accrued.creator ?? 0,
-              nextCycleLiquidity: selectedAsset.cycle.accrued.nextCycleLiquidity ?? 0,
-              liquidity: selectedAsset.cycle.accrued.currentCycleLiquidity ?? 0,
-              payouts: selectedAsset.cycle.accrued.holderRewards ?? 0,
-              platform: selectedAsset.cycle.accrued.platform ?? 0,
+              key: "creator",
+              label: "Creator Share",
+              value: selectedAsset.cycle.accrued.creator ?? 0,
+              color: chartConfig.creator.color,
+            },
+            {
+              key: "nextCycleLiquidity",
+              label: "Next Cycle Liquidity",
+              value: selectedAsset.cycle.accrued.nextCycleLiquidity ?? 0,
+              color: chartConfig.nextCycleLiquidity.color,
+            },
+            {
+              key: "liquidity",
+              label: "Current Liquidity",
+              value: selectedAsset.cycle.accrued.currentCycleLiquidity ?? 0,
+              color: chartConfig.liquidity.color,
+            },
+            {
+              key: "payouts",
+              label: "Holder Rewards",
+              value: selectedAsset.cycle.accrued.holderRewards ?? 0,
+              color: chartConfig.payouts.color,
+            },
+            {
+              key: "platform",
+              label: "Platform Allocation",
+              value: selectedAsset.cycle.accrued.platform ?? 0,
+              color: chartConfig.platform.color,
             },
           ]
         : [],
-    [selectedAsset],
+    [selectedAsset, chartConfig.creator.color, chartConfig.liquidity.color, chartConfig.nextCycleLiquidity.color, chartConfig.payouts.color, chartConfig.platform.color],
+  );
+
+  const selectedSplitTotal = useMemo(
+    () => selectedSplitSeries.reduce((sum, item) => sum + item.value, 0),
+    [selectedSplitSeries],
   );
 
   if (assets.length === 0) {
@@ -140,7 +172,7 @@ export default function Revenue() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <main className="container mx-auto px-4 pb-16 pt-6 space-y-10">
+      <main className="container mx-auto space-y-10 px-4 pb-16 pt-6">
         <header className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Revenue Command Center</h1>
@@ -154,35 +186,86 @@ export default function Revenue() {
           </div>
         </header>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <KpiCard
             icon={TrendingUp}
             label="Gross Token Sales"
             primary={formatCurrency(globalStats.totalSales)}
             caption={`${performanceSeries.length} active collections`}
+            tone="blue"
           />
           <KpiCard
             icon={PiggyBank}
             label="Liquidity Backing"
             primary={formatCurrency(globalStats.totalLiquidity)}
             caption="Funds routed into current reserves"
+            tone="cyan"
           />
           <KpiCard
             icon={Users}
             label="Holder Payouts"
             primary={formatCurrency(globalStats.totalPayouts)}
             caption="Estimated cumulative share outs"
+            tone="indigo"
           />
           <KpiCard
             icon={ArrowDownCircle}
             label="Cycle Rollover Seed"
             primary={formatCurrency(globalStats.seed)}
             caption="Allocated to next cycle reserves"
+            tone="teal"
           />
         </section>
 
+        <section className="grid gap-4 lg:grid-cols-3">
+          <Card className="border-border/60 bg-surface/60 shadow-sm lg:col-span-2">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base sm:text-lg">Portfolio Snapshot</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl border border-border/50 bg-background/60 p-4">
+                <div className="flex items-start justify-between">
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">Top Performer</p>
+                  <Trophy className="h-4 w-4 text-sky-400" />
+                </div>
+                <p className="mt-3 truncate text-lg font-semibold text-foreground">
+                  {topPerformer ? topPerformer.name : "No data"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {topPerformer ? `${topPerformer.ticker || topPerformer.id.toUpperCase()} · ${formatCurrency(topPerformer.sales)}` : "Launch data pending"}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-border/50 bg-background/60 p-4">
+                <div className="flex items-start justify-between">
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">Average Sales</p>
+                  <Wallet className="h-4 w-4 text-cyan-400" />
+                </div>
+                <p className="mt-3 text-lg font-semibold text-foreground">{formatCurrency(averageSales)}</p>
+                <p className="text-xs text-muted-foreground">Per collection across current cycle</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/60 bg-surface/60 shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base sm:text-lg">Payout Efficiency</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="font-mono text-3xl font-semibold text-foreground">{payoutToSalesRatio.toFixed(1)}%</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Holder rewards as a share of gross token sales.
+              </p>
+              <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-muted/70">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500"
+                  style={{ width: `${Math.min(100, payoutToSalesRatio)}%` }}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
         <section className="grid gap-6">
-          <Card className="border-border/60 bg-surface/60 shadow-lg">
+          <Card className="border-border/60 bg-surface/60 shadow-sm">
             <CardHeader className="flex flex-col space-y-2">
               <CardTitle className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 Multi-Stream Revenue
@@ -194,34 +277,41 @@ export default function Revenue() {
                 Compare sales, liquidity injections, and holder payouts for each token you launched.
               </p>
             </CardHeader>
-            <CardContent className="px-0 pb-6">
-              <div className="-mx-4 overflow-x-auto px-4 no-scrollbar sm:-mx-6 sm:px-6">
-                <div className="h-[320px]" style={{ width: multiStreamMinWidth }}>
-                  <ChartContainer config={chartConfig} className="h-full w-full">
-                    <ResponsiveContainer width="100%" height="100%">
+            <CardContent className="space-y-3 px-0 pb-5">
+              <div className="px-4 sm:px-6">
+                <div className="flex flex-wrap items-center gap-3 text-xs">
+                  <LegendPill label="Gross Sales" color={chartConfig.sales.color} />
+                  <LegendPill label="Current Liquidity" color={chartConfig.liquidity.color} />
+                  <LegendPill label="Holder Payouts" color={chartConfig.payouts.color} />
+                </div>
+              </div>
+              <ScrollArea className="w-full">
+                <div className="px-4 pb-2 sm:px-6">
+                  <div className={cn("h-[300px] sm:h-[340px]", isMobile ? "min-w-[560px]" : "")} style={{ width: multiStreamMinWidth }}>
+                    <ChartContainer config={chartConfig} className="h-full w-full">
                       <BarChart
                         data={performanceSeries}
-                        margin={{ top: 16, right: 24, left: 24, bottom: 48 }}
-                        barCategoryGap="32%"
+                        margin={{ top: 12, right: isMobile ? 12 : 20, left: isMobile ? 8 : 20, bottom: isMobile ? 52 : 56 }}
+                        barCategoryGap={isMobile ? "22%" : "30%"}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                         <XAxis
                           dataKey="name"
                           tick={{
                             fill: "hsl(var(--muted-foreground))",
-                            fontSize: 11,
-                            angle: -20,
+                            fontSize: isMobile ? 10 : 11,
+                            angle: -24,
                             textAnchor: "end",
                           }}
-                          tickFormatter={(value) => (value.length > 16 ? `${value.slice(0, 15)}…` : value)}
+                          tickFormatter={(value: string) => (value.length > (isMobile ? 10 : 16) ? `${value.slice(0, isMobile ? 9 : 15)}…` : value)}
                           tickLine={false}
                           axisLine={false}
-                          height={56}
+                          height={58}
                         />
                         <YAxis
-                          tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                          tick={{ fill: "hsl(var(--muted-foreground))", fontSize: isMobile ? 10 : 11 }}
                           tickFormatter={(value) => formatCurrencyK(value)}
-                          width={60}
+                          width={isMobile ? 52 : 60}
                           axisLine={false}
                           tickLine={false}
                         />
@@ -234,64 +324,76 @@ export default function Revenue() {
                             />
                           }
                         />
-                        <Bar dataKey="sales" fill={chartConfig.sales.color} radius={[8, 8, 4, 4]} />
-                        <Bar dataKey="liquidity" fill={chartConfig.liquidity.color} radius={[8, 8, 4, 4]} />
-                        <Bar dataKey="payouts" fill={chartConfig.payouts.color} radius={[8, 8, 4, 4]} />
+                        <Bar dataKey="sales" fill={chartConfig.sales.color} radius={[8, 8, 4, 4]} maxBarSize={isMobile ? 14 : 20} />
+                        <Bar dataKey="liquidity" fill={chartConfig.liquidity.color} radius={[8, 8, 4, 4]} maxBarSize={isMobile ? 14 : 20} />
+                        <Bar dataKey="payouts" fill={chartConfig.payouts.color} radius={[8, 8, 4, 4]} maxBarSize={isMobile ? 14 : 20} />
                       </BarChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
+                    </ChartContainer>
+                  </div>
                 </div>
-              </div>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
             </CardContent>
           </Card>
         </section>
 
         <section className="space-y-6">
-          <Card className="border-border/60 bg-surface/60 shadow-lg">
+          <Card className="border-border/60 bg-surface/60 shadow-sm">
             <CardHeader>
               <CardTitle>Cycle Momentum</CardTitle>
               <p className="text-sm text-muted-foreground">
                 Next-cycle liquidity, creator share, and platform allocations plotted per collection.
               </p>
             </CardHeader>
-            <CardContent className="h-[320px] px-0 pb-6">
-              <ChartContainer config={chartConfig} className="h-full w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={timelineSeries} margin={{ top: 16, right: 32, left: 12, bottom: 12 }}>
+            <CardContent className="space-y-3 px-0 pb-5">
+              <div className="px-4 sm:px-6">
+                <div className="flex flex-wrap items-center gap-3 text-xs">
+                  <LegendPill label="Next Cycle Liquidity" color={chartConfig.nextCycleLiquidity.color} />
+                  <LegendPill label="Creator Share" color={chartConfig.creator.color} />
+                  <LegendPill label="Platform Share" color={chartConfig.platform.color} />
+                </div>
+              </div>
+              <div className="px-4 sm:px-6">
+                <div className="h-[280px] w-full sm:h-[320px]">
+                  <ChartContainer config={chartConfig} className="h-full w-full">
+                    <LineChart data={timelineSeries} margin={{ top: 14, right: isMobile ? 12 : 24, left: isMobile ? 6 : 12, bottom: 8 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis
                       dataKey="name"
-                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: isMobile ? 10 : 12 }}
+                      interval={isMobile ? "preserveStartEnd" : 0}
+                      minTickGap={isMobile ? 28 : 16}
+                      tickFormatter={(value: string) => (value.length > (isMobile ? 9 : 14) ? `${value.slice(0, isMobile ? 8 : 13)}…` : value)}
                       tickLine={false}
                       axisLine={false}
                     />
                     <YAxis
-                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: isMobile ? 10 : 11 }}
                       tickFormatter={(value) => formatCurrencyK(value)}
-                      width={64}
+                      width={isMobile ? 54 : 64}
                       axisLine={false}
                       tickLine={false}
                     />
-                    <RechartsTooltip
+                    <ChartTooltip
                       cursor={{ stroke: "hsl(var(--muted-foreground))", strokeDasharray: "4 4" }}
-                      contentStyle={{
-                        backgroundColor: "hsl(var(--background))",
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: "0.75rem",
-                      }}
-                      formatter={(value: number, name: string) => [formatCurrency(value), chartConfig[name as keyof typeof chartConfig]?.label ?? name]}
-                      labelFormatter={(label) => `Collection: ${label}`}
+                      content={
+                        <ChartTooltipContent
+                          labelFormatter={(label) => `Collection: ${label}`}
+                          formatter={(value, name) => [formatCurrency(Number(value)), chartConfig[name as keyof typeof chartConfig]?.label ?? name]}
+                        />
+                      }
                     />
-                    <Line dataKey="nextCycleLiquidity" type="monotone" stroke={chartConfig.nextCycleLiquidity.color} strokeWidth={2} dot={{ r: 3 }} name="nextCycleLiquidity" />
-                    <Line dataKey="creator" type="monotone" stroke={chartConfig.creator.color} strokeWidth={2} dot={{ r: 3 }} name="creator" />
-                    <Line dataKey="platform" type="monotone" stroke={chartConfig.platform.color} strokeWidth={2} dot={{ r: 3 }} name="platform" />
+                    <Line dataKey="nextCycleLiquidity" type="monotone" stroke={chartConfig.nextCycleLiquidity.color} strokeWidth={2.2} dot={!isMobile ? { r: 2.5 } : false} activeDot={{ r: 4 }} name="nextCycleLiquidity" />
+                    <Line dataKey="creator" type="monotone" stroke={chartConfig.creator.color} strokeWidth={2.2} dot={!isMobile ? { r: 2.5 } : false} activeDot={{ r: 4 }} name="creator" />
+                    <Line dataKey="platform" type="monotone" stroke={chartConfig.platform.color} strokeWidth={2.2} dot={!isMobile ? { r: 2.5 } : false} activeDot={{ r: 4 }} name="platform" />
                   </LineChart>
-                </ResponsiveContainer>
-              </ChartContainer>
+                  </ChartContainer>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="border-border/60 bg-surface/60 shadow-lg">
+          <Card className="border-border/60 bg-surface/60 shadow-sm">
             <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <CardTitle>Token Revenue Leaderboard</CardTitle>
@@ -308,26 +410,34 @@ export default function Revenue() {
                     <li
                       key={entry.id}
                       className={cn(
-                        "flex items-center gap-4 px-4 py-4 transition-colors hover:bg-muted/40",
+                        "px-4 py-4 transition-colors hover:bg-muted/40",
                         index < 3 ? "bg-muted/20" : "",
                       )}
                     >
-                      <span className="w-6 text-right text-sm font-semibold text-muted-foreground/80">#{index + 1}</span>
-                      <img src={entry.image} alt={entry.name} className="h-10 w-10 rounded-xl object-cover" />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="truncate text-sm font-semibold text-foreground">
-                            {entry.name}
-                            <span className="ml-2 text-xs font-medium text-muted-foreground">
-                              {entry.ticker || entry.id.toUpperCase()}
-                            </span>
+                      <div className="flex items-start gap-3">
+                        <span className="w-7 pt-1 text-right text-sm font-semibold text-muted-foreground/80">#{index + 1}</span>
+                        <img src={entry.image} alt={entry.name} className="h-10 w-10 rounded-xl object-cover" />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="truncate text-sm font-semibold text-foreground">
+                              {entry.name}
+                              <span className="ml-2 text-xs font-medium text-muted-foreground">
+                                {entry.ticker || entry.id.toUpperCase()}
+                              </span>
+                            </div>
+                            <div className="font-mono text-sm text-sky-400">{formatCurrency(entry.sales)}</div>
                           </div>
-                          <div className="font-mono text-sm text-emerald-300">{formatCurrency(entry.sales)}</div>
-                        </div>
-                        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                          <span>Cycle {entry.cycle}</span>
-                          <span>Next seed {formatCurrency(entry.nextSeed)}</span>
-                          <span>Rewards {formatCurrency(entry.rewards)}</span>
+                          <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                            <span>Cycle {entry.cycle}</span>
+                            <span>Next seed {formatCurrency(entry.nextSeed)}</span>
+                            <span>Rewards {formatCurrency(entry.rewards)}</span>
+                          </div>
+                          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted/70">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500"
+                              style={{ width: `${Math.min(100, (entry.sales / (topPerformer?.sales || 1)) * 100)}%` }}
+                            />
+                          </div>
                         </div>
                       </div>
                     </li>
@@ -339,7 +449,7 @@ export default function Revenue() {
         </section>
 
         <section className="space-y-6">
-          <Card className="border-border/60 bg-surface/70 shadow-lg">
+          <Card className="border-border/60 bg-surface/70 shadow-sm">
             <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <CardTitle>Token Financial Desk</CardTitle>
@@ -404,32 +514,67 @@ export default function Revenue() {
                   <div className="rounded-3xl border border-border/40 bg-background/60 p-4">
                     <h3 className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">Financial Split</h3>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Visual breakdown of how this token’s revenue is distributed.
+                      Visual breakdown of how this token's revenue is distributed.
                     </p>
-                    <div className="-mx-3 mt-4 overflow-x-auto px-3 no-scrollbar">
-                      <div className="h-48 min-w-[420px]">
+                    <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
+                      <div className="h-[260px]">
                         <ChartContainer config={chartConfig} className="h-full w-full">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={detailChartData}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                              <XAxis dataKey="label" hide />
-                              <YAxis tickFormatter={(value) => formatCurrencyK(value)} width={60} />
-                              <ChartTooltip
-                                cursor={{ fill: "hsl(var(--muted)/20)" }}
-                                content={
-                                  <ChartTooltipContent
-                                    formatter={(value, name) => [formatCurrency(Number(value)), chartConfig[name as keyof typeof chartConfig]?.label ?? name]}
-                                  />
-                                }
-                              />
-                              <Bar dataKey="creator" stackId="a" fill={chartConfig.creator.color} radius={[6, 6, 0, 0]} />
-                              <Bar dataKey="nextCycleLiquidity" stackId="a" fill={chartConfig.nextCycleLiquidity.color} radius={[6, 6, 0, 0]} />
-                              <Bar dataKey="liquidity" stackId="a" fill={chartConfig.liquidity.color} radius={[6, 6, 0, 0]} />
-                              <Bar dataKey="payouts" stackId="a" fill={chartConfig.payouts.color} radius={[6, 6, 0, 0]} />
-                              <Bar dataKey="platform" stackId="a" fill={chartConfig.platform.color} radius={[6, 6, 0, 0]} />
-                            </BarChart>
-                          </ResponsiveContainer>
+                          <BarChart
+                            data={selectedSplitSeries}
+                            layout="vertical"
+                            margin={{ top: 8, right: 14, left: 8, bottom: 8 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                            <XAxis
+                              type="number"
+                              tickFormatter={(value) => formatCurrencyK(value)}
+                              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                              axisLine={false}
+                              tickLine={false}
+                            />
+                            <YAxis
+                              dataKey="label"
+                              type="category"
+                              width={isMobile ? 108 : 136}
+                              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: isMobile ? 10 : 11 }}
+                              tickFormatter={(value: string) => (value.length > (isMobile ? 13 : 18) ? `${value.slice(0, isMobile ? 12 : 17)}…` : value)}
+                              axisLine={false}
+                              tickLine={false}
+                            />
+                            <ChartTooltip
+                              cursor={{ fill: "hsl(var(--muted)/20)" }}
+                              content={
+                                <ChartTooltipContent
+                                  formatter={(value, name) => [formatCurrency(Number(value)), chartConfig[name as keyof typeof chartConfig]?.label ?? name]}
+                                />
+                              }
+                            />
+                            <Bar dataKey="value" radius={[0, 8, 8, 0]}>
+                              {selectedSplitSeries.map((entry) => (
+                                <Cell key={entry.key} fill={entry.color} />
+                              ))}
+                            </Bar>
+                          </BarChart>
                         </ChartContainer>
+                      </div>
+                      <div className="grid gap-2 rounded-2xl border border-border/40 bg-background/50 p-3">
+                        {selectedSplitSeries.map((entry) => {
+                          const pct = selectedSplitTotal > 0 ? (entry.value / selectedSplitTotal) * 100 : 0;
+                          return (
+                            <div key={`split-${entry.key}`} className="space-y-1">
+                              <div className="flex items-center justify-between gap-3 text-xs">
+                                <div className="flex items-center gap-2">
+                                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                                  <span className="text-muted-foreground">{entry.label}</span>
+                                </div>
+                                <span className="font-mono text-foreground">{pct.toFixed(1)}%</span>
+                              </div>
+                              <div className="h-1.5 overflow-hidden rounded-full bg-muted/70">
+                                <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: entry.color }} />
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
@@ -452,13 +597,21 @@ type KpiCardProps = {
   label: string;
   primary: string;
   caption: string;
+  tone?: "blue" | "cyan" | "indigo" | "teal";
 };
 
-function KpiCard({ icon: Icon, label, primary, caption }: KpiCardProps) {
+function KpiCard({ icon: Icon, label, primary, caption, tone = "blue" }: KpiCardProps) {
+  const toneMap = {
+    blue: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+    cyan: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+    indigo: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+    teal: "bg-teal-500/10 text-teal-400 border-teal-500/20",
+  } as const;
+
   return (
-    <div className="rounded-3xl border border-border/60 bg-transparent p-5 shadow-none">
+    <div className="rounded-3xl border border-border/60 bg-gradient-to-br from-background to-surface/70 p-5 shadow-sm">
       <div className="flex items-center justify-between">
-        <div className="rounded-2xl bg-emerald-500/10 p-2 text-emerald-300">
+        <div className={cn("rounded-2xl border p-2", toneMap[tone])}>
           <Icon className="h-5 w-5" />
         </div>
         <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">Live</span>
@@ -478,5 +631,14 @@ function DetailMetric({ label, value }: { label: string; value: number }) {
       <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{label}</div>
       <div className="mt-1 font-mono text-sm text-foreground">{formatCurrency(value)}</div>
     </div>
+  );
+}
+
+function LegendPill({ label, color }: { label: string; color: string }) {
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/70 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+      {label}
+    </span>
   );
 }

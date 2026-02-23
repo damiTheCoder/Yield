@@ -8,7 +8,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { useApp } from "@/lib/app-state";
 import { cn, formatCurrency, formatCurrencyK } from "@/lib/utils";
 import { DEFAULT_LAUNCHPAD_DISTRIBUTION } from "@/domain/tokenomics";
-import { Dot, Image as ImageIcon, LineChart as LineChartIcon } from "lucide-react";
+import { Dot, Image as ImageIcon, LineChart as LineChartIcon, X } from "lucide-react";
 import { Bar, BarChart as RechartsBarChart, Cell, Line, LineChart as RechartsLineChart, XAxis, YAxis } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -151,6 +151,7 @@ export default function AssetDetail() {
   const analyticsChartConfig = {
     volume: { label: "Cycle Revenue", color: "hsl(142 70% 48%)" },
   } as const;
+  const isMarketOnlyPhase = tokenInfo?.phase === "market";
 
   const formatChartPriceTick = (value: number) => {
     const abs = Math.abs(value);
@@ -181,6 +182,8 @@ export default function AssetDetail() {
       return [];
     }
     const base = Math.max(lpu || 1, 0.5);
+    const salesPressure = Math.min(0.12, (asset.cycle.totalSales / Math.max(asset.params.initialReserve, 1)) * 0.04);
+    const baseDate = new Date(Date.UTC(2026, 0, Math.max(1, asset.cycle.cycle)));
     const formatter = new Intl.DateTimeFormat(undefined, {
       month: "short",
       day: "numeric",
@@ -188,10 +191,11 @@ export default function AssetDetail() {
       minute: "2-digit",
     });
     return Array.from({ length: 16 }, (_, index) => {
-      const timestamp = new Date(Date.now() - index * 1000 * 60 * 47);
+      const timestamp = new Date(baseDate.getTime() - index * 1000 * 60 * 47);
       const type = index % 5 === 0 ? "Sell" : "Buy";
-      const swing = Math.sin((asset.id.length + index) * 1.1) * 0.05;
-      const price = Number(Math.max(0.4, base * (1 + swing)).toFixed(2));
+      const swing = Math.sin((asset.id.length + index) * 1.1) * (0.02 + salesPressure);
+      const trend = ((15 - index) / 15) * salesPressure;
+      const price = Number(Math.max(0.4, base * (1 + swing + trend)).toFixed(2));
       return {
         id: `${asset.id}-tx-${index}`,
         label: formatter.format(timestamp),
@@ -293,7 +297,7 @@ export default function AssetDetail() {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Transaction History</h3>
-          <p className="text-xs text-muted-foreground/70">Latest simulated fills from the token book</p>
+          <p className="text-xs text-muted-foreground/70">Latest token book fills from current cycle activity.</p>
         </div>
         <span className="hidden text-[10px] uppercase tracking-wide text-muted-foreground/60 sm:inline">Last 24h</span>
       </div>
@@ -404,69 +408,85 @@ export default function AssetDetail() {
     </section>
   );
 
-  const BuyTagSectionContent = ({ className }: { className?: string }) => (
+  const BuyTagSectionContent = ({ className, compact = false }: { className?: string; compact?: boolean }) => (
     <div
       className={cn(
-        "space-y-4 rounded-2xl border border-border/50 bg-surface/50 p-4 shadow-card sm:p-6",
+        "space-y-3 rounded-xl border border-slate-200/80 bg-background p-4 shadow-sm dark:border-slate-700/70 sm:p-5",
+        compact && "space-y-2.5 p-3.5 sm:p-4",
         className,
       )}
     >
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        <div className="inline-flex items-center gap-1 rounded-full bg-background/80 px-3 py-1 text-foreground">
-          <span className="text-[11px]">Buy</span>
+      {!compact && (
+        <div className="rounded-lg border border-slate-200/80 bg-slate-50/80 p-3 dark:border-slate-700/60 dark:bg-slate-900/40">
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1 rounded-full border border-[#635bff]/25 bg-[#635bff]/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#635bff]">
+                Secure Checkout
+              </div>
+              <p className="text-sm font-medium text-foreground">Buy 1 CoinTag</p>
+              <p className="text-xs text-muted-foreground">Fast checkout with instant settlement.</p>
+            </div>
+            <div className="rounded-full border border-border/60 bg-background px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              1 tag
+            </div>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+            <div className="rounded-lg border border-border/40 bg-background px-3 py-2">
+              <span className="uppercase tracking-wide text-muted-foreground">Wallet</span>
+              <div className="mt-1 font-mono text-sm font-semibold text-foreground">{formatCurrency(user.usd)}</div>
+            </div>
+            <div className="rounded-lg border border-border/40 bg-background px-3 py-2">
+              <span className="uppercase tracking-wide text-muted-foreground">Your tags</span>
+              <div className="mt-1 font-mono text-sm font-semibold text-emerald-400">{ua.coinTags}</div>
+            </div>
+          </div>
         </div>
-        <span className="hidden text-[11px] text-muted-foreground/70 sm:inline">Purchase CoinTags directly</span>
-      </div>
-      <div className="flex flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2">
-          <span>Wallet balance</span>
-          <div className="font-mono text-base text-foreground">{formatCurrency(user.usd)}</div>
-        </div>
-        <div className="flex items-center gap-2">
-          <span>CoinTag balance</span>
-          <span className="font-mono text-base text-emerald-400">{ua.coinTags}</span>
-        </div>
-      </div>
-      <div className="space-y-4">
-        <div className="rounded-xl border border-border/40 bg-background/80 p-4 sm:p-5">
+      )}
+      <div className="grid gap-2.5 sm:grid-cols-2">
+        <div className={cn("rounded-lg border border-border/40 bg-background p-3.5", compact && "p-3")}>
           <div className="flex items-center justify-between gap-3">
             <div>
               <span className="text-[11px] uppercase tracking-wide text-muted-foreground">You pay</span>
               <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-3xl font-semibold text-foreground">{formatCurrency(huntFee)}</span>
+                <span className="text-xl font-semibold text-foreground">{formatCurrency(huntFee)}</span>
                 <span className="text-sm text-muted-foreground">USD</span>
               </div>
             </div>
-            <div className="border border-border/40 bg-surface/60 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-foreground">
+            <div className="rounded-full border border-border/40 bg-surface/60 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-foreground">
               USD
             </div>
           </div>
-          <div className="mt-3 text-xs text-muted-foreground">Deducted from your balance instantly.</div>
+          <div className="mt-2 text-xs text-muted-foreground">Deducted from your wallet balance.</div>
         </div>
 
-        <div className="rounded-xl border border-border/40 bg-background/80 p-4 sm:p-5">
+        <div className={cn("rounded-lg border border-[#635bff]/25 bg-[#635bff]/[0.06] p-3.5", compact && "p-3")}>
           <div className="flex items-center justify-between gap-3">
             <div>
               <span className="text-[11px] uppercase tracking-wide text-muted-foreground">You receive</span>
               <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-3xl font-semibold text-emerald-400">1</span>
+                <span className="text-xl font-semibold text-[#635bff]">1</span>
                 <span className="text-sm text-muted-foreground">CoinTag</span>
               </div>
             </div>
-            <div className="border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-300">
-              {formatCurrency(huntFee)} → 1 Tag
+            <div className="rounded-full border border-[#635bff]/35 bg-[#635bff]/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-[#635bff]">
+              1 hunt
             </div>
           </div>
-          <div className="mt-3 text-xs text-muted-foreground">Ready for hunts immediately.</div>
+          <div className="mt-2 text-xs text-muted-foreground">Added instantly and ready to hunt.</div>
         </div>
       </div>
       <Button
         className={cn(
-          "h-12 w-full rounded-full text-base font-semibold transition-colors border border-border/60 shadow-md",
-          "bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90",
+          "h-11 w-full rounded-lg border-0 text-sm font-semibold shadow-sm transition-colors",
+          "bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 text-white hover:opacity-95",
+          "disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground",
         )}
-        disabled={user.usd < huntFee || ua.coinTags >= 1}
+        disabled={user.usd < huntFee || ua.coinTags >= 1 || isMarketOnlyPhase}
         onClick={() => {
+          if (isMarketOnlyPhase) {
+            setPurchaseMessage("CoinTag sales are closed. This asset is now in market-only trading mode.");
+            return;
+          }
           if (ua.coinTags >= 1) {
             setPurchaseMessage("CoinTag already purchased.");
             return;
@@ -479,15 +499,15 @@ export default function AssetDetail() {
           setShowHuntPrompt(true);
         }}
       >
-        Purchase CoinTags
+        Pay {formatCurrency(huntFee)}
       </Button>
-      <div className="space-y-3 text-[11px] text-muted-foreground/80">
+      <div className="space-y-2 text-[11px] text-muted-foreground/80">
         <p>1 CoinTag unlocks one hunt attempt. Funds settle instantly into the ecosystem reserve.</p>
         {purchaseMessage && (
           <p
             className={cn(
               "text-[11px]",
-              purchaseMessage.toLowerCase().includes("insufficient") ? "text-rose-400" : "text-violet-300",
+              purchaseMessage.toLowerCase().includes("insufficient") ? "text-rose-400" : "text-blue-300",
             )}
           >
             {purchaseMessage}
@@ -496,7 +516,8 @@ export default function AssetDetail() {
         {showHuntPrompt && (
           <Button
             onClick={() => navigate(`/assets/${asset.id}/hunt`)}
-            className="h-11 w-full rounded-full border border-border/60 bg-white text-black shadow-lg hover:bg-white/90 dark:bg-black dark:text-white dark:hover:bg-black/90"
+            className="h-10 w-full rounded-lg border-0 bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 text-white shadow-sm hover:opacity-95"
+            disabled={isMarketOnlyPhase}
           >
             Start Hunt
           </Button>
@@ -696,7 +717,7 @@ export default function AssetDetail() {
                 </div>
                 <div className="relative h-2 w-full overflow-hidden rounded-full border border-border/60">
                   <div className="absolute inset-y-0 left-0 w-[10%] rounded-l-full bg-amber-300" />
-                  <div className="absolute inset-y-0 left-[10%] w-[10%] bg-fuchsia-300" />
+                  <div className="absolute inset-y-0 left-[10%] w-[10%] bg-sky-300" />
                   <div className="absolute inset-y-0 left-[20%] w-[10%] bg-pink-300" />
                   <div className="absolute inset-y-0 left-[30%] w-[10%] bg-sky-300" />
                   <div className="absolute inset-y-0 left-[40%] w-[10%] bg-indigo-300" />
@@ -782,7 +803,7 @@ export default function AssetDetail() {
                 </div>
                 <div className="relative h-2 w-full overflow-hidden rounded-full border border-border/60 bg-background/60">
                   <div className="absolute inset-y-0 left-0 w-[10%] rounded-l-full bg-amber-300" />
-                  <div className="absolute inset-y-0 left-[10%] w-[10%] bg-fuchsia-300" />
+                  <div className="absolute inset-y-0 left-[10%] w-[10%] bg-sky-300" />
                   <div className="absolute inset-y-0 left-[20%] w-[10%] bg-pink-300" />
                   <div className="absolute inset-y-0 left-[30%] w-[10%] bg-sky-300" />
                   <div className="absolute inset-y-0 left-[40%] w-[10%] bg-indigo-300" />
@@ -807,8 +828,9 @@ export default function AssetDetail() {
               onClick={() => setMobileBuyOpen(true)}
               className={cn(
                 "w-full max-w-xs rounded-2xl py-3 text-base font-semibold shadow-lg transition-colors",
-                "bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90",
+                "bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 text-white hover:opacity-95",
               )}
+              disabled={isMarketOnlyPhase}
             >
               Tap to buy tag
             </Button>
@@ -817,16 +839,28 @@ export default function AssetDetail() {
 
         {mobileBuyOpen && (
           <div className="fixed inset-0 z-50">
-            <div className="absolute inset-0 bg-black/60" onClick={() => setMobileBuyOpen(false)} />
-            <div className="absolute inset-x-0 bottom-0 transform transition-transform duration-300 translate-y-0">
-              <div className="rounded-t-3xl border border-border/40 border-b-0 bg-background px-4 pb-6 pt-3 text-foreground shadow-2xl backdrop-blur">
-                <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-border/60" />
-                <div className="max-h-[70vh] overflow-y-auto pb-2 no-scrollbar">
-                  <BuyTagSectionContent className="rounded-none border-0 bg-transparent p-0 shadow-none" />
+            <div className="absolute inset-0 bg-black/55 backdrop-blur-[2px]" onClick={() => setMobileBuyOpen(false)} />
+            <div className="absolute left-1/2 top-1/2 w-[min(90vw,20.5rem)] -translate-x-1/2 -translate-y-1/2 transition-all duration-300">
+              <div className="rounded-xl border border-slate-200/90 bg-background px-2.5 pb-3 pt-2.5 text-foreground shadow-2xl dark:border-slate-700/70">
+                <div className="mb-3 flex items-center justify-between gap-3 border-b border-border/50 pb-2.5">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground">Buy CoinTag</p>
+                    <p className="truncate text-[11px] text-muted-foreground">for {asset.ticker || asset.name}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    className="h-8 w-8 rounded-lg border-0 bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 p-0 text-white hover:opacity-95"
+                    onClick={() => setMobileBuyOpen(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="max-h-[58vh] overflow-y-auto no-scrollbar">
+                  <BuyTagSectionContent compact className="rounded-none border-0 bg-transparent p-0 shadow-none" />
                 </div>
                 <Button
                   variant="ghost"
-                  className="mt-4 w-full rounded-lg border border-border/40 bg-transparent text-sm font-medium text-muted-foreground"
+                  className="mt-3 h-10 w-full rounded-lg border-0 bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 text-sm font-semibold text-white hover:opacity-95"
                   onClick={() => setMobileBuyOpen(false)}
                 >
                   Close

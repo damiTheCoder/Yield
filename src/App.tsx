@@ -11,6 +11,7 @@ import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound";
 import CoinTags from "./pages/CoinTags";
 import Portfolio from "./pages/Portfolio";
+import Wallet from "./pages/Wallet";
 import { AppStateProvider } from "@/lib/app-state";
 import Assets from "./pages/Assets";
 import ViewAllAssets from "./pages/ViewAllAssets";
@@ -46,6 +47,7 @@ function ScrollToTop() {
 // Wrapper components for routes
 const CoinTagsPage = () => <Layout><CoinTags /></Layout>;
 const PortfolioPage = () => <Layout><Portfolio /></Layout>;
+const WalletPage = () => <Layout><Wallet /></Layout>;
 const RevenuePage = () => <Layout><Revenue /></Layout>;
 const NotificationsPage = () => <Layout><Notifications /></Layout>;
 const AssetsPage = () => <Layout><Assets /></Layout>;
@@ -74,6 +76,7 @@ const App = () => (
               <Route path="/old-home" element={<Index />} />
               <Route path="/coin-tags" element={<CoinTagsPage />} />
               <Route path="/portfolio" element={<PortfolioPage />} />
+              <Route path="/wallet" element={<WalletPage />} />
               <Route path="/revenue" element={<RevenuePage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/assets" element={<AssetsPage />} />

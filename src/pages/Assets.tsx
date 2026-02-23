@@ -356,7 +356,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   const cardMediaBorderClass = isDarkTheme ? "border-b-0" : "border-b border-slate-200/60";
 
   const selectedNetworkInfo = NETWORKS.find(n => n.id === selectedNetwork) || NETWORKS[0];
-const brandHeadingGradient = "linear-gradient(130deg, #c084fc 0%, #a855f7 45%, #7c3aed 100%)";
+  const brandHeadingGradient = "linear-gradient(130deg, #7dd3fc 0%, #38bdf8 45%, #0ea5e9 100%)";
   const isGridView = false;
   const isListView = true;
   const getAssetChange = (asset: Asset) => {
@@ -794,31 +794,8 @@ const brandHeadingGradient = "linear-gradient(130deg, #c084fc 0%, #a855f7 45%, #
                           </span>
                         </>
                       )}
+
                     </h1>
-                    {!isWebview && !isDesktop && (
-                      <div className="ml-2 flex items-center gap-1 sm:hidden">
-                        <button
-                          type="button"
-                          onClick={handleToggleViewMode}
-                          aria-label="Toggle asset layout"
-                          className="flex h-9 w-9 items-center justify-start rounded-full border border-border/40 pl-2 hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-foreground focus-visible:ring-offset-background"
-                        >
-                          <img src="/coin.png" alt="Toggle view" className="h-5 w-5 object-contain" />
-                        </button>
-                      </div>
-                    )}
-                    {(isWebview || isDesktop) && (
-                      <div className="ml-2 hidden items-center gap-1 sm:flex">
-                        <button
-                          type="button"
-                          onClick={handleToggleViewMode}
-                          aria-label="Toggle asset layout"
-                          className="flex h-9 w-9 items-center justify-start rounded-full border border-border/40 pl-2 hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-foreground focus-visible:ring-offset-background"
-                        >
-                          <img src="/coin.png" alt="Toggle view" className="h-5 w-5 object-contain" />
-                        </button>
-                      </div>
-                    )}
                   </div>
                   <p className="text-sm text-muted-foreground mt-0.5">
                     {marketMode === "live"
@@ -1019,9 +996,9 @@ const brandHeadingGradient = "linear-gradient(130deg, #c084fc 0%, #a855f7 45%, #
 
           </div>
         </div>
-      </main>
+      </main >
       <SiteFooter className="hidden sm:block" />
-    </div>
+    </div >
   );
 }
 

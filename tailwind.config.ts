@@ -22,6 +22,14 @@ export default {
         "Segoe UI",
         "sans-serif",
       ],
+      mono: [
+        "Glacial Indifference",
+        "system-ui",
+        "-apple-system",
+        "BlinkMacSystemFont",
+        "Segoe UI",
+        "sans-serif",
+      ],
     },
     extend: {
       colors: {
@@ -73,7 +81,7 @@ export default {
       backgroundImage: {
         "gradient-subtle": "var(--gradient-subtle)",
         "gradient-card": "var(--gradient-card)",
-        "gradient-logo": "linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)",
+        "gradient-logo": "linear-gradient(135deg, #B3E5FC 0%, #81D4FA 100%)",
       },
       boxShadow: {
         card: "var(--shadow-card)",

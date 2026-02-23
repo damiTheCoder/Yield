@@ -12,6 +12,9 @@ const toNumeric = (value: unknown) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
+const getAssetUnitPrice = (asset: { cycle: { lpu: number }; secondaryMarket?: { active: boolean; walv: number } }) =>
+  asset.secondaryMarket?.active ? asset.secondaryMarket.walv : asset.cycle.lpu;
+
 export default function Portfolio() {
   const {
     user,
@@ -37,7 +40,7 @@ export default function Portfolio() {
     console.log('🏦 Portfolio Debug - Calculating totalLftValue with userAssets:', JSON.stringify(userAssets, null, 2));
     const total = assets.reduce((sum, asset) => {
       const owned = toNumeric(userAssets[asset.id]?.lfts);
-      const lpu = typeof asset.cycle?.lpu === 'number' ? asset.cycle.lpu : 0;
+      const lpu = getAssetUnitPrice(asset);
       const assetValue = owned * lpu;
       console.log(`📊 Portfolio Debug - Asset ${asset.name} (${asset.id}): ${owned} LFTs × ${lpu} LPU = ${assetValue}`);
       return sum + assetValue;
@@ -67,8 +70,10 @@ export default function Portfolio() {
       coinTags: toNumeric(rawBalances?.coinTags),
       lfts: toNumeric(rawBalances?.lfts),
     };
+    const marketOnlyPhase = Boolean(asset.secondaryMarket?.active);
+    const unitPrice = getAssetUnitPrice(asset);
     const redeemCount = assetRedeemCounts[asset.id] ?? 1;
-    const assetValue = balances.lfts * asset.cycle.lpu;
+    const assetValue = balances.lfts * unitPrice;
 
     const wrapperClasses =
       variant === "grid"
@@ -76,8 +81,8 @@ export default function Portfolio() {
         : "rounded-2xl bg-card p-4 space-y-4 text-sm shadow-lg";
     const redeemButtonClasses =
       variant === "modal"
-        ? "bg-gradient-to-r from-violet-200 via-violet-300 to-violet-200 text-violet-900 shadow-[0_6px_16px_rgba(167,139,250,0.35)] hover:opacity-95"
-        : "bg-gradient-to-r from-violet-300 via-violet-400 to-violet-500 text-white hover:opacity-95";
+        ? "bg-gradient-to-r from-sky-200 via-blue-200 to-cyan-200 text-blue-900 shadow-[0_6px_16px_rgba(59,130,246,0.35)] hover:opacity-95"
+        : "bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 text-white hover:opacity-95";
 
     return (
       <div key={`${variant}-${asset.id}`} className={wrapperClasses}>
@@ -101,7 +106,7 @@ export default function Portfolio() {
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Current LPU</span>
-            <span className="font-mono text-sm text-foreground">{formatCurrency(asset.cycle.lpu)}</span>
+            <span className="font-mono text-sm text-foreground">{formatCurrency(unitPrice)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Reserve</span>
@@ -129,10 +134,10 @@ export default function Portfolio() {
                 redeemButtonClasses,
               )}
               onClick={() => handleRedeemAsset(asset.id)}
-              disabled={balances.lfts <= 0 || redeemCount <= 0}
+              disabled={balances.lfts <= 0 || redeemCount <= 0 || marketOnlyPhase}
             >
               <span className="text-xs font-semibold uppercase tracking-wide">Redeem For</span>
-              <span className="text-sm font-semibold">{formatCurrency(asset.cycle.lpu)}</span>
+              <span className="text-sm font-semibold">{formatCurrency(unitPrice)}</span>
             </Button>
           </div>
         </div>
@@ -189,7 +194,7 @@ export default function Portfolio() {
                 </div>
               </div>
               <Button
-                className="w-full border-0 bg-gradient-to-r from-violet-300 via-violet-400 to-violet-500 text-white font-semibold shadow-[0_8px_20px_rgba(167,139,250,0.35)] hover:opacity-95"
+                className="w-full border-0 bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 text-white font-semibold shadow-[0_8px_20px_rgba(59,130,246,0.35)] hover:opacity-95"
                 onClick={() => claimRewards()}
                 disabled={accruedRewards <= 0}
               >
@@ -225,7 +230,7 @@ export default function Portfolio() {
                       coinTags: toNumeric(rawBalances?.coinTags),
                       lfts: toNumeric(rawBalances?.lfts),
                     };
-                    const assetValue = balances.lfts * asset.cycle.lpu;
+                    const assetValue = balances.lfts * getAssetUnitPrice(asset);
 
                     return (
                       <button
@@ -243,7 +248,7 @@ export default function Portfolio() {
                         </div>
                         <div className="text-right">
                           <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total value</p>
-                          <p className="font-mono text-sm font-semibold text-violet-400">
+                          <p className="font-mono text-sm font-semibold text-blue-400">
                             {formatCurrency(assetValue)}
                             <span className="ml-1 text-xs text-muted-foreground">/{balances.lfts} LFTs</span>
                           </p>

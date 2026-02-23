@@ -15,6 +15,7 @@ import { saveState, loadState, clearState, hasStoredState, HuntProgress } from "
 
 export const HUNT_TOKEN_SUPPLY = 1_000_000;
 export const HUNT_TOKEN_BUNDLE = 20;
+const MAX_REDEMPTION_CYCLES = 5;
 type User = {
   usd: number;
   coinTags: number;
@@ -32,6 +33,22 @@ export type Asset = {
   image: string; // path or data url
   ticker?: string;
   summary?: string;
+  secondaryMarket?: SecondaryMarketState;
+};
+
+type CycleLiquiditySnapshot = {
+  cycle: number;
+  liquidity: number;
+  unredeemedSupply: number;
+};
+
+type SecondaryMarketState = {
+  active: boolean;
+  activatedFromCycle: number | null;
+  walv: number;
+  liquidityPool: number;
+  supplyPool: number;
+  snapshots: CycleLiquiditySnapshot[];
 };
 
 type AppState = {
@@ -43,8 +60,10 @@ type AppState = {
   assets: Asset[];
   assetAvailable: Record<string, number>; // per-asset findable units
   userAssets: Record<string, { coinTags: number; lfts: number }>;
+  assetCoinTagCodes: Record<string, string[]>;
   huntProgress: Record<string, HuntProgress>; // per-asset hunt progress
   getAssetTokenInfo: (assetId: string) => AssetTokenInfo | null;
+  getAssetCoinTagCodes: (assetId: string) => string[];
 };
 
 type AppActions = {
@@ -58,6 +77,7 @@ type AppActions = {
   sellYield: (units: number) => { usd: number };
   claimRewards: () => { claimed: number };
   buyAssetCoinTags: (assetId: string, usdAmount: number, pricePerTag?: number) => void;
+  spendAssetCoinTag: (assetId: string, count?: number) => boolean;
   openAssetCoinTags: (
     assetId: string,
     count: number,
@@ -86,6 +106,9 @@ type AssetTokenInfo = {
   unlocked: boolean;
   remainingLfts: number;
   totalValue: number;
+  walv: number;
+  phase: "hunt" | "market";
+  canRedeem: boolean;
 };
 
 type AssetBalances = { coinTags: number; lfts: number };
@@ -121,7 +144,93 @@ const normalizeUserAssetRecord = (
   return normalized;
 };
 
+const createCoinTagCode = (assetId: string): string => {
+  const prefix = assetId
+    .replace(/[^a-z0-9]/gi, "")
+    .toUpperCase()
+    .slice(0, 4)
+    .padEnd(4, "X");
+  const stamp = Date.now().toString(36).slice(-4).toUpperCase();
+  const random = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `CT-${prefix}-${stamp}${random}`;
+};
+
+const createCoinTagCodes = (
+  assetId: string,
+  count: number,
+  existingCodes: string[] = [],
+): string[] => {
+  const target = Math.max(0, Math.floor(count));
+  if (target <= 0) return [];
+  const seen = new Set(existingCodes);
+  const next: string[] = [];
+  while (next.length < target) {
+    const code = createCoinTagCode(assetId);
+    if (!seen.has(code)) {
+      seen.add(code);
+      next.push(code);
+    }
+  }
+  return next;
+};
+
+const normalizeAssetCoinTagCodes = (
+  rawCodes: Record<string, string[]> | undefined,
+  balances: Record<string, AssetBalances>,
+  assetList: Asset[],
+): Record<string, string[]> => {
+  const normalized: Record<string, string[]> = {};
+  const keys = new Set<string>([
+    ...Object.keys(rawCodes || {}),
+    ...Object.keys(balances || {}),
+    ...assetList.map((asset) => asset.id),
+  ]);
+
+  keys.forEach((assetId) => {
+    const targetCount = Math.max(0, Math.floor(toNumeric(balances[assetId]?.coinTags)));
+    const currentCodes = Array.isArray(rawCodes?.[assetId])
+      ? rawCodes![assetId]
+        .filter((code): code is string => typeof code === "string")
+        .map((code) => code.trim())
+        .filter((code) => code.length > 0)
+      : [];
+    const clippedCodes = currentCodes.slice(0, targetCount);
+    const missing = targetCount - clippedCodes.length;
+    normalized[assetId] =
+      missing > 0
+        ? [...clippedCodes, ...createCoinTagCodes(assetId, missing, clippedCodes)]
+        : clippedCodes;
+  });
+
+  return normalized;
+};
+
+const areCoinTagCodeMapsEqual = (
+  left: Record<string, string[]>,
+  right: Record<string, string[]>,
+): boolean => {
+  const leftKeys = Object.keys(left);
+  const rightKeys = Object.keys(right);
+  if (leftKeys.length !== rightKeys.length) return false;
+  for (const key of leftKeys) {
+    const a = left[key] || [];
+    const b = right[key] || [];
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i += 1) {
+      if (a[i] !== b[i]) return false;
+    }
+  }
+  return true;
+};
+
 const HUNT_LOCKED_ASSETS = new Set(["nova"]);
+const BLOCKED_ASSET_NAMES = new Set(["new lft drop"]);
+
+const shouldHideAsset = (asset: Partial<Asset> | undefined): boolean => {
+  const normalizedName = asset?.name?.trim().toLowerCase();
+  if (!normalizedName) return false;
+  return BLOCKED_ASSET_NAMES.has(normalizedName);
+};
 
 const computeHuntPoolSeed = (asset: Asset | undefined): number => {
   if (!asset || HUNT_LOCKED_ASSETS.has(asset.id)) {
@@ -137,6 +246,68 @@ const computeHuntPoolSeed = (asset: Asset | undefined): number => {
 };
 
 const TOKEN_SUPPLY = 1_000_000;
+const createSecondaryMarketState = (): SecondaryMarketState => ({
+  active: false,
+  activatedFromCycle: null,
+  walv: 0,
+  liquidityPool: 0,
+  supplyPool: 0,
+  snapshots: [],
+});
+
+const normalizeSecondaryMarketState = (state?: Partial<SecondaryMarketState>): SecondaryMarketState => ({
+  active: Boolean(state?.active),
+  activatedFromCycle:
+    typeof state?.activatedFromCycle === "number" && Number.isFinite(state.activatedFromCycle)
+      ? state.activatedFromCycle
+      : null,
+  walv: toNumeric(state?.walv),
+  liquidityPool: toNumeric(state?.liquidityPool),
+  supplyPool: toNumeric(state?.supplyPool),
+  snapshots: Array.isArray(state?.snapshots)
+    ? state.snapshots
+      .map((snapshot) => ({
+        cycle: Math.max(1, Math.floor(toNumeric(snapshot?.cycle, 1))),
+        liquidity: Math.max(0, toNumeric(snapshot?.liquidity)),
+        unredeemedSupply: Math.max(0, Math.floor(toNumeric(snapshot?.unredeemedSupply))),
+      }))
+      .filter((snapshot) => snapshot.cycle > 0)
+    : [],
+});
+
+const normalizeRuntimeAsset = (asset: Asset): Asset => ({
+  ...asset,
+  secondaryMarket: normalizeSecondaryMarketState(asset.secondaryMarket),
+});
+
+const snapshotFromCycle = (cycle: CycleState): CycleLiquiditySnapshot => ({
+  cycle: Math.max(1, Math.floor(toNumeric(cycle.cycle, 1))),
+  liquidity: Math.max(0, toNumeric(cycle.reserve)),
+  unredeemedSupply: Math.max(0, Math.floor(toNumeric(cycle.supply))),
+});
+
+const withCycleSnapshot = (market: SecondaryMarketState, snapshot: CycleLiquiditySnapshot): SecondaryMarketState => {
+  const deduped = market.snapshots.filter((entry) => entry.cycle !== snapshot.cycle);
+  return {
+    ...market,
+    snapshots: [...deduped, snapshot].sort((a, b) => a.cycle - b.cycle),
+  };
+};
+
+const activateSecondaryMarket = (market: SecondaryMarketState, activationCycle: number): SecondaryMarketState => {
+  const liquidityPool = market.snapshots.reduce((sum, entry) => sum + entry.liquidity, 0);
+  const supplyPool = market.snapshots.reduce((sum, entry) => sum + entry.unredeemedSupply, 0);
+  const walv = supplyPool > 0 ? liquidityPool / supplyPool : 0;
+  return {
+    ...market,
+    active: true,
+    activatedFromCycle: activationCycle,
+    liquidityPool,
+    supplyPool,
+    walv,
+  };
+};
+
 const DEFAULT_PARAMS: CycleParams = {
   initialReserve: 1000,
   initialSupply: TOKEN_SUPPLY,
@@ -160,7 +331,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     const config: CycleParams = { ...p, initialSupply: TOKEN_SUPPLY };
     let c = initializeCycle(config, 1);
     if (sales > 0) c = applyCoinTagSales(c, sales);
-    return { id, name, params: config, cycle: c, image };
+    return {
+      id,
+      name,
+      params: config,
+      cycle: c,
+      image,
+      secondaryMarket: createSecondaryMarketState(),
+    };
   };
 
   // Initialize state from localStorage if available
@@ -183,7 +361,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     return Object.fromEntries(
       assetList.map((asset) => [
         asset.id,
-        asset.id === "nova" ? 0 : (asset.cycle?.initialSupply || 0),
+        asset.id === "nova" || asset.secondaryMarket?.active ? 0 : (asset.cycle?.initialSupply || 0),
       ]),
     );
   };
@@ -191,7 +369,11 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [assets, setAssets] = useState<Asset[]>(() => {
     if (typeof window !== 'undefined' && hasStoredState()) {
       const stored = loadState();
-      if (stored?.assets && Array.isArray(stored.assets) && stored.assets.length > 0) return stored.assets;
+      if (stored?.assets && Array.isArray(stored.assets) && stored.assets.length > 0) {
+        return stored.assets
+          .filter((asset) => !shouldHideAsset(asset))
+          .map((asset) => normalizeRuntimeAsset(asset as Asset));
+      }
     }
     return [
       makeAsset("alpha", "Alpha Ecosystem", { ...DEFAULT_PARAMS, initialReserve: 1200, initialSupply: 100 }, 250, "/ape.jpeg"),
@@ -214,6 +396,13 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     ];
   });
 
+  useEffect(() => {
+    setAssets((prev) => {
+      const filtered = prev.filter((asset) => !shouldHideAsset(asset));
+      return filtered.length === prev.length ? prev : filtered;
+    });
+  }, []);
+
   // Per-asset findable counters and user balances
   const [assetAvailable, setAssetAvailable] = useState<Record<string, number>>(() => {
     if (typeof window !== "undefined" && hasStoredState()) {
@@ -222,7 +411,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         const next: Record<string, number> = {};
         assets.forEach((asset) => {
           if (!asset) return;
-          if (asset.id === "nova") {
+          if (asset.id === "nova" || asset.secondaryMarket?.active) {
             next[asset.id] = 0;
             return;
           }
@@ -250,6 +439,16 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     return defaults;
   });
 
+  const [assetCoinTagCodes, setAssetCoinTagCodes] = useState<Record<string, string[]>>(() => {
+    if (typeof window !== "undefined" && hasStoredState()) {
+      const stored = loadState();
+      const normalizedBalances = normalizeUserAssetRecord(stored?.userAssets, assets);
+      return normalizeAssetCoinTagCodes(stored?.assetCoinTagCodes, normalizedBalances, assets);
+    }
+    const defaults = normalizeUserAssetRecord(undefined, assets);
+    return normalizeAssetCoinTagCodes(undefined, defaults, assets);
+  });
+
   const [huntProgress, setHuntProgress] = useState<Record<string, HuntProgress>>(() => {
     if (typeof window !== 'undefined' && hasStoredState()) {
       const stored = loadState();
@@ -264,6 +463,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       const next = { ...prev };
       assets.forEach((asset) => {
         if (HUNT_LOCKED_ASSETS.has(asset.id)) return;
+        if (asset.secondaryMarket?.active) return;
         const current = toNumeric(prev[asset.id]);
         if (current <= 0) {
           const seed = computeHuntPoolSeed(asset);
@@ -277,6 +477,13 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   }, [assets]);
 
+  useEffect(() => {
+    setAssetCoinTagCodes((prev) => {
+      const normalized = normalizeAssetCoinTagCodes(prev, userAssets, assets);
+      return areCoinTagCodeMapsEqual(prev, normalized) ? prev : normalized;
+    });
+  }, [assets, userAssets]);
+
   // Save state to localStorage whenever it changes
   useEffect(() => {
     if (!initialized) {
@@ -286,6 +493,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
     console.log('App State Debug - Saving to localStorage:', {
       userAssets,
+      assetCoinTagCodes,
       user,
       assets: assets.map(a => ({ id: a.id, name: a.name }))
     });
@@ -295,9 +503,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       assets,
       assetAvailable,
       userAssets,
+      assetCoinTagCodes,
       huntProgress,
     });
-  }, [user, assets, assetAvailable, userAssets, huntProgress, initialized]);
+  }, [user, assets, assetAvailable, userAssets, assetCoinTagCodes, huntProgress, initialized]);
 
   const slugify = useCallback((value: string) => {
     return value
@@ -340,7 +549,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setUser({ usd: 1000000, coinTags: 0, lfts: 0, yieldUnits: 0, realizedRewards: 0, withdrawn: 0 });
     setAssets(defaultAssets);
     setAssetAvailable(buildInitialAvailability(defaultAssets));
-    setUserAssets(normalizeUserAssetRecord(undefined, defaultAssets));
+    const resetBalances = normalizeUserAssetRecord(undefined, defaultAssets);
+    setUserAssets(resetBalances);
+    setAssetCoinTagCodes(normalizeAssetCoinTagCodes(undefined, resetBalances, defaultAssets));
   }, []);
 
   const buyCoinTags = useCallback(
@@ -452,11 +663,34 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       setAssets((prev) => {
         const idx = prev.findIndex((asset) => asset.id === assetId);
         if (idx < 0) return prev;
-        const asset = prev[idx];
+        const asset = normalizeRuntimeAsset(prev[idx]);
+        if (asset.secondaryMarket?.active) return prev;
+
+        const snapshot = snapshotFromCycle(asset.cycle);
+        const marketWithSnapshot = withCycleSnapshot(
+          normalizeSecondaryMarketState(asset.secondaryMarket),
+          snapshot,
+        );
+
+        const next = prev.slice();
+        if (asset.cycle.cycle >= MAX_REDEMPTION_CYCLES) {
+          const activated = activateSecondaryMarket(marketWithSnapshot, asset.cycle.cycle);
+          next[idx] = {
+            ...asset,
+            cycle: { ...asset.cycle, ended: true },
+            secondaryMarket: activated,
+          };
+          nextSupply = 0;
+          return next;
+        }
+
         const nextCycle = endCycleAndSeedNext(asset.cycle, asset.params);
         nextSupply = nextCycle.supply;
-        const next = prev.slice();
-        next[idx] = { ...asset, cycle: nextCycle };
+        next[idx] = {
+          ...asset,
+          cycle: nextCycle,
+          secondaryMarket: marketWithSnapshot,
+        };
         return next;
       });
       if (nextSupply > 0) {
@@ -473,6 +707,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       if (usdAmount <= 0 || user.usd <= 0) return;
       const idx = assets.findIndex((a) => a.id === assetId);
       if (idx < 0) return;
+      if (assets[idx]?.secondaryMarket?.active) return;
       const spend = Math.min(usdAmount, user.usd);
       const tags = Math.floor(spend / pricePerTag);
       if (tags <= 0) return;
@@ -487,6 +722,13 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           },
         };
       });
+      setAssetCoinTagCodes((prev) => {
+        const existing = prev[assetId] || [];
+        return {
+          ...prev,
+          [assetId]: [...existing, ...createCoinTagCodes(assetId, tags, existing)],
+        };
+      });
       setAssets((arr) => {
         const next = arr.slice();
         const asset = next[idx];
@@ -497,8 +739,39 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     [assets, user.usd]
   );
 
+  const spendAssetCoinTag = useCallback((assetId: string, count = 1): boolean => {
+    const qty = Math.max(1, Math.floor(count));
+    let spent = false;
+    setUserAssets((prev) => {
+      const balances = normalizeAssetBalances(prev[assetId]);
+      if (balances.coinTags < qty) {
+        return prev;
+      }
+      spent = true;
+      return {
+        ...prev,
+        [assetId]: {
+          coinTags: balances.coinTags - qty,
+          lfts: balances.lfts,
+        },
+      };
+    });
+    if (spent) {
+      setAssetCoinTagCodes((prev) => {
+        const existing = prev[assetId] || [];
+        return {
+          ...prev,
+          [assetId]: existing.slice(qty),
+        };
+      });
+    }
+    return spent;
+  }, []);
+
   const openAssetCoinTags = useCallback(
     (assetId: string, count: number, discoveryRate = 0.2) => {
+      const asset = assets.find((a) => a.id === assetId);
+      if (asset?.secondaryMarket?.active) return { found: 0, opened: 0 };
       const ua = normalizeAssetBalances(userAssets[assetId]);
       if (count <= 0 || ua.coinTags <= 0) return { found: 0, opened: 0 };
       const opened = Math.min(count, ua.coinTags);
@@ -527,6 +800,15 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           },
         };
       });
+      if (opened > 0) {
+        setAssetCoinTagCodes((prev) => {
+          const existing = prev[assetId] || [];
+          return {
+            ...prev,
+            [assetId]: existing.slice(opened),
+          };
+        });
+      }
       if (normalizedRemaining <= 0 && found > 0) {
         advanceAssetCycle(assetId);
       }
@@ -536,6 +818,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   );
 
   const discoverAssetLFTs = useCallback((assetId: string, count = 1) => {
+    const asset = assets.find((a) => a.id === assetId);
+    if (asset?.secondaryMarket?.active) return { claimed: 0 };
     if (count <= 0) return { claimed: 0 };
 
     let claimed = 0;
@@ -573,6 +857,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
   const redeemAssetLFTs = useCallback(
     (assetId: string, count: number) => {
+      const asset = assets.find((a) => a.id === assetId);
+      if (asset?.secondaryMarket?.active) return { redeemed: 0, payout: 0 };
       const owned = toNumeric(userAssets[assetId]?.lfts);
       if (count <= 0 || owned <= 0) return { redeemed: 0, payout: 0 };
       const toRedeem = Math.min(Math.floor(count), owned);
@@ -613,7 +899,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
       return { redeemed, payout };
     },
-    [userAssets],
+    [assets, userAssets],
   );
 
   // Hunt-related functions
@@ -641,6 +927,11 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       const asset = assets.find((a) => a.id === assetId);
       if (!asset) {
         console.error(`❌ Hunt Debug - Asset not found: ${assetId}`);
+        return false;
+      }
+
+      if (asset.secondaryMarket?.active) {
+        console.error(`❌ Hunt Debug - Asset ${assetId} is in market-only phase`);
         return false;
       }
 
@@ -704,11 +995,13 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     (assetId: string): AssetTokenInfo | null => {
       const asset = assets.find((a) => a.id === assetId);
       if (!asset) return null;
-      const remaining = assetAvailable[assetId] ?? asset.cycle.initialSupply;
-      const unlocked = remaining <= 0;
-      const totalValue = Math.max(0, asset.cycle.reserve);
-      const supply = asset.cycle.supply;
-      const price = supply > 0 ? totalValue / supply : 0;
+      const market = normalizeSecondaryMarketState(asset.secondaryMarket);
+      const remaining = market.active ? 0 : (assetAvailable[assetId] ?? asset.cycle.initialSupply);
+      const unlocked = market.active || remaining <= 0;
+      const totalValue = market.active ? Math.max(0, market.liquidityPool) : Math.max(0, asset.cycle.reserve);
+      const supply = market.active ? Math.max(0, market.supplyPool) : asset.cycle.supply;
+      const walv = supply > 0 ? totalValue / supply : 0;
+      const price = walv;
       const base = (asset.ticker || asset.name).replace(/\s+/g, "");
       const symbol = `${base.toUpperCase()}-TOKEN`;
       return {
@@ -718,9 +1011,19 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         unlocked,
         remainingLfts: remaining,
         totalValue,
+        walv,
+        phase: market.active ? "market" : "hunt",
+        canRedeem: !market.active,
       };
     },
     [assets, assetAvailable],
+  );
+
+  const getAssetCoinTagCodes = useCallback(
+    (assetId: string): string[] => {
+      return assetCoinTagCodes[assetId] || [];
+    },
+    [assetCoinTagCodes],
   );
 
   const value = useMemo(
@@ -733,8 +1036,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       assets,
       assetAvailable,
       userAssets,
+      assetCoinTagCodes,
       huntProgress,
       getAssetTokenInfo,
+      getAssetCoinTagCodes,
       reset,
       buyCoinTags,
       openCoinTags,
@@ -745,6 +1050,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       sellYield,
       claimRewards,
       buyAssetCoinTags,
+      spendAssetCoinTag,
       openAssetCoinTags,
       discoverAssetLFTs,
       redeemAssetLFTs,
@@ -788,11 +1094,13 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
             image,
             ticker: ticker.trim(),
             summary,
+            secondaryMarket: createSecondaryMarketState(),
           };
           return [nextAsset, ...prev];
         });
         setAssetAvailable((prev) => ({ ...prev, [createdId]: cycleAfterRaise.initialSupply }));
         setUserAssets((prev) => ({ ...prev, [createdId]: { coinTags: 0, lfts: 0 } }));
+        setAssetCoinTagCodes((prev) => ({ ...prev, [createdId]: [] }));
         return createdId;
       },
     }),
@@ -805,8 +1113,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       assets,
       assetAvailable,
       userAssets,
+      assetCoinTagCodes,
       huntProgress,
       getAssetTokenInfo,
+      getAssetCoinTagCodes,
       reset,
       buyCoinTags,
       openCoinTags,
@@ -817,6 +1127,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       sellYield,
       claimRewards,
       buyAssetCoinTags,
+      spendAssetCoinTag,
       openAssetCoinTags,
       discoverAssetLFTs,
       redeemAssetLFTs,
