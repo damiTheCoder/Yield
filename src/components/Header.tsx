@@ -390,7 +390,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                   <Button
                     variant="neutral"
                     size="sm"
-                    className="hidden md:inline-flex min-w-[120px] justify-center h-8 rounded-full text-sm font-semibold border-0 bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 text-white hover:opacity-95"
+                    className="hidden md:inline-flex min-w-[120px] justify-center h-8 rounded-full text-sm font-semibold border-0 bg-blue-500 text-white hover:bg-blue-600"
                   >
                     {connectedWallet ? (
                       <span className="flex items-center gap-1">
@@ -406,7 +406,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                   <Button
                     variant="neutral"
                     size="sm"
-                    className="md:hidden rounded-full h-8 px-4 text-sm font-semibold border-0 bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 text-white hover:opacity-95"
+                    className="md:hidden rounded-full h-8 px-4 text-sm font-semibold border-0 bg-blue-500 text-white hover:bg-blue-600"
                   >
                     {connectedWallet ? "Wallet" : "Connect"}
                   </Button>
@@ -429,9 +429,9 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                           strokeWidth="2.8"
                           strokeLinecap="round"
                         >
-                          <line x1="2.5" y1="6.5" x2="22" y2="6.5" />
+                          <line x1="2.5" y1="5" x2="22" y2="5" />
                           <line x1="5.5" y1="12" x2="22" y2="12" />
-                          <line x1="8.5" y1="17.5" x2="22" y2="17.5" />
+                          <line x1="8.5" y1="19" x2="22" y2="19" />
                         </svg>
                       </Button>
                     </SheetTrigger>

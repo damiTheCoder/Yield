@@ -71,7 +71,8 @@ const App = () => (
           <ScrollToTop />
           <ErrorBoundary>
             <Routes>
-              <Route path="/" element={<SolarisSlider />} />
+              <Route path="/" element={<WalletPage />} />
+              <Route path="/landing" element={<SolarisSlider />} />
               <Route path="/aave-landing" element={<AaveLanding />} />
               <Route path="/old-home" element={<Index />} />
               <Route path="/coin-tags" element={<CoinTagsPage />} />

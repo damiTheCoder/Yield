@@ -205,21 +205,35 @@ function useAverageColor(src: string, id: string): RGBColor {
 function detectWebView(): boolean {
   if (typeof window === "undefined" || typeof navigator === "undefined") return false;
   const ua = navigator.userAgent || navigator.vendor || "";
+  const search = typeof window.location !== "undefined" ? window.location.search : "";
+  if (/\b(webview|wv|inapp)=?(1|true)?\b/i.test(search)) return true;
+
   const standalone = (navigator as unknown as { standalone?: boolean }).standalone;
   const displayModeStandalone =
     typeof window.matchMedia === "function" && window.matchMedia("(display-mode: standalone)").matches;
+  const hasReactNativeBridge = typeof (window as unknown as { ReactNativeWebView?: unknown }).ReactNativeWebView !== "undefined";
+  const hasTelegramBridge =
+    typeof (window as unknown as { TelegramWebviewProxy?: unknown }).TelegramWebviewProxy !== "undefined";
+  const hasFlutterBridge = typeof (window as unknown as { flutter_inappwebview?: unknown }).flutter_inappwebview !== "undefined";
+  const fromAndroidApp = typeof document !== "undefined" && document.referrer.startsWith("android-app://");
 
   const isAndroid = /Android/.test(ua);
-  const isAndroidWebView = isAndroid && /; wv;/.test(ua);
+  const isAndroidWebView =
+    isAndroid &&
+    (/; wv;/.test(ua) || /\bwv\b/.test(ua) || /Version\/[\d.]+ Chrome\/[\d.]+ Mobile/.test(ua));
 
   const isIOS = /iPhone|iPad|iPod/.test(ua);
   const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|OPiOS|EdgiOS/.test(ua);
   const isIOSWebView = isIOS && !isSafari;
 
   const isSocialInApp =
-    /FBAN|FBAV|Instagram|Line\/|Twitter|Snapchat|TikTok|OKApp|Electron/.test(ua);
+    /FBAN|FBAV|Instagram|Line\/|Twitter|Snapchat|TikTok|OKApp|Electron|Telegram|WhatsApp|WeChat|TrustWallet|MetaMaskMobile|Phantom/.test(ua);
 
   return Boolean(
+    hasReactNativeBridge ||
+    hasTelegramBridge ||
+    hasFlutterBridge ||
+    fromAndroidApp ||
     displayModeStandalone ||
     standalone ||
     isAndroidWebView ||
@@ -229,7 +243,7 @@ function detectWebView(): boolean {
 }
 
 export function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit, showSearchBar = false }: AssetsPageProps) {
-  const { assets } = useApp();
+  const { assets, userAssets } = useApp();
   const { theme, setTheme } = useTheme();
   const isDarkTheme = theme === "dark";
   const navigate = useNavigate();
