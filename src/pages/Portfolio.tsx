@@ -34,7 +34,6 @@ export default function Portfolio() {
 
   const accruedRewards = cycle?.accrued?.holderRewards ?? 0;
   const realizedRewards = user.realizedRewards ?? 0;
-  const totalLftWithdrawnValue = user.withdrawn ?? 0;
   const totalLftValue = useMemo(() => {
     console.log('🏦 Portfolio Debug - Calculating totalLftValue with userAssets:', JSON.stringify(userAssets, null, 2));
     const total = assets.reduce((sum, asset) => {
@@ -164,14 +163,10 @@ export default function Portfolio() {
       <main className="container mx-auto space-y-8 px-4 pb-10 pt-3 text-sm [&_svg]:h-3.5 [&_svg]:w-3.5 sm:pt-8">
         <Card className="rounded-3xl border-none bg-transparent p-0 text-white shadow-none">
           <CardContent className="p-0">
-            <div className="grid grid-cols-2 items-center gap-4 text-foreground">
-              <div className="flex flex-col items-start gap-1 text-left">
-                <p className="text-[10px] uppercase text-muted-foreground">Total LFT Withdrawn</p>
-                <p className="text-2xl font-semibold text-foreground sm:text-[28px]">{formatCurrency(totalLftWithdrawnValue)}</p>
-              </div>
-              <div className="flex flex-col items-center gap-1 text-center sm:items-end sm:text-right">
+            <div className="flex items-center justify-center text-foreground">
+              <div className="flex flex-col items-center gap-1 text-center">
                 <p className="text-[10px] uppercase text-muted-foreground">Total LFT Holdings</p>
-                <p className="text-2xl font-semibold text-foreground sm:text-[28px]">{formatCurrency(totalLftValue)}</p>
+                <p className="text-4xl font-semibold text-foreground sm:text-[44px]">{formatCurrency(totalLftValue)}</p>
               </div>
             </div>
           </CardContent>

@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Navigate, Routes, Route, useLocation } from "react-router-dom";
 import { useLayoutEffect } from "react";
 import Layout from "./components/Layout";
 import SolarisSlider from "./components/SolarisSlider";
@@ -71,8 +71,10 @@ const App = () => (
           <ScrollToTop />
           <ErrorBoundary>
             <Routes>
-              <Route path="/" element={<WalletPage />} />
-              <Route path="/landing" element={<SolarisSlider />} />
+              <Route path="/" element={<SolarisSlider />} />
+              <Route path="/landing" element={<Navigate to="/" replace />} />
+              <Route path="/home" element={<PortfolioPage />} />
+              <Route path="/homepage" element={<PortfolioPage />} />
               <Route path="/aave-landing" element={<AaveLanding />} />
               <Route path="/old-home" element={<Index />} />
               <Route path="/coin-tags" element={<CoinTagsPage />} />

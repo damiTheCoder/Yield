@@ -1,7 +1,4 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useTheme, type ThemeMode } from '@/hooks/useTheme';
-import { Monitor, Moon, Sun } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
 
 interface DataItem {
   place: string;
@@ -15,145 +12,129 @@ interface DataItem {
 
 const data: DataItem[] = [
   {
-    place: 'The Problem',
-    title: 'DIGITAL ASSETS',
-    title2: 'ARE BROKEN',
-    description: 'Crypto today is driven by speculation, not sustainability. Meme coins spike on hype, then crater to zero. NFTs promise creativity but strand holders in illiquid markets. The system feeds on exit liquidity.',
-    image: '/d1.png',
-    cta: 'Discover LFTs',
-    ctaLink: '/assets'
+    place: "The Problem",
+    title: "DIGITAL ASSETS",
+    title2: "ARE BROKEN",
+    description:
+      "Crypto today is driven by speculation, not sustainability. Meme coins spike on hype, then crater to zero. NFTs promise creativity but strand holders in illiquid markets. The system feeds on exit liquidity.",
+    image: "/d1.png",
+    cta: "Discover LFTs",
+    ctaLink: "/assets",
   },
   {
-    place: 'The Solution',
-    title: 'LIQUIDITY',
-    title2: 'FUNDED TOKENS',
-    description: 'Solaris redefines digital ownership with Liquidity-Funded Tokens (LFTs) — assets backed by real liquidity reserves. Every token launch creates sustainable value, not speculative bubbles.',
-    image: '/d2.png',
-    cta: 'Launch Console',
-    ctaLink: '/assets'
+    place: "The Solution",
+    title: "LIQUIDITY",
+    title2: "FUNDED TOKENS",
+    description:
+      "Solaris redefines digital ownership with Liquidity-Funded Tokens (LFTs) - assets backed by real liquidity reserves. Every token launch creates sustainable value, not speculative bubbles.",
+    image: "/d2.png",
+    cta: "Launch Console",
+    ctaLink: "/assets",
   },
   {
-    place: 'Creative Finance',
-    title: 'CREATIVE',
-    title2: 'LIQUIDITY',
-    description: 'How DAOs, NFT studios, and LFT builders treat liquidity as a design medium. Turn hype into real value through liquidity-backed launches powered by Solaris.',
-    image: '/d3.png',
-    cta: 'Read More',
-    ctaLink: '/blog/creative-liquidity-web3'
+    place: "Creative Finance",
+    title: "CREATIVE",
+    title2: "LIQUIDITY",
+    description:
+      "How DAOs, NFT studios, and LFT builders treat liquidity as a design medium. Turn hype into real value through liquidity-backed launches powered by Solaris.",
+    image: "/d3.png",
+    cta: "Read More",
+    ctaLink: "/blog/creative-liquidity-web3",
   },
   {
-    place: 'The Future',
-    title: 'VALUE BACKED',
-    title2: 'DIGITAL ASSETS',
-    description: 'At Solaris, we believe digital assets should hold their ground — not your hope. Creators earn sustainably. Holders get real value. The future is liquidity-backed.',
-    image: '/d4.png',
-    cta: 'Start Building',
-    ctaLink: '/coin-tags'
-  }
+    place: "The Future",
+    title: "VALUE BACKED",
+    title2: "DIGITAL ASSETS",
+    description:
+      "At Solaris, we believe digital assets should hold their ground - not your hope. Creators earn sustainably. Holders get real value. The future is liquidity-backed.",
+    image: "/d4.png",
+    cta: "Start Building",
+    ctaLink: "/coin-tags",
+  },
 ];
 
-const DEFAULT_SLIDE_INDEX = 1;
+const toSectionId = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 
-const SolarisSlider: React.FC = () => {
-  const [currentIndex, setCurrentIndex] = useState(() => Math.min(DEFAULT_SLIDE_INDEX, data.length - 1));
-  const [isAnimating, setIsAnimating] = useState(false);
+const SolarisSlider = () => {
   const navigate = useNavigate();
-  const { theme, setTheme } = useTheme();
-  const prefersDark = typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const isDarkMode = theme === "dark" || (theme === "system" && prefersDark);
 
-  const nextSlide = () => {
-    if (isAnimating) return;
-    setIsAnimating(true);
-    setCurrentIndex((prev) => (prev + 1) % data.length);
-    setTimeout(() => setIsAnimating(false), 1000);
+  const scrollToSection = (sectionId: string) => {
+    if (typeof window === "undefined") return;
+    const target = document.getElementById(sectionId);
+    if (!target) return;
+    const offsetTop = target.getBoundingClientRect().top + window.scrollY - 88;
+    window.scrollTo({ top: offsetTop, behavior: "smooth" });
   };
-
-  const prevSlide = () => {
-    if (isAnimating) return;
-    setIsAnimating(true);
-    setCurrentIndex((prev) => (prev - 1 + data.length) % data.length);
-    setTimeout(() => setIsAnimating(false), 1000);
-  };
-
-  const handleCTA = (link: string) => {
-    navigate(link);
-  };
-
-  const currentData = data[currentIndex];
-  const themeOptions: Array<{ id: ThemeMode; icon: typeof Monitor; label: string }> = [
-    { id: "system", icon: Monitor, label: "System theme" },
-    { id: "dark", icon: Moon, label: "Dark theme" },
-    { id: "light", icon: Sun, label: "Light theme" },
-  ];
 
   return (
-    <div className="solaris-slider">
+    <div className="solaris-landing">
       <style>{`
-        .solaris-slider {
-          margin: 0;
-          background-color: hsl(var(--background));
-          color: hsl(var(--foreground));
-          font-family: "Glacial Indifference", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-          height: 100vh;
-          min-height: 100vh;
-          width: 100vw;
-          overflow: hidden;
+        .solaris-landing {
           position: relative;
-          transition: background-color 0.4s ease, color 0.4s ease;
-          --slider-accent-bg: #000;
-          --slider-accent-contrast: #fff;
-          --slider-accent-hover: rgba(0, 0, 0, 0.85);
-          --slider-accent-soft: rgba(0, 0, 0, 0.12);
-          --slider-cta-bg: #f4f4f5;
-          --slider-cta-color: #000;
-        }
-
-        [data-theme="dark"] .solaris-slider {
-          --slider-accent-bg: #fff;
-          --slider-accent-contrast: #000;
-          --slider-accent-hover: rgba(255, 255, 255, 0.85);
-          --slider-accent-soft: rgba(255, 255, 255, 0.2);
-          --slider-cta-bg: #1f1f23;
-          --slider-cta-color: #fff;
-        }
-
-        /* Navigation */
-        .navigation {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          z-index: 50;
-          padding: 14px 50px;
-          font-weight: 500;
-          color: inherit;
-          background: transparent;
-          transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .navigation-inner {
+          min-height: 100vh;
           width: 100%;
-          max-width: 640px;
-          display: flex;
+          color: #060b16;
+          background: linear-gradient(180deg, #f2f8ff 0%, #e2efff 38%, #d4e6ff 100%);
+          font-family: "Glacial Indifference", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .solaris-landing::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background-image:
+            linear-gradient(rgba(47, 123, 247, 0.09) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(47, 123, 247, 0.09) 1px, transparent 1px);
+          background-size: 68px 68px;
+          pointer-events: none;
+          z-index: 0;
+        }
+
+        .landing-shell {
+          position: relative;
+          z-index: 1;
+        }
+
+        .landing-nav {
+          position: sticky;
+          top: 0;
+          z-index: 50;
+          padding: 14px 22px;
+          background: rgba(237, 243, 254, 0.85);
+          backdrop-filter: blur(10px);
+        }
+
+        .landing-nav-inner {
+          max-width: 1220px;
+          margin: 0 auto;
+          display: grid;
+          grid-template-columns: 1fr auto 1fr;
           align-items: center;
-          justify-content: space-between;
-          gap: 20px;
+          gap: 16px;
         }
 
         .nav-brand {
-          display: flex;
+          display: inline-flex;
           align-items: center;
           gap: 12px;
+          border: none;
+          background: transparent;
+          color: #060b16;
           font-size: 18px;
           font-weight: 700;
+          justify-self: start;
           cursor: pointer;
+          padding: 0;
         }
 
         .nav-logo {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
+          width: 34px;
+          height: 34px;
+          border-radius: 999px;
           overflow: hidden;
         }
 
@@ -163,545 +144,441 @@ const SolarisSlider: React.FC = () => {
           object-fit: cover;
         }
 
-        .nav-menu {
-          display: flex;
+        .nav-links {
+          display: inline-flex;
           align-items: center;
-          gap: 32px;
-          text-transform: uppercase;
-          font-size: 14px;
-          letter-spacing: 0.1em;
+          justify-content: center;
+          gap: 38px;
         }
 
-        .nav-item {
-          position: relative;
+        .nav-link {
+          border: none;
+          background: transparent;
+          color: rgba(6, 11, 22, 0.62);
+          font-size: 16px;
+          font-weight: 600;
           cursor: pointer;
-          transition: color 0.3s ease;
+          transition: color 0.2s ease;
         }
 
-        .nav-item:hover {
-          color: var(--slider-accent-bg);
+        .nav-link:hover {
+          color: #2f7bf7;
         }
 
-        .nav-item.active::after {
-          content: "";
-          position: absolute;
-          bottom: -8px;
-          left: 0;
-          right: 0;
-          height: 3px;
-          border-radius: 99px;
-          background-color: var(--slider-accent-bg);
+        .get-started-btn {
+          justify-self: end;
+          border: none;
+          border-radius: 999px;
+          padding: 0 28px;
+          min-height: 58px;
+          background: #060b16;
+          color: #ffffff;
+          display: inline-flex;
+          align-items: center;
+          gap: 12px;
+          font-size: 16px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: transform 0.2s ease, opacity 0.2s ease;
         }
 
-        /* Theme Toggle */
-        .theme-toggle {
+        .get-started-btn:hover {
+          transform: translateY(-1px);
+          opacity: 0.95;
+        }
+
+        .hero-section {
+          min-height: calc(100vh - 88px);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          padding: 24px 20px 36px;
+        }
+
+        .hero-chip {
+          border: 1px solid rgba(47, 123, 247, 0.36);
+          border-radius: 999px;
+          padding: 12px 22px;
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 18px;
+          color: #2f7bf7;
+          background: rgba(255, 255, 255, 0.35);
+        }
+
+        .chip-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 999px;
+          background: #2f7bf7;
+        }
+
+        .hero-title {
+          margin: 34px 0 0;
+          font-size: clamp(50px, 8.2vw, 102px);
+          line-height: 0.95;
+          letter-spacing: -0.03em;
+          font-weight: 800;
+        }
+
+        .hero-title span {
+          display: block;
+        }
+
+        .hero-title .accent {
+          color: #2f59e8;
+        }
+
+        .hero-underline {
+          width: min(78vw, 460px);
+          height: 18px;
+          border-radius: 999px;
+          background: #2f59e8;
+          margin: -10px auto 0;
+        }
+
+        .hero-copy {
+          margin-top: 24px;
+          font-size: clamp(21px, 2.2vw, 41px);
+          line-height: 1.32;
+          color: rgba(6, 11, 22, 0.56);
+          max-width: 980px;
+        }
+
+        .hero-actions {
+          margin-top: 34px;
+          display: inline-flex;
+          align-items: center;
+          gap: 28px;
+        }
+
+        .hero-primary {
+          border: none;
+          border-radius: 999px;
+          min-height: 60px;
+          padding: 0 34px;
+          background: #2f59e8;
+          color: #ffffff;
+          font-size: 29px;
+          font-weight: 700;
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          cursor: pointer;
+          transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .hero-secondary {
+          border: none;
+          background: transparent;
+          color: #060b16;
+          font-size: 29px;
+          font-weight: 700;
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          background: rgba(107, 114, 128, 0.5);
-          border: none;
-          border-radius: 999px;
-          padding: 6px;
-          backdrop-filter: blur(12px);
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .theme-option {
-          width: 34px;
-          height: 34px;
-          border-radius: 999px;
-          border: none;
-          background: transparent;
-          color: rgba(226, 232, 240, 0.7);
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
           cursor: pointer;
-          transition: all 0.25s ease;
+          transition: color 0.2s ease;
         }
 
-        .theme-option svg {
-          width: 16px;
-          height: 16px;
-          stroke-width: 1.6;
+        .hero-primary:hover {
+          transform: translateY(-1px);
+          opacity: 0.96;
         }
 
-        .theme-option:hover {
-          background: rgba(255, 255, 255, 0.12);
-          color: hsl(var(--foreground));
+        .hero-secondary:hover {
+          color: #2f59e8;
         }
 
-        .theme-option.active {
-          background: #ffffff;
-          color: #0f172a;
-          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+        .hero-divider {
+          margin-top: 34px;
+          width: min(88vw, 820px);
+          height: 2px;
+          background: rgba(6, 11, 22, 0.14);
         }
 
-        /* Theme toggle state styling */
-        [data-theme="dark"] .solaris-slider .theme-toggle {
-          background: rgba(107, 114, 128, 0.5);
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-        }
-
-        [data-theme="light"] .solaris-slider .theme-toggle {
-          background: rgba(107, 114, 128, 0.5);
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        [data-theme="light"] .solaris-slider .theme-option:hover {
-          background: rgba(15, 23, 42, 0.12);
-        }
-
-        [data-theme="light"] .solaris-slider .theme-option.active {
-          background: #111826;
-          color: #f8fafc;
-          box-shadow: 0 8px 20px rgba(15, 23, 42, 0.35);
-        }
-
-        .launch-btn {
-          background: linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%);
-          color: #000;
-          border: none;
-          padding: 12px 24px;
-          border-radius: 24px;
-          font-size: 14px;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-
-        .launch-btn:hover {
-          opacity: 0.9;
-          transform: translateY(-2px);
-        }
-
-        /* Main layout */
-        .main-container {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          height: 100vh;
-        }
-
-        /* Left column - Content */
-        .content-column {
-          padding: 120px 60px 80px;
+        .story-feed {
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 8px 10px 26px;
           display: flex;
           flex-direction: column;
-          justify-content: center;
-          position: relative;
-          z-index: 10;
-          opacity: 0;
-          animation: dropUp 0.75s ease forwards;
+          gap: 14px;
         }
 
+        .story-block {
+          background: rgba(255, 255, 255, 0.44);
+          border-radius: 24px;
+          padding: 14px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
 
         .place-tag {
-          position: relative;
-          font-size: 16px;
-          margin-bottom: 32px;
-          padding-top: 20px;
-          color: var(--slider-accent-bg);
-          font-weight: 600;
-          text-transform: uppercase;
+          font-size: 12px;
+          font-weight: 700;
           letter-spacing: 0.2em;
-        }
-
-        .place-tag::before {
-          content: "";
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 40px;
-          height: 4px;
-          border-radius: 99px;
-          background-color: var(--slider-accent-bg);
+          text-transform: uppercase;
+          color: rgba(6, 11, 22, 0.64);
         }
 
         .main-title {
-          font-family: "Glacial Indifference", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-          font-weight: 600;
-          font-size: clamp(48px, 8vw, 80px);
-          line-height: 0.9;
-          margin-bottom: 24px;
-          overflow: hidden;
-          color: hsl(var(--foreground));
+          margin: 4px 0 0;
+          font-size: clamp(30px, 4.4vw, 58px);
+          line-height: 0.95;
+          font-weight: 800;
+          letter-spacing: -0.02em;
         }
 
-        .title-line {
-          transform: translateY(100%);
-          animation: slideInUp 0.8s ease-out forwards;
-        }
-
-        .title-line:nth-child(2) {
-          animation-delay: 0.1s;
-          color: var(--slider-accent-bg);
-        }
-
-        @keyframes slideInUp {
-          to {
-            transform: translateY(0);
-          }
+        .main-title .line-two {
+          display: block;
+          color: #2f59e8;
         }
 
         .description {
           font-size: 18px;
-          line-height: 1.7;
-          margin-bottom: 40px;
-          max-width: 520px;
-          opacity: 0;
-          animation: dropUp 0.8s ease-out 0.25s forwards;
-          color: hsl(var(--foreground) / 0.8);
-        }
-
-        @keyframes dropUp {
-          from {
-            opacity: 0;
-            transform: translateY(60px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          line-height: 1.6;
+          color: rgba(6, 11, 22, 0.68);
         }
 
         .cta-buttons {
-          display: flex;
+          display: inline-flex;
           align-items: center;
-          gap: 20px;
-          opacity: 0;
-          animation: dropUp 0.8s ease-out 0.35s forwards;
+          gap: 12px;
         }
 
         .bookmark-btn {
-          background: var(--slider-cta-bg);
-          width: 44px;
-          height: 44px;
-          border-radius: 50%;
-          color: var(--slider-cta-color);
-          display: flex;
+          width: 42px;
+          height: 42px;
+          border: none;
+          border-radius: 999px;
+          background: #060b16;
+          color: #ffffff;
+          display: inline-flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
-          transition: all 0.3s ease;
-        }
-
-        .bookmark-btn:hover {
-          transform: scale(1.1);
-          opacity: 0.9;
         }
 
         .discover-btn {
-          background: var(--slider-cta-bg);
-          height: 44px;
-          border-radius: 22px;
-          color: var(--slider-cta-color);
-          padding: 0 28px;
-          font-size: 14px;
-          font-weight: 600;
+          border: none;
+          border-radius: 999px;
+          min-height: 42px;
+          padding: 0 22px;
+          background: #060b16;
+          color: #ffffff;
+          font-size: 13px;
+          font-weight: 700;
           text-transform: uppercase;
           letter-spacing: 0.1em;
           cursor: pointer;
-          transition: all 0.3s ease;
         }
 
-        .discover-btn:hover {
-          opacity: 0.9;
-          transform: translateY(-2px);
-        }
-
-        /* Right column - Images */
-        .image-column {
-          position: relative;
+        .story-image-wrap {
+          border-radius: 16px;
           overflow: hidden;
-          opacity: 0;
-          animation: dropUp 0.75s ease 0.1s forwards;
+          background: rgba(255, 255, 255, 0.6);
         }
 
-        .main-image {
-          position: absolute;
-          top: 0;
-          left: 0;
+        .story-image {
           width: 100%;
-          height: 100%;
-          background-size: cover;
-          background-position: center;
-          transition: transform 1s ease-in-out;
+          height: clamp(220px, 40vw, 460px);
+          object-fit: cover;
+          display: block;
         }
 
-
-
-        .main-image.active {
-          transform: scale(1);
-        }
-
-        .main-image.next {
-          transform: scale(1.1) translateX(100%);
-        }
-
-        .main-image.prev {
-          transform: scale(1.1) translateX(-100%);
-        }
-
-
-
-        /* Controls */
-        .controls {
-          position: fixed;
-          bottom: 40px;
-          left: 50%;
-          transform: translateX(-50%);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 16px;
-          z-index: 20;
-        }
-
-        .arrow-controls {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 24px;
-        }
-
-        .arrow-btn {
-          width: 56px;
-          height: 56px;
-          border-radius: 50%;
-          border: none;
-          background: hsl(var(--background) / 0.6);
-          backdrop-filter: blur(10px);
-          color: hsl(var(--foreground));
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-
-        .arrow-btn:hover {
-          color: var(--slider-accent-bg);
-          transform: scale(1.1);
-          background: var(--slider-accent-soft);
-        }
-
-        .progress-bar-container {
-          width: 240px;
-          height: 4px;
-          background-color: hsl(var(--foreground) / 0.15);
-          border-radius: 2px;
-          overflow: hidden;
-        }
-
-        .progress-bar {
-          height: 100%;
-          background-color: var(--slider-accent-bg);
-          border-radius: 2px;
-          transition: width 0.3s ease;
-        }
-
-        .slide-counter {
-          font-size: 20px;
-          font-weight: bold;
-          color: hsl(var(--foreground));
-          min-width: 50px;
-          text-align: center;
-        }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-          .navigation {
-            padding: 12px 36px;
+        @media (max-width: 1100px) {
+          .landing-nav-inner {
+            grid-template-columns: 1fr auto;
+            gap: 10px;
           }
 
-          .navigation-inner {
-            max-width: none;
-          }
-
-          .main-container {
-            grid-template-columns: 1fr;
-            grid-template-rows: 1fr auto;
-          }
-          
-          .content-column {
-            padding: 100px 40px 40px;
-          }
-          
-          .image-column {
-            height: 50vh;
-          }
-          
-          .controls {
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-          }
-
-          .nav-menu {
+          .nav-links {
             display: none;
           }
         }
 
         @media (max-width: 768px) {
-          .navigation {
-            padding: 12px 18px;
-          }
-
-          .navigation-inner {
-            gap: 12px;
-          }
-          
-          .content-column {
-            padding: 80px 20px 40px;
-          }
-          
-          .main-title {
-            font-size: clamp(36px, 10vw, 56px);
-          }
-          
-          .description {
-            font-size: 16px;
-            margin-bottom: 32px;
-          }
-          
-
-          
-          .controls {
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            gap: 12px;
-          }
-          
-          .progress-bar-container {
-            width: 200px;
-          }
-          
-          .arrow-btn {
-            width: 48px;
-            height: 48px;
-          }
-
-          .cta-buttons {
-            flex-direction: row;
-            align-items: center;
-            gap: 16px;
+          .landing-nav {
+            padding: 10px 12px;
           }
 
           .nav-brand {
             font-size: 16px;
           }
 
-          .theme-toggle {
-            gap: 4px;
-            padding: 4px;
-            margin-right: 0;
-          }
-          
-          .theme-option {
+          .nav-logo {
             width: 30px;
             height: 30px;
           }
 
+          .get-started-btn {
+            min-height: 46px;
+            padding: 0 16px;
+            font-size: 14px;
+            gap: 8px;
+          }
+
+          .hero-section {
+            min-height: auto;
+            padding: 20px 12px 24px;
+          }
+
+          .hero-chip {
+            font-size: 13px;
+            padding: 8px 14px;
+          }
+
+          .hero-title {
+            margin-top: 20px;
+            font-size: clamp(36px, 13vw, 60px);
+          }
+
+          .hero-underline {
+            height: 10px;
+            width: min(88vw, 280px);
+            margin-top: -4px;
+          }
+
+          .hero-copy {
+            margin-top: 16px;
+            font-size: 16px;
+          }
+
+          .hero-actions {
+            margin-top: 20px;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+          }
+
+          .hero-primary,
+          .hero-secondary {
+            font-size: 18px;
+            min-height: 46px;
+          }
+
+          .hero-primary {
+            padding: 0 18px;
+          }
+
+          .hero-divider {
+            margin-top: 22px;
+          }
+
+          .story-feed {
+            padding: 8px 8px 18px;
+            gap: 12px;
+          }
+
+          .story-block {
+            padding: 12px;
+            border-radius: 18px;
+          }
+
+          .description {
+            font-size: 16px;
+          }
         }
       `}</style>
 
-      {/* Navigation */}
-      <nav className="navigation">
-        <div className="navigation-inner">
-          <div className="nav-brand" onClick={() => navigate('/')}>
-            <div className="nav-logo">
-              <img src="/h4.png" alt="Solaris logo" />
+      <div className="landing-shell">
+        <nav className="landing-nav">
+          <div className="landing-nav-inner">
+            <button className="nav-brand" onClick={() => scrollToSection("hero")}>
+              <span className="nav-logo">
+                <img src="/h4.png" alt="Solaris logo" />
+              </span>
+              <span>Solaris Ledger</span>
+            </button>
+
+            <div className="nav-links">
+              <button className="nav-link" onClick={() => scrollToSection("the-solution")}>Features</button>
+              <button className="nav-link" onClick={() => scrollToSection("creative-finance")}>How It Works</button>
+              <button className="nav-link" onClick={() => navigate("/assets")}>Marketplace</button>
+              <button className="nav-link" onClick={() => scrollToSection("the-future")}>About</button>
             </div>
-            <div>Solaris</div>
-          </div>
-          <div className="theme-toggle" role="group" aria-label="Select theme">
-            {themeOptions.map(({ id, icon: Icon, label }) => {
-              const isActive = theme === id;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  className={`theme-option ${isActive ? 'active' : ''}`}
-                  aria-pressed={isActive}
-                  aria-label={label}
-                  onClick={() => setTheme(id)}
-                >
-                  <Icon aria-hidden="true" />
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </nav>
 
-      {/* Main Content */}
-      <div className="main-container">
-        {/* Left Column - Content */}
-        <div className="content-column" key={`content-column-${currentIndex}`}>
-          <div className="place-tag" key={`place-${currentIndex}`}>
-            {currentData.place}
-          </div>
-
-          <div className="main-title" key={`title-${currentIndex}`}>
-            <div className="title-line">{currentData.title}</div>
-            <div className="title-line">{currentData.title2}</div>
-          </div>
-
-          <div className="description" key={`desc-${currentIndex}`}>
-            {currentData.description}
-          </div>
-
-          <div className="cta-buttons">
-            <button className="bookmark-btn" onClick={() => handleCTA(currentData.ctaLink)}>
-              <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                <path fillRule="evenodd" d="M6.32 2.577a49.255 49.255 0 0111.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 01-1.085.67L12 18.089l-7.165 3.583A.75.75 0 013.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93z" clipRule="evenodd" />
-              </svg>
-            </button>
-            <button className="discover-btn" onClick={() => handleCTA(currentData.ctaLink)}>
-              {currentData.cta}
+            <button className="get-started-btn" onClick={() => navigate("/assets")}>
+              Get Started
+              <span aria-hidden="true">›</span>
             </button>
           </div>
-        </div>
+        </nav>
 
-        {/* Right Column - Images */}
-        <div className="image-column" key={`image-column-${currentIndex}`}>
-          <div
-            className="main-image active"
-            style={{ backgroundImage: `url(${currentData.image})` }}
-            key={`main-${currentIndex}`}
-          ></div>
-        </div>
-      </div>
-
-      {/* Controls */}
-      <div className="controls">
-        <div className="arrow-controls">
-          <button className="arrow-btn" onClick={prevSlide}>
-            <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.75 19.5L8.25 12l7.5-7.5" />
-            </svg>
-          </button>
-
-          <button className="arrow-btn" onClick={nextSlide}>
-            <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-            </svg>
-          </button>
-
-          <div className="slide-counter">
-            {String(currentIndex + 1).padStart(2, '0')}
+        <section className="hero-section" id="hero">
+          <div className="hero-chip">
+            <span className="chip-dot" />
+            The era of redifined Token Launch & Liquidity
           </div>
-        </div>
 
-        <div className="progress-bar-container">
-          <div
-            className="progress-bar"
-            style={{ width: `${((currentIndex + 1) / data.length) * 100}%` }}
-          ></div>
-        </div>
+          <h1 className="hero-title">
+            <span>Your Asset</span>
+            <span className="accent">Liquidity,</span>
+            <span>Simplified.</span>
+          </h1>
+          <div className="hero-underline" />
+
+          <p className="hero-copy">
+            Know your numbers. Control your reserve. Build and scale digital assets with confidence.
+          </p>
+
+          <div className="hero-actions">
+            <button className="hero-primary" onClick={() => navigate("/assets")}>
+              Start Exploring
+              <span aria-hidden="true">→</span>
+            </button>
+            <button className="hero-secondary" onClick={() => navigate("/blog")}>
+              Watch Demo
+              <span aria-hidden="true">▶</span>
+            </button>
+          </div>
+
+          <div className="hero-divider" />
+        </section>
+
+        <main className="story-feed">
+          {data.map((item) => {
+            const sectionId = toSectionId(item.place);
+
+            return (
+              <section className="story-block" key={item.place} id={sectionId}>
+                <div className="place-tag">{item.place}</div>
+
+                <h2 className="main-title">
+                  {item.title}
+                  <span className="line-two">{item.title2}</span>
+                </h2>
+
+                <p className="description">{item.description}</p>
+
+                <div className="cta-buttons">
+                  <button className="bookmark-btn" onClick={() => navigate(item.ctaLink)} aria-label={`Open ${item.place}`}>
+                    <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                      <path
+                        fillRule="evenodd"
+                        d="M6.32 2.577a49.255 49.255 0 0111.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 01-1.085.67L12 18.089l-7.165 3.583A.75.75 0 013.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+
+                  <button className="discover-btn" onClick={() => navigate(item.ctaLink)}>
+                    {item.cta}
+                  </button>
+                </div>
+
+                <div className="story-image-wrap">
+                  <img src={item.image} alt={`${item.title} ${item.title2}`} className="story-image" />
+                </div>
+              </section>
+            );
+          })}
+        </main>
       </div>
     </div>
   );

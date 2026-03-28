@@ -12,6 +12,50 @@ import { Dot, Image as ImageIcon, LineChart as LineChartIcon, X } from "lucide-r
 import { Bar, BarChart as RechartsBarChart, Cell, Line, LineChart as RechartsLineChart, XAxis, YAxis } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
+function detectWebView(): boolean {
+  if (typeof window === "undefined" || typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent || navigator.vendor || "";
+  const search = typeof window.location !== "undefined" ? window.location.search : "";
+  if (/\b(webview|wv|inapp)=?(1|true)?\b/i.test(search)) return true;
+
+  const standalone = (navigator as unknown as { standalone?: boolean }).standalone;
+  const displayModeStandalone =
+    typeof window.matchMedia === "function" && window.matchMedia("(display-mode: standalone)").matches;
+  const hasReactNativeBridge =
+    typeof (window as unknown as { ReactNativeWebView?: unknown }).ReactNativeWebView !== "undefined";
+  const hasTelegramBridge =
+    typeof (window as unknown as { TelegramWebviewProxy?: unknown }).TelegramWebviewProxy !== "undefined";
+  const hasFlutterBridge =
+    typeof (window as unknown as { flutter_inappwebview?: unknown }).flutter_inappwebview !== "undefined";
+  const fromAndroidApp = typeof document !== "undefined" && document.referrer.startsWith("android-app://");
+
+  const isAndroid = /Android/.test(ua);
+  const isAndroidWebView =
+    isAndroid &&
+    (/; wv;/.test(ua) || /\bwv\b/.test(ua) || /Version\/[\d.]+ Chrome\/[\d.]+ Mobile/.test(ua));
+
+  const isIOS = /iPhone|iPad|iPod/.test(ua);
+  const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|OPiOS|EdgiOS/.test(ua);
+  const isIOSWebView = isIOS && !isSafari;
+
+  const isSocialInApp =
+    /FBAN|FBAV|Instagram|Line\/|Twitter|Snapchat|TikTok|OKApp|Electron|Telegram|WhatsApp|WeChat|TrustWallet|MetaMaskMobile|Phantom/.test(
+      ua,
+    );
+
+  return Boolean(
+    hasReactNativeBridge ||
+    hasTelegramBridge ||
+    hasFlutterBridge ||
+    fromAndroidApp ||
+    displayModeStandalone ||
+    standalone ||
+    isAndroidWebView ||
+    isIOSWebView ||
+    isSocialInApp,
+  );
+}
+
 export default function AssetDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -26,6 +70,7 @@ export default function AssetDetail() {
   const [purchaseMessage, setPurchaseMessage] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"chart" | "image">("chart");
   const [mobileBuyOpen, setMobileBuyOpen] = useState(false);
+  const [isWebview, setIsWebview] = useState(() => detectWebView());
   const [showCycleModal, setShowCycleModal] = useState(false);
   const [selectedCycleIndex, setSelectedCycleIndex] = useState(0);
 
@@ -177,6 +222,10 @@ export default function AssetDetail() {
       setPurchaseMessage(null);
     }
   }, [ua.coinTags]);
+
+  useEffect(() => {
+    setIsWebview(detectWebView());
+  }, []);
   const transactions = useMemo(() => {
     if (!asset) {
       return [];
@@ -442,38 +491,20 @@ export default function AssetDetail() {
           </div>
         </div>
       )}
-      <div className="grid gap-2.5 sm:grid-cols-2">
-        <div className={cn("rounded-lg border border-border/40 bg-background p-3.5", compact && "p-3")}>
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <span className="text-[11px] uppercase tracking-wide text-muted-foreground">You pay</span>
-              <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-xl font-semibold text-foreground">{formatCurrency(huntFee)}</span>
-                <span className="text-sm text-muted-foreground">USD</span>
-              </div>
-            </div>
-            <div className="rounded-full border border-border/40 bg-surface/60 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-foreground">
-              USD
-            </div>
-          </div>
-          <div className="mt-2 text-xs text-muted-foreground">Deducted from your wallet balance.</div>
+      <div
+        className={cn(
+          "rounded-lg bg-background p-3.5 text-center",
+          compact ? "border-0 p-3" : "border border-border/40",
+        )}
+      >
+        <span className="text-[11px] uppercase tracking-wide text-muted-foreground">You pay</span>
+        <div className="mt-2 flex items-baseline justify-center gap-2">
+          <span className={cn("font-semibold text-foreground", compact ? "text-3xl" : "text-2xl")}>
+            {formatCurrency(huntFee)}
+          </span>
+          <span className="text-sm text-muted-foreground">USD</span>
         </div>
-
-        <div className={cn("rounded-lg border border-[#635bff]/25 bg-[#635bff]/[0.06] p-3.5", compact && "p-3")}>
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <span className="text-[11px] uppercase tracking-wide text-muted-foreground">You receive</span>
-              <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-xl font-semibold text-[#635bff]">1</span>
-                <span className="text-sm text-muted-foreground">CoinTag</span>
-              </div>
-            </div>
-            <div className="rounded-full border border-[#635bff]/35 bg-[#635bff]/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-[#635bff]">
-              1 hunt
-            </div>
-          </div>
-          <div className="mt-2 text-xs text-muted-foreground">Added instantly and ready to hunt.</div>
-        </div>
+        <div className="mt-2 text-xs text-muted-foreground">Deducted from your wallet balance.</div>
       </div>
       <Button
         className={cn(
@@ -502,7 +533,6 @@ export default function AssetDetail() {
         Pay {formatCurrency(huntFee)}
       </Button>
       <div className="space-y-2 text-[11px] text-muted-foreground/80">
-        <p>1 CoinTag unlocks one hunt attempt. Funds settle instantly into the ecosystem reserve.</p>
         {purchaseMessage && (
           <p
             className={cn(
@@ -646,9 +676,17 @@ export default function AssetDetail() {
               </div>
             </section>
 
-            <section className="hidden sm:block">
-              <BuyTagSectionContent />
-            </section>
+            {!isWebview && (
+              <section className="hidden sm:block">
+                <Button
+                  onClick={() => setMobileBuyOpen(true)}
+                  className="h-12 w-full rounded-2xl bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 text-base font-semibold text-white shadow-sm hover:opacity-95"
+                  disabled={isMarketOnlyPhase}
+                >
+                  Tap to pay
+                </Button>
+              </section>
+            )}
             <AnalyticsSection className="hidden lg:block" />
             <section className="hidden lg:block">
               <Button
@@ -821,7 +859,7 @@ export default function AssetDetail() {
         </div>
       </main>
 
-      <div className="sm:hidden">
+      <div className={cn(isWebview ? "" : "sm:hidden")}>
         {!mobileBuyOpen && (
           <div className="fixed inset-x-0 bottom-12 z-40 px-4 pb-5 flex justify-center">
             <Button
@@ -832,44 +870,36 @@ export default function AssetDetail() {
               )}
               disabled={isMarketOnlyPhase}
             >
-              Tap to buy tag
+              Tap to pay
             </Button>
           </div>
         )}
+      </div>
 
-        {mobileBuyOpen && (
-          <div className="fixed inset-0 z-50">
-            <div className="absolute inset-0 bg-black/55 backdrop-blur-[2px]" onClick={() => setMobileBuyOpen(false)} />
-            <div className="absolute left-1/2 top-1/2 w-[min(90vw,20.5rem)] -translate-x-1/2 -translate-y-1/2 transition-all duration-300">
-              <div className="rounded-xl border border-slate-200/90 bg-background px-2.5 pb-3 pt-2.5 text-foreground shadow-2xl dark:border-slate-700/70">
-                <div className="mb-3 flex items-center justify-between gap-3 border-b border-border/50 pb-2.5">
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-foreground">Buy CoinTag</p>
-                    <p className="truncate text-[11px] text-muted-foreground">for {asset.ticker || asset.name}</p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    className="h-8 w-8 rounded-lg border-0 bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 p-0 text-white hover:opacity-95"
-                    onClick={() => setMobileBuyOpen(false)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="max-h-[58vh] overflow-y-auto no-scrollbar">
-                  <BuyTagSectionContent compact className="rounded-none border-0 bg-transparent p-0 shadow-none" />
+      {mobileBuyOpen && (
+        <div className="fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black/55 backdrop-blur-[2px]" onClick={() => setMobileBuyOpen(false)} />
+          <div className="absolute left-1/2 top-1/2 w-[min(90vw,20.5rem)] -translate-x-1/2 -translate-y-1/2 transition-all duration-300">
+            <div className="rounded-xl border border-slate-200/90 bg-background px-2.5 pb-3 pt-2.5 text-foreground shadow-2xl dark:border-slate-700/70">
+              <div className="mb-3 flex items-center justify-between gap-3 pb-2.5">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-foreground">Buy CoinTag</p>
                 </div>
                 <Button
                   variant="ghost"
-                  className="mt-3 h-10 w-full rounded-lg border-0 bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 text-sm font-semibold text-white hover:opacity-95"
+                  className="h-8 w-8 rounded-lg border-0 bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 p-0 text-white hover:opacity-95"
                   onClick={() => setMobileBuyOpen(false)}
                 >
-                  Close
+                  <X className="h-4 w-4" />
                 </Button>
+              </div>
+              <div className="max-h-[58vh] overflow-y-auto no-scrollbar">
+                <BuyTagSectionContent compact className="rounded-none border-0 bg-transparent p-0 shadow-none" />
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <Dialog open={showCycleModal} onOpenChange={setShowCycleModal}>
         <DialogContent className="max-w-3xl rounded-3xl">
