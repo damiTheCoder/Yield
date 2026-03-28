@@ -1,7 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "react-router-dom";
 import Web3News from "./Web3News";
-import { useTheme } from "@/hooks/useTheme";
 import { Layers, Rocket, DollarSign, LineChart, Bell, Wallet, type LucideIcon } from "lucide-react";
 
 const NAV_LINKS: Array<{ label: string; href: string; icon: LucideIcon }> = [
@@ -15,15 +14,11 @@ const NAV_LINKS: Array<{ label: string; href: string; icon: LucideIcon }> = [
 
 const Sidebar = () => {
   const { pathname } = useLocation();
-  const { theme } = useTheme();
-  
-  // Determine if dark mode is active
-  const isDarkMode = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   return (
-    <aside className="hidden md:block fixed left-6 top-6 w-64 z-50">
-      <div className="flex flex-col h-[calc(100vh-3rem)] space-y-5">
-        <nav className="rounded-2xl bg-gray-50 backdrop-blur-md p-5 dark:bg-[#1a1a1a]/95">
+    <aside className="fixed left-3 top-3 z-50 hidden w-64 md:block">
+      <div className="flex h-[calc(100vh-1.5rem)] flex-col space-y-3.5">
+        <nav className="rounded-2xl bg-gray-50 p-3.5 backdrop-blur-md dark:bg-[#1a1a1a]/95">
           <div className="flex flex-col space-y-1">
             {NAV_LINKS.map((link) => {
               const isActive =
@@ -35,7 +30,7 @@ const Sidebar = () => {
                   key={link.href}
                   to={link.href}
                   className={cn(
-                    "flex items-center gap-3 px-5 py-3.5 text-sm font-medium rounded-xl transition-colors",
+                    "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors",
                     isActive
                       ? "bg-muted text-foreground dark:bg-neutral-900"
                       : "text-muted-foreground hover:bg-muted/60 hover:text-foreground dark:hover:bg-neutral-900/80",
@@ -60,7 +55,7 @@ const Sidebar = () => {
           {/* Fixed position logo/project section - positioned to extend below screen */}
           <Link
             to="/"
-            className="block rounded-2xl bg-gray-50 backdrop-blur-md px-5 py-4 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40 dark:bg-[#1a1a1f]/90 mt-auto mb-[-1.75rem]"
+            className="mt-auto mb-[-1.75rem] block rounded-2xl bg-gray-50 px-4 py-3.5 text-sm font-semibold text-muted-foreground backdrop-blur-md transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40 dark:bg-[#1a1a1f]/90"
           >
             <span className="block text-xs uppercase tracking-wide text-muted-foreground/70">Platform</span>
             <div className="mt-1 flex items-center gap-2">

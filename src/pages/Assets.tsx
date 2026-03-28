@@ -5,9 +5,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { cn, formatCurrency, formatCurrencyK } from "@/lib/utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeftRight, ArrowUpRight, ChevronDown } from "lucide-react";
+import { ArrowUpRight, ChevronDown } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import Web3News from "@/components/Web3News";
 import type { TouchEvent } from "react";
 import SiteFooter from "@/components/SiteFooter";
@@ -85,6 +86,13 @@ function adjustColor(color: RGBColor, amount: number): RGBColor {
 
 function toRgba({ r, g, b }: RGBColor, alpha: number) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function formatLiquidityPerUnit(value: number) {
+  if (!Number.isFinite(value) || value <= 0) return "0.0000";
+  if (value >= 1) return value.toFixed(2);
+  if (value >= 0.01) return value.toFixed(3);
+  return value.toFixed(4);
 }
 
 function hslToRgb(h: number, s: number, l: number): RGBColor {
@@ -244,13 +252,14 @@ function detectWebView(): boolean {
 
 export function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit, showSearchBar = false }: AssetsPageProps) {
   const { assets, userAssets } = useApp();
-  const { theme, setTheme } = useTheme();
+  const { theme } = useTheme();
   const isDarkTheme = theme === "dark";
   const navigate = useNavigate();
   const [selectedNetwork, setSelectedNetwork] = useState<Network>("all");
   const [showNetworkDropdown, setShowNetworkDropdown] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [marketMode, setMarketMode] = useState<"listed" | "live">("listed");
+  const [activeStoryIndex, setActiveStoryIndex] = useState(0);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [isWebview, setIsWebview] = useState(() => detectWebView());
   const [isDesktop, setIsDesktop] = useState(() => {
@@ -337,6 +346,10 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     setViewMode("list");
   }, []);
 
+  const handleSelectMarketMode = useCallback((mode: "listed" | "live") => {
+    setMarketMode(mode);
+  }, []);
+
   const filteredAssets = useMemo(() => {
     let filtered = assets;
 
@@ -387,6 +400,180 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     value >= 0
       ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-500"
       : "border-rose-500/50 bg-rose-500/15 text-rose-500";
+
+  const storyAssets = useMemo(() => {
+    if (filteredAssets.length === 0) return [];
+    return [...filteredAssets].sort((left, right) => {
+      const reserveDelta = right.cycle.reserve - left.cycle.reserve;
+      if (reserveDelta !== 0) return reserveDelta;
+      return right.cycle.lpu - left.cycle.lpu;
+    }).slice(0, 5);
+  }, [filteredAssets]);
+
+  useEffect(() => {
+    if (storyAssets.length === 0) return;
+    if (activeStoryIndex >= storyAssets.length) {
+      setActiveStoryIndex(0);
+    }
+  }, [activeStoryIndex, storyAssets]);
+
+  useEffect(() => {
+    if (storyAssets.length <= 1) return;
+    const intervalId = window.setInterval(() => {
+      setActiveStoryIndex((current) => (current + 1) % storyAssets.length);
+    }, 4200);
+    return () => window.clearInterval(intervalId);
+  }, [storyAssets]);
+
+  const activeStoryAsset = storyAssets[activeStoryIndex] ?? storyAssets[0] ?? null;
+
+  const MarketModeToggle = ({ compact = false, className }: { compact?: boolean; className?: string }) => {
+    const isLiveMode = marketMode === "live";
+    const labelClassName = compact ? "text-[10px] tracking-[0.16em]" : "text-[11px] tracking-[0.2em]";
+
+    return (
+      <div
+        className={cn(
+          "inline-flex items-center whitespace-nowrap",
+          compact ? "gap-2" : "gap-3",
+          className,
+        )}
+        role="group"
+        aria-label="Select market mode"
+      >
+        <Switch
+          checked={isLiveMode}
+          onCheckedChange={(checked) => handleSelectMarketMode(checked ? "live" : "listed")}
+          aria-label="Toggle market mode"
+          className={cn(
+            "h-7 w-12 border-0 px-[3px] py-[3px] shadow-none",
+            "data-[state=unchecked]:!bg-blue-600 data-[state=checked]:!bg-blue-600",
+            "focus-visible:ring-blue-400/70",
+          )}
+          thumbClassName="!h-[18px] !w-[18px] !bg-white !shadow-none data-[state=checked]:translate-x-[1.5rem] data-[state=unchecked]:translate-x-0"
+        />
+        <span
+          className={cn(
+            "font-semibold uppercase transition-colors",
+            labelClassName,
+            isDarkTheme ? "text-white" : "text-neutral-900",
+          )}
+        >
+          {isLiveMode ? "Live" : "Listed"}
+        </span>
+      </div>
+    );
+  };
+
+  const LiveMarketStoryCard = () => {
+    if (!activeStoryAsset) return null;
+
+    const storyTitleBase = activeStoryAsset.name.replace(/\s+vault$/i, "");
+    const liquidityPerUnit =
+      activeStoryAsset.cycle.lpu > 0
+        ? activeStoryAsset.cycle.lpu
+        : activeStoryAsset.cycle.supply > 0
+          ? activeStoryAsset.cycle.reserve / activeStoryAsset.cycle.supply
+          : activeStoryAsset.params.initialSupply > 0
+            ? activeStoryAsset.cycle.reserve / activeStoryAsset.params.initialSupply
+            : 0;
+    const coinTagPrice = Math.max(4.2, activeStoryAsset.cycle.lpu * 0.4);
+    const storyStats = [
+      { label: "Liquidity", value: formatCurrencyK(activeStoryAsset.cycle.reserve) },
+      { label: "LPU", value: formatLiquidityPerUnit(liquidityPerUnit) },
+      { label: "CoinTag", value: formatCurrency(coinTagPrice) },
+      { label: "Backing Reserve", value: formatCurrencyK(activeStoryAsset.params.initialReserve) },
+    ];
+
+    return (
+      <div className="w-full max-w-[34rem]">
+        <article
+          role="button"
+          tabIndex={0}
+          onClick={() => navigate(`/assets/${activeStoryAsset.id}`)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              navigate(`/assets/${activeStoryAsset.id}`);
+            }
+          }}
+          className="group relative w-full overflow-hidden rounded-[24px] bg-black text-left text-white shadow-[0_26px_70px_rgba(15,23,42,0.24)]"
+        >
+          <div className="absolute inset-0">
+            <img
+              src={activeStoryAsset.image}
+              alt={activeStoryAsset.name}
+              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.72)_22%,rgba(0,0,0,0.22)_52%,rgba(0,0,0,0.9)_100%)]" />
+          </div>
+          <div className="relative z-10 flex min-h-[29rem] flex-col p-4 sm:min-h-[35rem] sm:p-6">
+            <div className="flex items-start gap-3">
+              <div className="flex min-w-0 items-start gap-3">
+                <img
+                  src={activeStoryAsset.image}
+                  alt={activeStoryAsset.name}
+                  className="h-[52px] w-[52px] shrink-0 rounded-full border border-white/30 object-cover shadow-lg"
+                />
+                <div className="min-w-0 pt-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="truncate text-[1.05rem] font-semibold text-white sm:text-[1.2rem]">
+                      {activeStoryAsset.name}
+                    </span>
+                    <img src="/checklist.png" alt="verified" className="h-4 w-4 opacity-90 flex-shrink-0" />
+                  </div>
+                  <div className="mt-1 truncate text-[11px] font-medium text-white/72 sm:text-xs">
+                    {storyTitleBase} liquidity funded tokens
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-auto space-y-4">
+              <div className="flex justify-end">
+                <div className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-sm transition-colors group-hover:bg-white/20">
+                  <ArrowUpRight className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="grid grid-cols-4 overflow-hidden rounded-[10px] bg-white/10 backdrop-blur-md">
+                {storyStats.map((stat, index) => (
+                  <div
+                    key={`${activeStoryAsset.id}-${stat.label}`}
+                    className={cn(
+                      "min-w-0 px-3 py-3.5 sm:px-3.5",
+                      index === 0 ? "" : "border-l border-white/15",
+                    )}
+                  >
+                    <div className="truncate text-[8px] font-medium uppercase tracking-[0.08em] text-white/65 sm:text-[10px]">
+                      {stat.label}
+                    </div>
+                    <div className="mt-1 truncate text-[14px] font-semibold text-white sm:text-[16px]">
+                      {stat.value}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <div className="mt-3 flex items-center gap-1.5 px-1">
+          {storyAssets.map((asset, index) => (
+            <button
+              key={`story-${asset.id}`}
+              type="button"
+              onClick={() => setActiveStoryIndex(index)}
+              aria-label={`Show ${asset.name} story`}
+              className={cn(
+                "h-1.5 flex-1 rounded-full transition-colors",
+                index === activeStoryIndex ? "bg-white" : "bg-neutral-500 hover:bg-neutral-400",
+              )}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   const renderGridCard = (
     asset: Asset,
@@ -749,8 +936,9 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 
     return (
       <section className={cn("sm:hidden -mx-4", className ?? "mb-4")}>
-        <div className="px-4 mb-3">
+        <div className="mb-3 flex items-center justify-between gap-3 px-4">
           <h2 className="text-lg font-semibold text-foreground">Top Assets</h2>
+          <MarketModeToggle compact className="shrink-0" />
         </div>
         <div className="flex gap-4 overflow-x-auto px-4 pb-2 no-scrollbar">
           {topAssets.map((asset) => (
@@ -782,6 +970,11 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
       <main className="container mx-auto px-4 pt-2 pb-4">
         <div className="flex flex-col gap-2">
           <div className="space-y-2">
+            {activeStoryAsset && (
+              <div className="sm:hidden">
+                <LiveMarketStoryCard />
+              </div>
+            )}
             <div className="space-y-2 px-0">
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex-1">
@@ -841,21 +1034,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
               {/* Desktop controls and network selector */}
               <div className="hidden sm:flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex w-full items-center gap-2 sm:w-auto">
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={() => setMarketMode((prev) => (prev === "live" ? "listed" : "live"))}
-                    className={cn(
-                      "inline-flex items-center gap-2 rounded-full px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.25em] transition",
-                      "focus-visible:ring-2 focus-visible:ring-offset-2",
-                      isDarkTheme
-                        ? "bg-[#2f323a] text-white hover:bg-[#3b3f49] focus-visible:ring-neutral-500 focus-visible:ring-offset-neutral-900"
-                        : "bg-[#E3E5EA] text-neutral-900 hover:bg-[#d5d8de] focus-visible:ring-neutral-400 focus-visible:ring-offset-zinc-100",
-                    )}
-                  >
-                    <ArrowLeftRight className="h-3.5 w-3.5" />
-                    {marketMode === "live" ? "Switch to Listed Market" : "Switch to Live Market"}
-                  </Button>
+                  <MarketModeToggle />
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="relative">
