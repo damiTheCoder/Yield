@@ -154,7 +154,7 @@
 
   :root {
     /* Black and white theme */
-    --background: 0 0% 4%;
+    --background: 0 0% 0%;
     --foreground: 0 0% 98%;
 
     --card: 0 0% 12%;
@@ -206,7 +206,7 @@
   }
 
   :root[data-theme="light"] {
-    --background: 0 0% 99%;
+    --background: 0 0% 100%;
     --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;

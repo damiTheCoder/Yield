@@ -2,7 +2,6 @@ import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import Header from "./Header";
-import Sidebar from "./Sidebar";
 import SiteFooter from "./SiteFooter";
 
 interface LayoutProps {
@@ -92,13 +91,12 @@ const Layout = ({ children }: LayoutProps) => {
       {!hideShell && (
         <>
           <Header mobileNavItems={mobileNavLinks} />
-          <Sidebar />
         </>
       )}
       <main
         className={cn(
           "transition-all duration-300",
-          hideShell ? "pb-16" : "md:ml-[19rem] md:mr-6 pb-8"
+          hideShell ? "pb-16" : "pb-8"
         )}
       >
         {children}

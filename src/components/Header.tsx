@@ -311,11 +311,11 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
             backdropFilter: 'saturate(180%) blur(20px)',
           }}
         >
-          <div className="flex w-full items-center justify-between gap-3 px-4 py-2 md:pl-[19rem] md:pr-6">
+          <div className="flex w-full items-center justify-between gap-3 px-4 py-2 md:px-6">
             <div className="flex items-center gap-3">
               <Link
                 to="/"
-                className="hover:opacity-80 transition-smooth md:hidden flex items-center gap-2"
+                className="hover:opacity-80 transition-smooth flex items-center gap-2"
               >
                 <img
                   src="/h4.png"
@@ -336,7 +336,24 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
               </Button>
             </div>
 
-            <div className="flex items-center gap-1 md:flex-1 md:gap-3">
+            <nav className="hidden md:flex items-center gap-6 flex-1 justify-center px-4">
+              {NAV_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  to={link.href}
+                  className={cn(
+                    "text-sm font-semibold transition-colors hover:text-foreground",
+                    location.pathname === link.href || (link.href !== "/" && location.pathname.startsWith(link.href))
+                      ? "text-foreground"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+
+            <div className="flex items-center gap-1 md:gap-3">
               <Button
                 type="button"
                 variant="outline"

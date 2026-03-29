@@ -2,10 +2,10 @@ import { useApp } from "@/lib/app-state";
 import type { Asset } from "@/lib/app-state";
 import { Link, useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { cn, formatCurrency, formatCurrencyK } from "@/lib/utils";
+import { cn, formatCurrency, formatCurrencyK, formatCompactCurrency } from "@/lib/utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, ChevronDown } from "lucide-react";
+import { ArrowUpRight, ChevronDown, Search, Star, X } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -43,8 +43,8 @@ const FEATURED_NEWS_VIEW_ALL = "/blog";
 type Network = "all" | "bitcoin" | "ethereum" | "solana" | "base";
 
 const NETWORKS = [
-  { id: "all" as const, name: "All networks", icon: "⚡", image: "/22.jpeg" },
-  { id: "bitcoin" as const, name: "Bitcoin", icon: "₿", image: "/bitcoin.jpeg" },
+  { id: "all" as const, name: "All networks", icon: "⚡", image: "/22.png" },
+  { id: "bitcoin" as const, name: "Bitcoin", icon: "₿", image: "/r1.jpeg" },
   { id: "ethereum" as const, name: "Ethereum", icon: "Ξ", image: "/ethereum.jpeg" },
   { id: "solana" as const, name: "Solana", icon: "◎", image: "/solana.png" },
   { id: "base" as const, name: "Base", icon: "🔵", image: "/base.jpeg" },
@@ -266,6 +266,18 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     if (typeof window === "undefined") return true;
     return window.matchMedia("(min-width: 768px)").matches;
   });
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+
+  const toggleFavorite = useCallback((id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setFavorites((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -651,52 +663,71 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   );
 
   const renderListedList = (items: Asset[]) => (
-    <div className="overflow-x-auto no-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-      <Table className="min-w-[720px] text-sm">
-        <TableHeader>
-          <TableRow className="border-b-0">
-            <TableHead className="sticky left-0 z-20 min-w-[200px] bg-background text-left pl-1 sm:pl-3 border-b-0">Collection</TableHead>
-            <TableHead className="min-w-[140px] text-right border-b-0">Liquidity</TableHead>
-            <TableHead className="min-w-[140px] text-right border-b-0">LPU</TableHead>
-            <TableHead className="min-w-[140px] text-right border-b-0">CoinTag</TableHead>
-            <TableHead className="min-w-[160px] text-right border-b-0">Backing Reserve</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {items.map((asset) => {
-            const coinTagPrice = Math.max(4.2, asset.cycle.lpu * 0.4);
-            const change = getAssetChange(asset);
-            const changeText = formatChange(change);
-            const changeClass = changeColorClass(change);
-            return (
-              <TableRow
-                key={asset.id}
-                className="cursor-pointer text-sm transition-colors hover:bg-surface/30 border-b border-gray-200 dark:border-[#1a1a1a]"
-                onClick={() => navigate(`/assets/${asset.id}`)}
-              >
-                <TableCell className="sticky left-0 z-10 min-w-[200px] bg-background pl-1 pr-2 sm:pl-3">
-                  <div className="flex items-center gap-2.5 text-sm">
-                    <img src={asset.image} alt={asset.name} className="h-9 w-9 rounded-xl object-cover" />
-                    <div className="flex flex-col min-w-0">
-                      <div className="flex items-center gap-1">
-                        <span className="font-medium text-foreground truncate">{asset.name}</span>
-                        <img src="/checklist.png" alt="verified" className="h-4 w-4 opacity-80 flex-shrink-0" />
+    <div className="overflow-hidden rounded-2xl border border-neutral-300 dark:border-neutral-800 bg-card mb-6">
+      <div className="overflow-x-auto no-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <Table className="min-w-[720px] text-sm">
+          <TableHeader>
+            <TableRow className="border-b-0 hover:bg-transparent bg-[#F5F5F5] dark:bg-[#111111]">
+              {isDesktop && (
+                <TableHead className="w-10 border-b-0 pl-4 bg-[#F5F5F5] dark:bg-[#111111] border-r border-neutral-300 dark:border-neutral-800">
+                  <Star className="h-4 w-4 text-blue-500 fill-blue-500" />
+                </TableHead>
+              )}
+              <TableHead className="sticky left-0 z-20 min-w-[200px] bg-[#F5F5F5] dark:bg-[#111111] text-left pl-4 sm:pl-6 border-b-0 border-r border-neutral-300 dark:border-neutral-800">Collection</TableHead>
+              <TableHead className="min-w-[140px] text-right border-b-0 px-4">Liquidity</TableHead>
+              <TableHead className="min-w-[140px] text-right border-b-0 px-8">LPU</TableHead>
+              <TableHead className="min-w-[140px] text-right border-b-0 px-4">CoinTag</TableHead>
+              <TableHead className="min-w-[160px] text-right border-b-0 pr-6">Backing Reserve</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {items.map((asset) => {
+              const coinTagPrice = Math.max(4.2, asset.cycle.lpu * 0.4);
+              const change = getAssetChange(asset);
+              const changeText = formatChange(change);
+              const changeClass = changeColorClass(change);
+              return (
+                <TableRow
+                  key={asset.id}
+                  className="cursor-pointer text-sm transition-colors hover:bg-surface/30 border-0 group"
+                  onClick={() => navigate(`/assets/${asset.id}`)}
+                >
+                  {isDesktop && (
+                    <TableCell className="w-10 pl-4 border-r border-neutral-300 dark:border-neutral-800 bg-[#F5F5F5] dark:bg-[#111111]" onClick={(e) => toggleFavorite(asset.id, e)}>
+                      <Star
+                        className={cn(
+                          "h-4 w-4 transition-all hover:scale-110",
+                          favorites.has(asset.id)
+                            ? "fill-blue-500 text-blue-500"
+                            : "text-muted-foreground/40 hover:text-muted-foreground"
+                        )}
+                      />
+                    </TableCell>
+                  )}
+                  <TableCell className="sticky left-0 z-10 min-w-[200px] bg-[#F5F5F5] dark:bg-[#111111] pl-4 sm:pl-6 pr-4 border-r border-neutral-300 dark:border-neutral-800">
+                    <div className="flex items-center gap-2.5 text-sm">
+                      <img src={asset.image} alt={asset.name} className="h-9 w-9 rounded-full object-cover" />
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-1">
+                          <span className="font-medium text-foreground truncate">{asset.name}</span>
+                          <img src="/checklist.png" alt="verified" className="h-4 w-4 opacity-80 flex-shrink-0" />
+                        </div>
+                        <span className={`text-xs font-semibold ${changeClass}`}>{changeText}</span>
                       </div>
-                      <span className={`text-xs font-semibold ${changeClass}`}>{changeText}</span>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell className="min-w-[140px] text-right font-mono text-sm px-2">{formatCurrencyK(asset.cycle.reserve)}</TableCell>
-                <TableCell className="min-w-[140px] text-right font-mono text-sm px-2">{formatCurrency(asset.cycle.lpu)}</TableCell>
-                <TableCell className="min-w-[140px] text-right font-mono text-sm px-2">{formatCurrency(coinTagPrice)}</TableCell>
-                <TableCell className="min-w-[160px] text-right font-mono text-sm px-2">
-                  {formatCurrencyK(asset.params.initialReserve)}
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+                  </TableCell>
+                  <TableCell className="min-w-[140px] text-right font-mono text-sm px-4">{formatCurrencyK(asset.cycle.reserve)}</TableCell>
+                  <TableCell className="min-w-[140px] text-right font-mono text-sm px-8">{formatCurrency(asset.cycle.lpu)}</TableCell>
+                  <TableCell className="min-w-[140px] text-right font-mono text-sm px-4">{formatCurrency(coinTagPrice)}</TableCell>
+                  <TableCell className="min-w-[160px] text-right font-mono text-sm pl-4 pr-6">
+                    {formatCurrencyK(asset.params.initialReserve)}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 
@@ -710,52 +741,71 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   );
 
   const renderLiveList = (items: Asset[]) => (
-    <div className="overflow-x-auto no-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-      <Table className="min-w-[720px] text-sm">
-        <TableHeader>
-          <TableRow>
-            <TableHead className="sticky left-0 z-20 min-w-[200px] bg-background text-left pl-1 sm:pl-3">Collection</TableHead>
-            <TableHead className="min-w-[140px] text-right">Liquidity</TableHead>
-            <TableHead className="min-w-[140px] text-right">LPU</TableHead>
-            <TableHead className="min-w-[140px] text-right">CoinTag</TableHead>
-            <TableHead className="min-w-[160px] text-right">Backing Reserve</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {items.map((asset) => {
-            const coinTagPrice = Math.max(4.2, asset.cycle.lpu * 0.4);
-            const change = getAssetChange(asset);
-            const changeText = formatChange(change);
-            const changeClass = changeColorClass(change);
-            return (
-              <TableRow
-                key={asset.id}
-                className="cursor-pointer text-sm transition-colors hover:bg-surface/30"
-                onClick={() => navigate(`/assets/${asset.id}/token`)}
-              >
-                <TableCell className="sticky left-0 z-10 min-w-[200px] bg-background pl-1 pr-2 sm:pl-3">
-                  <div className="flex items-center gap-2.5 text-sm">
-                    <img src={asset.image} alt={asset.name} className="h-9 w-9 rounded-xl object-cover" />
-                    <div className="flex flex-col min-w-0">
-                      <div className="flex items-center gap-1">
-                        <span className="font-medium text-foreground truncate">{asset.name}</span>
-                        <img src="/checklist.png" alt="verified" className="h-4 w-4 opacity-80 flex-shrink-0" />
+    <div className="overflow-hidden rounded-2xl border border-neutral-300 dark:border-neutral-800 bg-card mb-6">
+      <div className="overflow-x-auto no-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <Table className="min-w-[720px] text-sm">
+          <TableHeader>
+            <TableRow className="border-b-0 hover:bg-transparent bg-[#F5F5F5] dark:bg-[#111111]">
+              {isDesktop && (
+                <TableHead className="w-10 border-b-0 pl-4 bg-[#F5F5F5] dark:bg-[#111111] border-r border-neutral-300 dark:border-neutral-800">
+                  <Star className="h-4 w-4 text-muted-foreground/40" />
+                </TableHead>
+              )}
+              <TableHead className="sticky left-0 z-20 min-w-[200px] bg-[#F5F5F5] dark:bg-[#111111] text-left pl-4 sm:pl-6 border-b-0 border-r border-neutral-300 dark:border-neutral-800">Collection</TableHead>
+              <TableHead className="min-w-[140px] text-right border-b-0 px-4">Liquidity</TableHead>
+              <TableHead className="min-w-[140px] text-right border-b-0 px-8">LPU</TableHead>
+              <TableHead className="min-w-[140px] text-right border-b-0 px-4">CoinTag</TableHead>
+              <TableHead className="min-w-[160px] text-right border-b-0 pr-6">Backing Reserve</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {items.map((asset) => {
+              const coinTagPrice = Math.max(4.2, asset.cycle.lpu * 0.4);
+              const change = getAssetChange(asset);
+              const changeText = formatChange(change);
+              const changeClass = changeColorClass(change);
+              return (
+                <TableRow
+                  key={asset.id}
+                  className="cursor-pointer text-sm transition-colors hover:bg-surface/30 border-0 group"
+                  onClick={() => navigate(`/assets/${asset.id}/token`)}
+                >
+                  {isDesktop && (
+                    <TableCell className="w-10 pl-4 border-r border-neutral-300 dark:border-neutral-800 bg-[#F5F5F5] dark:bg-[#111111]" onClick={(e) => toggleFavorite(asset.id, e)}>
+                      <Star
+                        className={cn(
+                          "h-4 w-4 transition-all hover:scale-110",
+                          favorites.has(asset.id)
+                            ? "fill-blue-500 text-blue-500"
+                            : "text-muted-foreground/40 hover:text-muted-foreground"
+                        )}
+                      />
+                    </TableCell>
+                  )}
+                  <TableCell className="sticky left-0 z-10 min-w-[200px] bg-[#F5F5F5] dark:bg-[#111111] pl-4 sm:pl-6 pr-4 border-r border-neutral-300 dark:border-neutral-800">
+                    <div className="flex items-center gap-2.5 text-sm">
+                      <img src={asset.image} alt={asset.name} className="h-9 w-9 rounded-full object-cover" />
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-1">
+                          <span className="font-medium text-foreground truncate">{asset.name}</span>
+                          <img src="/checklist.png" alt="verified" className="h-4 w-4 opacity-80 flex-shrink-0" />
+                        </div>
+                        <span className={`text-xs font-semibold ${changeClass}`}>{changeText}</span>
                       </div>
-                      <span className={`text-xs font-semibold ${changeClass}`}>{changeText}</span>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell className="min-w-[140px] text-right font-mono text-sm px-2">{formatCurrencyK(asset.cycle.reserve)}</TableCell>
-                <TableCell className="min-w-[140px] text-right font-mono text-sm px-2">{formatCurrency(asset.cycle.lpu)}</TableCell>
-                <TableCell className="min-w-[140px] text-right font-mono text-sm px-2">{formatCurrency(coinTagPrice)}</TableCell>
-                <TableCell className="min-w-[160px] text-right font-mono text-sm px-2">
-                  {formatCurrencyK(asset.params.initialReserve)}
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+                  </TableCell>
+                  <TableCell className="min-w-[140px] text-right font-mono text-sm px-4">{formatCurrencyK(asset.cycle.reserve)}</TableCell>
+                  <TableCell className="min-w-[140px] text-right font-mono text-sm px-8">{formatCurrency(asset.cycle.lpu)}</TableCell>
+                  <TableCell className="min-w-[140px] text-right font-mono text-sm px-4">{formatCurrency(coinTagPrice)}</TableCell>
+                  <TableCell className="min-w-[160px] text-right font-mono text-sm pl-4 pr-6">
+                    {formatCurrencyK(asset.params.initialReserve)}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 
@@ -808,390 +858,249 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
       </button>
     );
   };
-  const MobileFeaturedNews = ({ className }: { className?: string }) => {
-    const totalSlides = FEATURED_NEWS_ITEMS.length;
-    const [activeSlide, setActiveSlide] = useState(0);
-    const touchStartX = useRef<number | null>(null);
-
-    useEffect(() => {
-      if (totalSlides <= 1) return;
-      const intervalId = window.setInterval(() => {
-        setActiveSlide((prev) => (prev + 1) % totalSlides);
-      }, 6500);
-      return () => window.clearInterval(intervalId);
-    }, [totalSlides]);
-
-    const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
-      touchStartX.current = event.touches[0]?.clientX ?? null;
-    };
-
-    const handleTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
-      if (touchStartX.current === null || totalSlides <= 1) return;
-      const diff = (event.changedTouches[0]?.clientX ?? touchStartX.current) - touchStartX.current;
-      touchStartX.current = null;
-      if (Math.abs(diff) < 30) return;
-      setActiveSlide((prev) => {
-        if (diff < 0) {
-          return (prev + 1) % totalSlides;
-        }
-        return (prev - 1 + totalSlides) % totalSlides;
-      });
-    };
-
-    // Desktop/Webview Layout (like Web3 Headlines - hero + grid)
-    if (isDesktop) {
-      const hero = FEATURED_NEWS_ITEMS[0];
-      const remainder = FEATURED_NEWS_ITEMS.slice(1);
-
-      return (
-        <section className={cn("mb-6", className)}>
-          <div className="flex items-center justify-between mb-5">
-            <div className={cn(
-              "uppercase tracking-wide font-bold text-xl text-foreground"
-            )}>
-              Blog Posts
-            </div>
-            <a
-              href="/blog"
-              className="text-xs font-semibold uppercase tracking-widest text-primary hover:text-primary/80"
-            >
-              View all
-            </a>
-          </div>
-          <div className="grid gap-5 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-            {/* Left Column - Large Featured Post */}
-            <div
-              className={cn(
-                "group relative overflow-hidden rounded-[28px] border transition-colors",
-                "min-h-[280px] md:min-h-[360px]",
-                "bg-card border-transparent"
-              )}
-            >
-              <Link to={hero.href} className="absolute inset-0">
-                <div className="absolute inset-0">
-                  <img
-                    src={hero.image}
-                    alt={hero.title}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
-                </div>
-                <div className="absolute inset-x-0 bottom-0 p-8 space-y-3 text-white">
-                  <span className="inline-flex items-center text-[11px] font-semibold uppercase tracking-[0.2em] text-yellow-300">
-                    Blog
-                  </span>
-                  <h3 className="text-2xl md:text-3xl font-semibold leading-tight">{hero.title}</h3>
-                  <p className="text-sm text-white/75">
-                    {hero.description}
-                  </p>
-                </div>
-              </Link>
-            </div>
-
-            {/* Right Column - Grid of Smaller Posts */}
-            <div className="flex flex-col h-full">
-              {remainder.map((item, index) => (
-                <Link
-                  key={item.id}
-                  to={item.href}
-                  className={cn(
-                    "group flex w-full items-center gap-4 rounded-2xl border px-4 transition-colors hover:border-white/40",
-                    "flex-1 py-6", // Equal height distribution with more padding
-                    index === 0 ? "mb-2" : "mt-2", // Spacing between items
-                    "bg-card border-transparent"
-                  )}
-                >
-                  <div className="flex-1 space-y-2">
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-yellow-400">
-                      Blog
-                    </span>
-                    <h4 className={cn(
-                      "text-base font-semibold leading-tight text-card-foreground"
-                    )}>
-                      {item.title}
-                    </h4>
-                    <p className={cn(
-                      "text-xs leading-relaxed text-muted-foreground"
-                    )}>
-                      {item.description}
-                    </p>
-                  </div>
-                  <div className="relative h-24 w-32 overflow-hidden rounded-xl flex-shrink-0">
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      );
-    }
-
-    // Mobile Asset Icons Layout
-    const topAssets = listedAssets.slice(0, 8);
+  const AssetStatsOverview = ({ className }: { className?: string }) => {
+    const totalVolume = (assets.reduce((sum, a) => sum + (a.cycle?.reserve || 0), 0)) * 1000;
+    const totalProfit = totalVolume * 0.082; // 8.2% profit placeholder
 
     return (
-      <section className={cn("sm:hidden -mx-4", className ?? "mb-4")}>
-        <div className="mb-3 flex items-center justify-between gap-3 px-4">
-          <h2 className="text-lg font-semibold text-foreground">Top Assets</h2>
-          <MarketModeToggle compact className="shrink-0" />
-        </div>
-        <div className="flex gap-4 overflow-x-auto px-4 pb-2 no-scrollbar">
-          {topAssets.map((asset) => (
-            <button
-              key={asset.id}
-              type="button"
-              onClick={() => navigate(`/assets/${asset.id}`)}
-              className="flex flex-col items-center gap-2 min-w-[70px] group"
-            >
-              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-border/40 transition-transform duration-200 group-hover:scale-105 group-active:scale-95">
-                <img
-                  src={asset.image}
-                  alt={asset.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <span className="text-xs font-semibold text-muted-foreground">
-                {formatCurrencyK(asset.cycle.reserve)}
+      <section className={cn("relative -mx-4", className ?? "mb-6")}>
+        <div className="px-4 py-4 grid grid-cols-2 gap-4">
+          <div className="space-y-1 text-left pr-4">
+            <span className="text-[14px] font-medium text-muted-foreground block">
+              Total LFT volume
+            </span>
+            <div className="flex flex-col gap-1 items-start">
+              <span className="text-2xl font-bold tracking-tight">
+                {formatCompactCurrency(totalVolume)}
               </span>
-            </button>
-          ))}
+              <div className="flex items-center gap-1.5 text-rose-500 font-medium">
+                <span className="text-[12px]">▼ 36.1% today</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="absolute left-1/2 top-4 bottom-4 w-px bg-neutral-200 dark:bg-neutral-800" />
+
+          <div className="space-y-1 pl-4 text-right">
+            <span className="text-[14px] font-medium text-muted-foreground block">
+              Total profit from LFT volume
+            </span>
+            <div className="flex flex-col gap-1 items-end">
+              <span className="text-2xl font-bold tracking-tight">
+                {formatCompactCurrency(totalProfit)}
+              </span>
+              <div className="flex items-center gap-1.5 text-rose-500 font-medium">
+                <span className="text-[12px]">▼ 1.79% today</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  };
+
+  const BlogSection = ({ className }: { className?: string }) => {
+    const hero = FEATURED_NEWS_ITEMS[0];
+    const sideItems = FEATURED_NEWS_ITEMS.slice(1);
+
+    return (
+      <section className={cn("mt-12", className)}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Featured Stories</h2>
+          <Link to={FEATURED_NEWS_VIEW_ALL} className="text-sm font-semibold text-primary hover:underline">
+            View all
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <Link to={hero.href} className="group relative block aspect-[16/9] overflow-hidden rounded-2xl border border-border/40 bg-card">
+              <img src={hero.image} alt={hero.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-6 flex flex-col justify-end">
+                <h3 className="text-2xl font-bold text-white mb-2 group-hover:underline">{hero.title}</h3>
+                <p className="text-white/80 line-clamp-2 text-sm max-w-xl">{hero.description}</p>
+              </div>
+            </Link>
+          </div>
+          <div className="flex flex-col gap-4">
+            {sideItems.map((item) => (
+              <Link key={item.id} to={item.href} className="group flex gap-4 p-3 rounded-2xl border border-border/40 bg-card/50 hover:bg-card transition-colors">
+                <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0">
+                  <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                </div>
+                <div className="flex flex-col justify-center">
+                  <h4 className="text-sm font-bold line-clamp-2 leading-snug group-hover:text-primary">{item.title}</h4>
+                  <p className="text-xs text-muted-foreground mt-1">Explore →</p>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
     );
   };
 
   return (
-    <div className="min-h-screen">
-      <main className="container mx-auto px-4 pt-2 pb-4">
-        <div className="flex flex-col gap-2">
-          <div className="space-y-2">
-            {activeStoryAsset && (
-              <div className="sm:hidden">
-                <LiveMarketStoryCard />
+    <div className={cn("min-h-screen", "bg-background")}>
+      <main className="flex-1 pb-20 pt-16 sm:pt-20">
+        <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col py-0 sm:py-2">
+
+            {/* Status bar */}
+            {showTrending && !isWebview && (
+              <Web3News variant="mobile" className="mb-4" />
+            )}
+
+            {/* Hero Welcome Text */}
+            <div className="mb-10 mt-1">
+              <h1 className="text-4xl sm:text-6xl font-black tracking-tight bg-gradient-to-r from-blue-600 via-blue-500 to-emerald-500 bg-clip-text text-transparent drop-shadow-sm leading-tight">
+                Welcome to Solaris
+              </h1>
+              <p className="text-muted-foreground/60 text-sm sm:text-base font-medium mt-1 max-w-2xl">
+                The leading marketplace for Liquidity Fraction Tokens.
+              </p>
+            </div>
+
+            {/* Stats overview - Unified for all */}
+            <AssetStatsOverview className="mb-4" />
+
+            {/* SearchBar - toggleable on all platforms */}
+            {(showSearchBar || isSearchVisible) && (
+              <div className="px-0 mb-4">
+                <Input
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Search assets..."
+                  className="h-11 w-full rounded-2xl border border-border/40 bg-background/80 px-4 text-sm text-foreground focus-visible:ring-0"
+                />
               </div>
             )}
-            <div className="space-y-2 px-0">
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <h1 className="text-2xl sm:text-3xl font-bold">
-                      {marketMode === "live" ? (
-                        <>
-                          Live{" "}
-                          <span
-                            className="bg-clip-text text-transparent"
-                            style={{ backgroundImage: brandHeadingGradient }}
-                          >
-                            Market
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          Listed{" "}
-                          <span
-                            className="bg-clip-text text-transparent"
-                            style={{ backgroundImage: brandHeadingGradient }}
-                          >
-                            Assets
-                          </span>
-                        </>
-                      )}
 
-                    </h1>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    {marketMode === "live"
-                      ? "Monitor market performance, liquidity flows, and pricing in real time."
-                      : "Browse listed LFT assets, analyze their performance, and discover investment opportunities."}
-                  </p>
-                  {showViewAllButton && (
-                    <div className="mt-2 sm:hidden">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => navigate("/assets/all")}
-                        className="h-auto px-0 text-xs font-semibold text-primary hover:text-primary hover:bg-transparent"
-                      >
-                        View all tokens
-                      </Button>
-                    </div>
-                  )}
-                  <div className="sm:hidden mt-4">
-                    <MobileFeaturedNews className="mb-0" />
-                  </div>
-                </div>
-                <div className="flex w-full items-center gap-3 text-xs text-muted-foreground sm:w-auto sm:justify-end" />
-              </div>
-
-              {/* Mobile search removed per updated layout */}
-
-              {/* Desktop controls and network selector */}
-              <div className="hidden sm:flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex w-full items-center gap-2 sm:w-auto">
-                  <MarketModeToggle />
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setShowNetworkDropdown(!showNetworkDropdown)}
-                      className={cn(
-                        "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-                        isDarkTheme
-                          ? "bg-[#2f323a] text-white hover:bg-[#3b3f49] focus-visible:ring-neutral-500 focus-visible:ring-offset-neutral-900"
-                          : "bg-[#E3E5EA] text-neutral-900 hover:bg-[#d5d8de] focus-visible:ring-neutral-400 focus-visible:ring-offset-neutral-100",
-                      )}
-                    >
-                      {selectedNetworkInfo.image ? (
-                        <img src={selectedNetworkInfo.image} alt={selectedNetworkInfo.name} className="h-5 w-5 rounded-full object-cover" />
-                      ) : (
-                        <span>{selectedNetworkInfo.icon}</span>
-                      )}
-                      <span>
-                        {selectedNetwork === "all"
-                          ? selectedNetworkInfo.name.toUpperCase()
-                          : selectedNetworkInfo.name}
-                      </span>
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-
-                    {showNetworkDropdown && (
-                      <>
-                        <div
-                          className="fixed inset-0 z-40"
-                          onClick={() => setShowNetworkDropdown(false)}
-                        />
-                        <div className="absolute top-full right-0 mt-2 w-56 rounded-2xl bg-card shadow-xl z-50 overflow-hidden dark:bg-neutral-950/95">
-                          {NETWORKS.map((network) => (
-                            <button
-                              key={network.id}
-                              type="button"
-                              onClick={() => {
-                                setSelectedNetwork(network.id);
-                                setShowNetworkDropdown(false);
-                              }}
-                              className={cn(
-                                "w-full flex items-center gap-3 px-4 py-3 text-left transition-colors",
-                                selectedNetwork === network.id
-                                  ? "bg-muted/70 text-foreground font-semibold dark:bg-neutral-900"
-                                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground dark:hover:bg-neutral-900/80",
-                              )}
-                            >
-                              {network.image ? (
-                                <img src={network.image} alt={network.name} className="h-6 w-6 rounded-full object-cover" />
-                              ) : (
-                                <span className="text-xl">{network.icon}</span>
-                              )}
-                              <span>{network.name}</span>
-                              {selectedNetwork === network.id && (
-                                <span className="ml-auto text-primary">✓</span>
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {marketMode === "listed" && showTrending && trendingTokens.length > 0 && (
-                <section className="space-y-1 -mb-2 hidden md:block">
-                  <div className="flex items-center justify-between gap-3">
-                    <h2 className="text-xl font-semibold text-foreground">Trending Tokens</h2>
-                    <Button
-                      variant="link"
-                      className="h-auto px-0 text-sm font-semibold text-primary"
-                      onClick={() => navigate("/assets/all")}
-                    >
-                      View all
-                    </Button>
-                  </div>
-                  <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 no-scrollbar">
-                    {trendingTokens.map(({ asset, change }) => (
-                      <TrendingTokenCard key={`trending-${asset.id}`} asset={asset} change={change} />
-                    ))}
-                  </div>
-                </section>
+            {/* Text Navigation Links - Unified */}
+            <div className="flex items-center gap-6 mt-2 pb-2 overflow-x-auto no-scrollbar">
+              <button
+                type="button"
+                onClick={() => handleSelectMarketMode("listed")}
+                className={cn(
+                  "text-[22px] font-semibold transition-colors whitespace-nowrap",
+                  marketMode === "listed" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Listed
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSelectMarketMode("live")}
+                className={cn(
+                  "text-[22px] font-semibold transition-colors whitespace-nowrap",
+                  marketMode === "live" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Live
+              </button>
+              {showViewAllButton && (
+                <button
+                  type="button"
+                  onClick={() => navigate("/assets/all")}
+                  className="text-[22px] font-semibold transition-colors text-muted-foreground hover:text-foreground cursor-pointer whitespace-nowrap"
+                >
+                  View all tokens
+                </button>
               )}
-
-              {showSearchBar && (
-                <div className="px-0">
-                  <Input
-                    value={searchTerm}
-                    onChange={(event) => setSearchTerm(event.target.value)}
-                    placeholder="Search tokens, tickers, or IDs"
-                    className="hidden sm:block h-11 w-full rounded-2xl border border-border/40 bg-background/80 px-4 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0"
-                  />
-                </div>
-              )}
-
-              {showSearchBar && (
-                <div className="sm:hidden">
-                  <Input
-                    value={searchTerm}
-                    onChange={(event) => setSearchTerm(event.target.value)}
-                    placeholder="Search tokens, tickers, or IDs"
-                    className="mt-3 h-11 w-full rounded-3xl border border-border/40 bg-muted/40 px-4 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0"
-                  />
-                </div>
-              )}
-
-              {/* View mode switcher for listed/live markets */}
-              {displayListedAssets.length > 0 ? (
-                marketMode === "live" ? (
-                  viewMode === "grid" ? renderLiveGrid(displayListedAssets) : renderLiveList(displayListedAssets)
-                ) : viewMode === "grid" ? (
-                  renderListedGrid(displayListedAssets)
-                ) : (
-                  renderListedList(displayListedAssets)
-                )
-              ) : (
-                renderEmptyState()
-              )}
-
-              {/* Mobile Trending Section - Below Listed Assets */}
-              {marketMode === "listed" && showTrending && trendingTokens.length > 0 && (
-                <section className="space-y-2 mt-4 md:hidden">
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-xl font-semibold text-foreground">Trending Tokens</h2>
-                  </div>
-                  <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 no-scrollbar">
-                    {trendingTokens.map(({ asset, change }) => (
-                      <TrendingTokenCard key={`mobile-trending-${asset.id}`} asset={asset} change={change} />
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {/* Status bar first */}
-              {showTrending && !isWebview && !isDesktop && (
-                <Web3News variant="mobile" className="mt-6 sm:hidden" />
-              )}
-
-              {/* Blog section for desktop/webview - show beneath status bar */}
-              {(isWebview || isDesktop) && marketMode === "listed" && (
-                <div className="mt-6 hidden sm:block">
-                  <MobileFeaturedNews />
-                </div>
-              )}
-
             </div>
+
+            {/* Control Buttons Row - Unified */}
+            <div className="flex items-center gap-3 mt-1 mb-4">
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowNetworkDropdown(!showNetworkDropdown)}
+                  className="flex items-center gap-2 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-card px-3 py-2 shadow-sm transition hover:bg-muted/40"
+                >
+                  <div className="grid grid-cols-2 gap-0.5 w-6 h-6">
+                    {NETWORKS.slice(1, 5).map((n) => (
+                      <div key={n.id} className="w-2.5 h-2.5 rounded-full overflow-hidden bg-muted flex items-center justify-center">
+                        {n.image ? (
+                          <img src={n.image} alt={n.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-[6px] font-bold">{n.icon}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                </button>
+
+                {showNetworkDropdown && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowNetworkDropdown(false)} />
+                    <div className="absolute bottom-full left-0 mb-2 w-56 rounded-2xl bg-card shadow-xl z-50 overflow-hidden dark:bg-neutral-950/95 border border-border/40 animate-in fade-in slide-in-from-bottom-2 duration-200 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.3)] dark:shadow-none">
+                      {NETWORKS.map((network) => (
+                        <button
+                          key={network.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedNetwork(network.id);
+                            setShowNetworkDropdown(false);
+                          }}
+                          className={cn(
+                            "w-full flex items-center gap-3 px-4 py-3 text-left transition-colors",
+                            selectedNetwork === network.id
+                              ? "bg-muted/70 text-foreground font-semibold dark:bg-neutral-900"
+                              : "text-muted-foreground hover:bg-muted/60 hover:text-foreground dark:hover:bg-neutral-900/80",
+                          )}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-6 h-6 rounded-md overflow-hidden bg-muted flex items-center justify-center border border-border/10">
+                              {network.image ? (
+                                <img src={network.image} alt={network.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-[10px]">{network.icon}</span>
+                              )}
+                            </div>
+                            <span className="text-sm">{network.name}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-card px-4 py-2 shadow-sm">
+                <span className="text-sm font-semibold">1D</span>
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsSearchVisible(!isSearchVisible)}
+                className="flex items-center justify-center rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-card w-11 h-11 shadow-sm transition hover:bg-muted/40"
+              >
+                <Search className="h-5 w-5 text-foreground" />
+              </button>
+            </div>
+
+            {/* Table or Grid View - Unified */}
+            {displayListedAssets.length > 0 ? (
+              marketMode === "live" ? (
+                viewMode === "grid" ? renderLiveGrid(displayListedAssets) : renderLiveList(displayListedAssets)
+              ) : viewMode === "grid" ? (
+                renderListedGrid(displayListedAssets)
+              ) : (
+                renderListedList(displayListedAssets)
+              )
+            ) : (
+              renderEmptyState()
+            )}
+
+            {/* Blog Section - Shown for everyone at the bottom */}
+            {marketMode === "listed" && <BlogSection />}
 
           </div>
         </div>
-      </main >
-      <SiteFooter className="hidden sm:block" />
-    </div >
+      </main>
+      <SiteFooter />
+    </div>
   );
 }
 
