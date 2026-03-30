@@ -128,17 +128,18 @@ const SolarisSlider = () => {
           justify-self: end;
           border: none;
           border-radius: 999px;
-          padding: 0 28px;
-          min-height: 58px;
-          background: #060b16;
+          padding: 0 18px;
+          min-height: 44px;
+          background: #2f7bf7;
           color: #ffffff;
           display: inline-flex;
           align-items: center;
-          gap: 12px;
-          font-size: 16px;
+          gap: 8px;
+          font-size: 14px;
           font-weight: 700;
           cursor: pointer;
           transition: transform 0.2s ease, opacity 0.2s ease;
+          box-shadow: 0 14px 28px rgba(47, 123, 247, 0.24);
         }
 
         .get-started-btn:hover {
@@ -177,8 +178,8 @@ const SolarisSlider = () => {
           color: rgba(255, 255, 255, 0.96);
           text-align: center;
           white-space: nowrap;
-          z-index: 1;
-          text-shadow: 0 10px 30px rgba(112, 164, 207, 0.16);
+          z-index: 3;
+          text-shadow: 0 12px 30px rgba(112, 164, 207, 0.22);
         }
 
         .landing-hero-ring {
@@ -188,6 +189,23 @@ const SolarisSlider = () => {
           filter: drop-shadow(0 24px 48px rgba(38, 63, 88, 0.18));
           user-select: none;
           pointer-events: none;
+        }
+
+        .landing-hero-tagline {
+          position: absolute;
+          left: 50%;
+          bottom: clamp(10px, 2vw, 28px);
+          transform: translateX(-50%);
+          margin: 0;
+          color: #42bf67;
+          font-size: clamp(14px, 1.35vw, 20px);
+          line-height: 1.2;
+          letter-spacing: -0.02em;
+          font-weight: 500;
+          text-align: center;
+          white-space: nowrap;
+          z-index: 4;
+          text-shadow: 0 6px 18px rgba(255, 255, 255, 0.36);
         }
 
         .landing-empty {
@@ -347,6 +365,10 @@ const SolarisSlider = () => {
           border-radius: 18px;
         }
 
+        .lft-image-picture {
+          display: block;
+        }
+
         @media (max-width: 1100px) {
           .landing-nav-inner {
             grid-template-columns: 1fr auto;
@@ -374,10 +396,10 @@ const SolarisSlider = () => {
           }
 
           .get-started-btn {
-            min-height: 46px;
-            padding: 0 16px;
-            font-size: 14px;
-            gap: 8px;
+            min-height: 38px;
+            padding: 0 12px;
+            font-size: 12px;
+            gap: 6px;
           }
 
           .landing-hero {
@@ -391,6 +413,13 @@ const SolarisSlider = () => {
 
           .landing-hero-ring {
             width: clamp(180px, 52vw, 300px);
+          }
+
+          .landing-hero-tagline {
+            bottom: 8px;
+            font-size: clamp(12px, 3.5vw, 16px);
+            white-space: normal;
+            width: min(90vw, 320px);
           }
 
           .landing-section {
@@ -476,6 +505,7 @@ const SolarisSlider = () => {
           }
 
           .lft-image-frame {
+            width: min(86vw, 320px);
             margin-top: 20px;
             padding: 0;
             border-radius: 13px;
@@ -516,6 +546,7 @@ const SolarisSlider = () => {
             <div className="landing-hero-inner">
               <h1 className="landing-hero-title">Solaris</h1>
               <img className="landing-hero-ring" src="/G5.png" alt="" aria-hidden="true" />
+              <p className="landing-hero-tagline">The era of Non extractive tokens</p>
             </div>
           </section>
         </div>
@@ -553,7 +584,10 @@ const SolarisSlider = () => {
                 Liquidity Funded Tokens. Value-backed from day one. Guaranteed redemption that never hits zero.
               </p>
               <div className="lft-image-frame">
-                <img className="lft-image" src="/v2.png" alt="LFT interface preview" />
+                <picture className="lft-image-picture">
+                  <source media="(max-width: 768px)" srcSet="/v3.png" />
+                  <img className="lft-image" src="/v2.png" alt="LFT interface preview" />
+                </picture>
               </div>
             </div>
           </section>
