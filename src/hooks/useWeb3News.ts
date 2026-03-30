@@ -31,6 +31,39 @@ const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
 const REFRESH_INTERVAL = 1000 * 60 * 5; // auto refresh every 5 minutes
 const STALE_THRESHOLD = 1000 * 60 * 60 * 24 * 7; // 7 days
 
+const FALLBACK_NEWS: Web3NewsItem[] = [
+  {
+    id: "fallback-tokenized-yield",
+    title: "Reimagining Liquidity: How Tokenized Yield Is Bridging TradFi and Web3",
+    url: "/blog/tokenized-yield-liquidity",
+    imageUrl: "/d5.png",
+    source: "Solaris Research",
+    publishedAt: new Date("2024-08-02T00:00:00.000Z"),
+  },
+  {
+    id: "fallback-lft-future",
+    title: "Liquidity Funded Tokens (LFTs): The Future of Sustainable Digital Assets",
+    url: "/blog/liquidity-funded-tokens",
+    imageUrl: "/d1.png",
+    source: "Solaris Research",
+    publishedAt: new Date("2024-05-21T00:00:00.000Z"),
+  },
+  {
+    id: "fallback-creative-liquidity",
+    title: "The Creative Use of Liquidity in the Web3 Space",
+    url: "/blog/creative-liquidity-web3",
+    imageUrl: "/d3.png",
+    source: "Solaris Research",
+    publishedAt: new Date("2024-07-09T00:00:00.000Z"),
+  },
+];
+
+function cacheNews(items: Web3NewsItem[]) {
+  cachedNews = items;
+  cacheTimestamp = Date.now();
+  return items;
+}
+
 async function fetchWeb3News(forceRefresh = false): Promise<Web3NewsItem[]> {
   if (!forceRefresh && cachedNews && Date.now() - cacheTimestamp < CACHE_TTL) {
     return cachedNews;
@@ -43,11 +76,11 @@ async function fetchWeb3News(forceRefresh = false): Promise<Web3NewsItem[]> {
   inflightRequest = fetch(NEWS_ENDPOINT)
     .then(async (response) => {
       if (!response.ok) {
-        throw new Error(`Failed to load news: ${response.status}`);
+        return cacheNews(FALLBACK_NEWS);
       }
       const payload = await response.json();
       if (!payload?.Data || !Array.isArray(payload.Data)) {
-        throw new Error("Unexpected response format");
+        return cacheNews(FALLBACK_NEWS);
       }
 
       const now = Date.now();
@@ -63,16 +96,20 @@ async function fetchWeb3News(forceRefresh = false): Promise<Web3NewsItem[]> {
         .filter((item: Web3NewsItem) => {
           if (!item.imageUrl) return false;
           const source = item.source?.toLowerCase() ?? "";
-          // allow CoinDesk and Bloomberg (and keep TechCrunch as fallback)
-          const isSupportedSource = source.includes("coindesk") || source.includes("bloomberg") || source.includes("techcrunch");
+          const isSupportedSource =
+            source.includes("coindesk") ||
+            source.includes("cointelegraph") ||
+            source.includes("bloomberg") ||
+            source.includes("techcrunch");
           if (!isSupportedSource) return false;
           return now - item.publishedAt.getTime() <= STALE_THRESHOLD;
         })
         .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
 
-      cachedNews = normalized;
-      cacheTimestamp = Date.now();
-      return normalized;
+      return cacheNews(normalized.length > 0 ? normalized : FALLBACK_NEWS);
+    })
+    .catch(() => {
+      return cacheNews(FALLBACK_NEWS);
     })
     .finally(() => {
       inflightRequest = null;

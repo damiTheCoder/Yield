@@ -1,11 +1,11 @@
 import { useApp } from "@/lib/app-state";
 import type { Asset } from "@/lib/app-state";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn, formatCurrency, formatCurrencyK, formatCompactCurrency } from "@/lib/utils";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, ChevronDown, Search, Star, X } from "lucide-react";
+import { ArrowUpRight, Check, ChevronDown, Search, Star, X } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -14,40 +14,56 @@ import type { TouchEvent } from "react";
 import SiteFooter from "@/components/SiteFooter";
 
 const MAX_TRENDING = 10;
-const FEATURED_NEWS_ITEMS = [
-  {
-    id: "tokenized-yield",
-    title: "Reimagining Liquidity: How Tokenized Yield Is Bridging TradFi and Web3",
-    description: "USYC shows how programmable liquidity merges Treasury yield with on-chain access.",
-    href: "/blog/tokenized-yield-liquidity",
-    image: "/d5.png",
-  },
-  {
-    id: "lft-future",
-    title: "Liquidity Funded Tokens (LFTs): The Future of Sustainable Digital Assets",
-    description: "Turning hype into real value through liquidity-backed launches powered by Solaris.",
-    href: "/blog/liquidity-funded-tokens",
-    image: "/d1.png",
-  },
-  {
-    id: "creative-liquidity",
-    title: "The Creative Use of Liquidity in the Web3 Space",
-    description: "How DAOs, NFT studios, and LFT builders treat liquidity as a design medium.",
-    href: "/blog/creative-liquidity-web3",
-    image: "/d3.png",
-  },
-] as const;
-
-const FEATURED_NEWS_VIEW_ALL = "/blog";
-
-type Network = "all" | "bitcoin" | "ethereum" | "solana" | "base";
-
+type Network = "all" | "bitcoin" | "ethereum" | "solana" | "base" | "monad";
 const NETWORKS = [
-  { id: "all" as const, name: "All networks", icon: "⚡", image: "/22.png" },
-  { id: "bitcoin" as const, name: "Bitcoin", icon: "₿", image: "/r1.jpeg" },
-  { id: "ethereum" as const, name: "Ethereum", icon: "Ξ", image: "/ethereum.jpeg" },
-  { id: "solana" as const, name: "Solana", icon: "◎", image: "/solana.png" },
-  { id: "base" as const, name: "Base", icon: "🔵", image: "/base.jpeg" },
+  {
+    id: "all" as const,
+    name: "All networks",
+    icon: "⚡",
+    image: "/Coinbase Logo.jpeg",
+    pillClass: "bg-[#EEF4FF] text-[#3A5DAE] hover:bg-[#E1ECFF] dark:bg-[#1A2338] dark:text-[#AFC8FF] dark:hover:bg-[#22304D]",
+    selectedPillClass: "bg-[#DFEAFE] text-[#26468E] dark:bg-[#243555] dark:text-[#D5E4FF]",
+  },
+  {
+    id: "bitcoin" as const,
+    name: "Bitcoin",
+    icon: "₿",
+    image: "/Bitcoin.jpeg",
+    pillClass: "bg-[#FFF1E1] text-[#B56814] hover:bg-[#FFE7CF] dark:bg-[#332315] dark:text-[#F4BE7B] dark:hover:bg-[#422E1B]",
+    selectedPillClass: "bg-[#FFE4C3] text-[#9B5604] ring-1 ring-inset ring-[#F4BE7B] dark:bg-[#4A311A] dark:text-[#FFD7A2] dark:ring-[#9A6A2A]",
+  },
+  {
+    id: "ethereum" as const,
+    name: "Ethereum",
+    icon: "Ξ",
+    image: "/ethereum.jpeg",
+    pillClass: "bg-[#EEF0FF] text-[#5A68C4] hover:bg-[#E3E7FF] dark:bg-[#20263D] dark:text-[#BEC7FF] dark:hover:bg-[#29324E]",
+    selectedPillClass: "bg-[#E1E5FF] text-[#4653AB] ring-1 ring-inset ring-[#B9C2FF] dark:bg-[#2D3557] dark:text-[#D7DDFF] dark:ring-[#7F8ED9]",
+  },
+  {
+    id: "solana" as const,
+    name: "Solana",
+    icon: "◎",
+    image: "/solana.png",
+    pillClass: "bg-[#E9FFF8] text-[#17916E] hover:bg-[#DDFBF2] dark:bg-[#152D28] dark:text-[#8DE0C4] dark:hover:bg-[#1B3932]",
+    selectedPillClass: "bg-[#D8F9EE] text-[#0E775A] ring-1 ring-inset ring-[#93E5CA] dark:bg-[#1F433B] dark:text-[#B3F3DE] dark:ring-[#4BAA8A]",
+  },
+  {
+    id: "base" as const,
+    name: "Base",
+    icon: "🔵",
+    image: "/base.jpeg",
+    pillClass: "bg-[#EAF2FF] text-[#2D58D7] hover:bg-[#DDE8FF] dark:bg-[#16233C] dark:text-[#AAC3FF] dark:hover:bg-[#1D2E4D]",
+    selectedPillClass: "bg-[#DBE8FF] text-[#1F47BC] ring-1 ring-inset ring-[#A4BEFF] dark:bg-[#223662] dark:text-[#D4E0FF] dark:ring-[#6F93F1]",
+  },
+  {
+    id: "monad" as const,
+    name: "Monad",
+    icon: "M",
+    image: "/Monad.jpeg",
+    pillClass: "bg-[#F5ECFF] text-[#6E3DBF] hover:bg-[#EDDEFF] dark:bg-[#2A1D39] dark:text-[#D3B5FF] dark:hover:bg-[#36264A]",
+    selectedPillClass: "bg-[#EBDDFF] text-[#5A2FA5] ring-1 ring-inset ring-[#C8A8F6] dark:bg-[#412B5C] dark:text-[#ECD9FF] dark:ring-[#8F69C8]",
+  },
 ];
 
 type AssetsPageProps = {
@@ -369,7 +385,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     if (selectedNetwork !== "all") {
       filtered = filtered.filter((asset) => {
         const hash = asset.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        const networks: Network[] = ["bitcoin", "ethereum", "solana", "base"];
+        const networks: Network[] = ["bitcoin", "ethereum", "solana", "base", "monad"];
         const assignedNetwork = networks[hash % networks.length];
         return assignedNetwork === selectedNetwork;
       });
@@ -667,13 +683,13 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
       <div className="overflow-x-auto no-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <Table className="min-w-[720px] text-sm">
           <TableHeader>
-            <TableRow className="border-b-0 hover:bg-transparent bg-[#F5F5F5] dark:bg-[#111111]">
+            <TableRow className="border-b-0 hover:bg-transparent">
               {isDesktop && (
-                <TableHead className="w-10 border-b-0 pl-4 bg-[#F5F5F5] dark:bg-[#111111] border-r border-neutral-300 dark:border-neutral-800">
+                <TableHead className="w-10 border-b-0 pl-4 bg-[#F5F5F5] dark:bg-[#111111]">
                   <Star className="h-4 w-4 text-blue-500 fill-blue-500" />
                 </TableHead>
               )}
-              <TableHead className="sticky left-0 z-20 min-w-[200px] bg-[#F5F5F5] dark:bg-[#111111] text-left pl-4 sm:pl-6 border-b-0 border-r border-neutral-300 dark:border-neutral-800">Collection</TableHead>
+              <TableHead className="sticky left-0 z-20 min-w-[200px] bg-[#F5F5F5] dark:bg-[#111111] text-left pl-4 sm:pl-6 border-b-0">Collection</TableHead>
               <TableHead className="min-w-[140px] text-right border-b-0 px-4">Liquidity</TableHead>
               <TableHead className="min-w-[140px] text-right border-b-0 px-8">LPU</TableHead>
               <TableHead className="min-w-[140px] text-right border-b-0 px-4">CoinTag</TableHead>
@@ -693,7 +709,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                   onClick={() => navigate(`/assets/${asset.id}`)}
                 >
                   {isDesktop && (
-                    <TableCell className="w-10 pl-4 border-r border-neutral-300 dark:border-neutral-800 bg-[#F5F5F5] dark:bg-[#111111]" onClick={(e) => toggleFavorite(asset.id, e)}>
+                    <TableCell className="w-10 pl-4 bg-[#F5F5F5] dark:bg-[#111111]" onClick={(e) => toggleFavorite(asset.id, e)}>
                       <Star
                         className={cn(
                           "h-4 w-4 transition-all hover:scale-110",
@@ -704,7 +720,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       />
                     </TableCell>
                   )}
-                  <TableCell className="sticky left-0 z-10 min-w-[200px] bg-[#F5F5F5] dark:bg-[#111111] pl-4 sm:pl-6 pr-4 border-r border-neutral-300 dark:border-neutral-800">
+                  <TableCell className="sticky left-0 z-10 min-w-[200px] bg-[#F5F5F5] dark:bg-[#111111] pl-4 sm:pl-6 pr-4">
                     <div className="flex items-center gap-2.5 text-sm">
                       <img src={asset.image} alt={asset.name} className="h-9 w-9 rounded-full object-cover" />
                       <div className="flex flex-col min-w-0">
@@ -745,13 +761,13 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
       <div className="overflow-x-auto no-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <Table className="min-w-[720px] text-sm">
           <TableHeader>
-            <TableRow className="border-b-0 hover:bg-transparent bg-[#F5F5F5] dark:bg-[#111111]">
+            <TableRow className="border-b-0 hover:bg-transparent">
               {isDesktop && (
-                <TableHead className="w-10 border-b-0 pl-4 bg-[#F5F5F5] dark:bg-[#111111] border-r border-neutral-300 dark:border-neutral-800">
-                  <Star className="h-4 w-4 text-muted-foreground/40" />
+                <TableHead className="w-10 border-b-0 pl-4 bg-[#F5F5F5] dark:bg-[#111111]">
+                  <Star className="h-4 w-4 text-blue-500 fill-blue-500" />
                 </TableHead>
               )}
-              <TableHead className="sticky left-0 z-20 min-w-[200px] bg-[#F5F5F5] dark:bg-[#111111] text-left pl-4 sm:pl-6 border-b-0 border-r border-neutral-300 dark:border-neutral-800">Collection</TableHead>
+              <TableHead className="sticky left-0 z-20 min-w-[200px] bg-[#F5F5F5] dark:bg-[#111111] text-left pl-4 sm:pl-6 border-b-0">Collection</TableHead>
               <TableHead className="min-w-[140px] text-right border-b-0 px-4">Liquidity</TableHead>
               <TableHead className="min-w-[140px] text-right border-b-0 px-8">LPU</TableHead>
               <TableHead className="min-w-[140px] text-right border-b-0 px-4">CoinTag</TableHead>
@@ -771,7 +787,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                   onClick={() => navigate(`/assets/${asset.id}/token`)}
                 >
                   {isDesktop && (
-                    <TableCell className="w-10 pl-4 border-r border-neutral-300 dark:border-neutral-800 bg-[#F5F5F5] dark:bg-[#111111]" onClick={(e) => toggleFavorite(asset.id, e)}>
+                    <TableCell className="w-10 pl-4 bg-[#F5F5F5] dark:bg-[#111111]" onClick={(e) => toggleFavorite(asset.id, e)}>
                       <Star
                         className={cn(
                           "h-4 w-4 transition-all hover:scale-110",
@@ -782,7 +798,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       />
                     </TableCell>
                   )}
-                  <TableCell className="sticky left-0 z-10 min-w-[200px] bg-[#F5F5F5] dark:bg-[#111111] pl-4 sm:pl-6 pr-4 border-r border-neutral-300 dark:border-neutral-800">
+                  <TableCell className="sticky left-0 z-10 min-w-[200px] bg-[#F5F5F5] dark:bg-[#111111] pl-4 sm:pl-6 pr-4">
                     <div className="flex items-center gap-2.5 text-sm">
                       <img src={asset.image} alt={asset.name} className="h-9 w-9 rounded-full object-cover" />
                       <div className="flex flex-col min-w-0">
@@ -899,66 +915,17 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     );
   };
 
-  const BlogSection = ({ className }: { className?: string }) => {
-    const hero = FEATURED_NEWS_ITEMS[0];
-    const sideItems = FEATURED_NEWS_ITEMS.slice(1);
-
-    return (
-      <section className={cn("mt-12", className)}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Featured Stories</h2>
-          <Link to={FEATURED_NEWS_VIEW_ALL} className="text-sm font-semibold text-primary hover:underline">
-            View all
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <Link to={hero.href} className="group relative block aspect-[16/9] overflow-hidden rounded-2xl border border-border/40 bg-card">
-              <img src={hero.image} alt={hero.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-6 flex flex-col justify-end">
-                <h3 className="text-2xl font-bold text-white mb-2 group-hover:underline">{hero.title}</h3>
-                <p className="text-white/80 line-clamp-2 text-sm max-w-xl">{hero.description}</p>
-              </div>
-            </Link>
-          </div>
-          <div className="flex flex-col gap-4">
-            {sideItems.map((item) => (
-              <Link key={item.id} to={item.href} className="group flex gap-4 p-3 rounded-2xl border border-border/40 bg-card/50 hover:bg-card transition-colors">
-                <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0">
-                  <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                </div>
-                <div className="flex flex-col justify-center">
-                  <h4 className="text-sm font-bold line-clamp-2 leading-snug group-hover:text-primary">{item.title}</h4>
-                  <p className="text-xs text-muted-foreground mt-1">Explore →</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  };
-
   return (
     <div className={cn("min-h-screen", "bg-background")}>
-      <main className="flex-1 pb-20 pt-16 sm:pt-20">
+      <main className="flex-1 pb-20 pt-8 sm:pt-12">
         <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col py-0 sm:py-2">
+          <div className="flex flex-col pt-0 pb-4">
 
             {/* Status bar */}
-            {showTrending && !isWebview && (
+            {showTrending && (
               <Web3News variant="mobile" className="mb-4" />
             )}
 
-            {/* Hero Welcome Text */}
-            <div className="mb-10 mt-1">
-              <h1 className="text-4xl sm:text-6xl font-black tracking-tight bg-gradient-to-r from-blue-600 via-blue-500 to-emerald-500 bg-clip-text text-transparent drop-shadow-sm leading-tight">
-                Welcome to Solaris
-              </h1>
-              <p className="text-muted-foreground/60 text-sm sm:text-base font-medium mt-1 max-w-2xl">
-                The leading marketplace for Liquidity Fraction Tokens.
-              </p>
-            </div>
 
             {/* Stats overview - Unified for all */}
             <AssetStatsOverview className="mb-4" />
@@ -1009,75 +976,36 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
             </div>
 
             {/* Control Buttons Row - Unified */}
-            <div className="flex items-center gap-3 mt-1 mb-4">
-              <div className="relative">
+            {/* Horizontal Network Selector */}
+            <div className="flex items-center gap-2 mt-4 mb-4 pb-2 overflow-x-auto no-scrollbar">
+              {NETWORKS.map((network) => (
                 <button
+                  key={network.id}
                   type="button"
-                  onClick={() => setShowNetworkDropdown(!showNetworkDropdown)}
-                  className="flex items-center gap-2 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-card px-3 py-2 shadow-sm transition hover:bg-muted/40"
+                  onClick={() => setSelectedNetwork(network.id)}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2 rounded-2xl transition-all duration-200 whitespace-nowrap whitespace-nowrap shadow-sm",
+                    network.id === "all" ? "border-0" : "border border-transparent",
+                    selectedNetwork === network.id
+                      ? cn("font-semibold", network.selectedPillClass)
+                      : network.pillClass
+                  )}
                 >
-                  <div className="grid grid-cols-2 gap-0.5 w-6 h-6">
-                    {NETWORKS.slice(1, 5).map((n) => (
-                      <div key={n.id} className="w-2.5 h-2.5 rounded-full overflow-hidden bg-muted flex items-center justify-center">
-                        {n.image ? (
-                          <img src={n.image} alt={n.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-[6px] font-bold">{n.icon}</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                </button>
-
-                {showNetworkDropdown && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setShowNetworkDropdown(false)} />
-                    <div className="absolute bottom-full left-0 mb-2 w-56 rounded-2xl bg-card shadow-xl z-50 overflow-hidden dark:bg-neutral-950/95 border border-border/40 animate-in fade-in slide-in-from-bottom-2 duration-200 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.3)] dark:shadow-none">
-                      {NETWORKS.map((network) => (
-                        <button
-                          key={network.id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedNetwork(network.id);
-                            setShowNetworkDropdown(false);
-                          }}
-                          className={cn(
-                            "w-full flex items-center gap-3 px-4 py-3 text-left transition-colors",
-                            selectedNetwork === network.id
-                              ? "bg-muted/70 text-foreground font-semibold dark:bg-neutral-900"
-                              : "text-muted-foreground hover:bg-muted/60 hover:text-foreground dark:hover:bg-neutral-900/80",
-                          )}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-6 h-6 rounded-md overflow-hidden bg-muted flex items-center justify-center border border-border/10">
-                              {network.image ? (
-                                <img src={network.image} alt={network.name} className="w-full h-full object-cover" />
-                              ) : (
-                                <span className="text-[10px]">{network.icon}</span>
-                              )}
-                            </div>
-                            <span className="text-sm">{network.name}</span>
-                          </div>
-                        </button>
-                      ))}
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-full overflow-hidden bg-white/20 flex items-center justify-center">
+                      {network.image ? (
+                        <img src={network.image} alt={network.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-[10px]">{network.icon}</span>
+                      )}
                     </div>
-                  </>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-card px-4 py-2 shadow-sm">
-                <span className="text-sm font-semibold">1D</span>
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setIsSearchVisible(!isSearchVisible)}
-                className="flex items-center justify-center rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-card w-11 h-11 shadow-sm transition hover:bg-muted/40"
-              >
-                <Search className="h-5 w-5 text-foreground" />
-              </button>
+                    <span className="text-sm">{network.name}</span>
+                  </div>
+                  {selectedNetwork === network.id && (
+                    <Check className="h-3.5 w-3.5 ml-1" />
+                  )}
+                </button>
+              ))}
             </div>
 
             {/* Table or Grid View - Unified */}
@@ -1092,9 +1020,6 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
             ) : (
               renderEmptyState()
             )}
-
-            {/* Blog Section - Shown for everyone at the bottom */}
-            {marketMode === "listed" && <BlogSection />}
 
           </div>
         </div>

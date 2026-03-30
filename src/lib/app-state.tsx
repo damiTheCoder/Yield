@@ -31,6 +31,7 @@ export type Asset = {
   params: CycleParams;
   cycle: CycleState;
   image: string; // path or data url
+  network: string; // ethereum, solana, base, etc.
   ticker?: string;
   summary?: string;
   secondaryMarket?: SecondaryMarketState;
@@ -327,7 +328,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [availableToFind, setAvailableToFind] = useState<number>(INITIAL_CYCLE_STATE.initialSupply);
 
   // Demo assets list (separate ecosystems) for listing view
-  const makeAsset = (id: string, name: string, p: CycleParams, sales: number = 0, image: string = "/placeholder.svg"): Asset => {
+  const makeAsset = (id: string, name: string, p: CycleParams, sales: number = 0, image: string = "/placeholder.svg", network: string = "ethereum"): Asset => {
     const config: CycleParams = { ...p, initialSupply: TOKEN_SUPPLY };
     let c = initializeCycle(config, 1);
     if (sales > 0) c = applyCoinTagSales(c, sales);
@@ -337,6 +338,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       params: config,
       cycle: c,
       image,
+      network,
       secondaryMarket: createSecondaryMarketState(),
     };
   };
@@ -376,23 +378,23 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       }
     }
     return [
-      makeAsset("alpha", "Alpha Ecosystem", { ...DEFAULT_PARAMS, initialReserve: 1200, initialSupply: 100 }, 250, "/ape.jpeg"),
-      makeAsset("beta", "Beta Studio", { ...DEFAULT_PARAMS, initialReserve: 2400, initialSupply: 150 }, 650, "/azuki.jpeg"),
-      makeAsset("gamma", "Gamma Labs", { ...DEFAULT_PARAMS, initialReserve: 800, initialSupply: 80 }, 120, "/doodles.jpeg"),
-      makeAsset("delta", "Delta Collective", { ...DEFAULT_PARAMS, initialReserve: 1500, initialSupply: 110 }, 300, "/cool-ape.jpeg"),
-      makeAsset("epsilon", "Epsilon Arts", { ...DEFAULT_PARAMS, initialReserve: 950, initialSupply: 95 }, 210, "/landers.jpeg"),
-      makeAsset("zeta", "Zeta Labs", { ...DEFAULT_PARAMS, initialReserve: 1300, initialSupply: 105 }, 275, "/alios.jpeg"),
-      makeAsset("theta", "Theta Network", { ...DEFAULT_PARAMS, initialReserve: 1700, initialSupply: 120 }, 420, "/digital-art.jpeg"),
-      makeAsset("sigma", "Sigma Studio", { ...DEFAULT_PARAMS, initialReserve: 1100, initialSupply: 90 }, 180, "/_ (17).jpeg"),
-      makeAsset("orion", "Orion Guild", { ...DEFAULT_PARAMS, initialReserve: 2200, initialSupply: 140 }, 700, "/_ (18).jpeg"),
-      makeAsset("nova", "Nova Builders", { ...DEFAULT_PARAMS, initialReserve: 1050, initialSupply: 88 }, 160, "/_ (19).jpeg"),
-      makeAsset("kappa", "Kappa Syndicate", { ...DEFAULT_PARAMS, initialReserve: 1450, initialSupply: 115 }, 360, "/k1.jpeg"),
-      makeAsset("lambda", "Lambda Atelier", { ...DEFAULT_PARAMS, initialReserve: 980, initialSupply: 92 }, 210, "/k2.jpeg"),
-      makeAsset("mu", "Mu Collective", { ...DEFAULT_PARAMS, initialReserve: 1650, initialSupply: 123 }, 410, "/k3.jpeg"),
-      makeAsset("nu", "Nu Labs", { ...DEFAULT_PARAMS, initialReserve: 890, initialSupply: 84 }, 150, "/_ (14).jpeg"),
-      makeAsset("omicron", "Omicron Vault", { ...DEFAULT_PARAMS, initialReserve: 1850, initialSupply: 132 }, 480, "/k5.jpeg"),
-      makeAsset("rho", "Rho Gallery", { ...DEFAULT_PARAMS, initialSupply: 108, initialReserve: 1420 }, 320, "/_ (5).jpeg"),
-      makeAsset("tau", "Tau Vision", { ...DEFAULT_PARAMS, initialReserve: 1010, initialSupply: 90 }, 190, "/_ (6).jpeg"),
+      makeAsset("alpha", "Alpha Ecosystem", { ...DEFAULT_PARAMS, initialReserve: 1200, initialSupply: 100 }, 250, "/ape.jpeg", "ethereum"),
+      makeAsset("beta", "Beta Studio", { ...DEFAULT_PARAMS, initialReserve: 2400, initialSupply: 150 }, 650, "/azuki.jpeg", "solana"),
+      makeAsset("gamma", "Gamma Labs", { ...DEFAULT_PARAMS, initialReserve: 800, initialSupply: 80 }, 120, "/doodles.jpeg", "base"),
+      makeAsset("delta", "Delta Collective", { ...DEFAULT_PARAMS, initialReserve: 1500, initialSupply: 110 }, 300, "/cool-ape.jpeg", "ethereum"),
+      makeAsset("epsilon", "Epsilon Arts", { ...DEFAULT_PARAMS, initialReserve: 950, initialSupply: 95 }, 210, "/landers.jpeg", "solana"),
+      makeAsset("zeta", "Zeta Labs", { ...DEFAULT_PARAMS, initialReserve: 1300, initialSupply: 105 }, 275, "/alios.jpeg", "base"),
+      makeAsset("theta", "Theta Network", { ...DEFAULT_PARAMS, initialReserve: 1700, initialSupply: 120 }, 420, "/digital-art.jpeg", "ethereum"),
+      makeAsset("sigma", "Sigma Studio", { ...DEFAULT_PARAMS, initialReserve: 1100, initialSupply: 90 }, 180, "/_ (17).jpeg", "solana"),
+      makeAsset("orion", "Orion Guild", { ...DEFAULT_PARAMS, initialReserve: 2200, initialSupply: 140 }, 700, "/_ (18).jpeg", "base"),
+      makeAsset("nova", "Nova Builders", { ...DEFAULT_PARAMS, initialReserve: 1050, initialSupply: 88 }, 160, "/_ (19).jpeg", "ethereum"),
+      makeAsset("kappa", "Kappa Syndicate", { ...DEFAULT_PARAMS, initialReserve: 1450, initialSupply: 115 }, 360, "/k1.jpeg", "solana"),
+      makeAsset("lambda", "Lambda Atelier", { ...DEFAULT_PARAMS, initialReserve: 980, initialSupply: 92 }, 210, "/k2.jpeg", "base"),
+      makeAsset("mu", "Mu Collective", { ...DEFAULT_PARAMS, initialReserve: 1650, initialSupply: 123 }, 410, "/k3.jpeg", "ethereum"),
+      makeAsset("nu", "Nu Labs", { ...DEFAULT_PARAMS, initialReserve: 890, initialSupply: 84 }, 150, "/_ (14).jpeg", "solana"),
+      makeAsset("omicron", "Omicron Vault", { ...DEFAULT_PARAMS, initialReserve: 1850, initialSupply: 132 }, 480, "/k5.jpeg", "base"),
+      makeAsset("rho", "Rho Gallery", { ...DEFAULT_PARAMS, initialSupply: 108, initialReserve: 1420 }, 320, "/_ (5).jpeg", "ethereum"),
+      makeAsset("tau", "Tau Vision", { ...DEFAULT_PARAMS, initialReserve: 1010, initialSupply: 90 }, 190, "/_ (6).jpeg", "solana"),
     ];
   });
 

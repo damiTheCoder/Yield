@@ -47,7 +47,7 @@ function formatRelativeTime(date?: Date) {
 }
 
 export default function Web3News({ variant = "sidebar", className }: Web3NewsProps) {
-  const { news, loading, error } = useWeb3News();
+  const { news, loading } = useWeb3News();
   const { theme } = useTheme();
 
   const getDocumentTheme = () => {
@@ -90,9 +90,6 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
   const cardTextClasses = activeTheme === "dark" ? "text-white" : "text-gray-900";
 
   const items = useMemo(() => news ?? [], [news]);
-
-  // If there's an error, show nothing
-  if (!loading && error) return null;
 
   const headingSize =
     variant === "sidebar" ? "text-sm" : variant === "mobile" ? "text-base" : "text-xl";
