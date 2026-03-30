@@ -1,5 +1,23 @@
 import { useNavigate } from "react-router-dom";
 
+const PROBLEM_ITEMS = [
+  {
+    image: "/k3.jpeg",
+    alt: "Meme coins",
+    text: "Meme Coins: No intrinsic value → pump & dump → zero",
+  },
+  {
+    image: "/k5.jpeg",
+    alt: "NFTs",
+    text: "NFTs: One-time artist revenue followed by abandonment; zero guaranteed floor; buyers risk total loss; no ongoing cash flow; reliant on resale speculation.",
+  },
+  {
+    image: "/base.jpeg",
+    alt: "Utility tokens",
+    text: "Utility Tokens: Utility claims rarely deliver; inflationary erosion; no real redemption rights; prone to pump-and-dumps; regulatory risks.",
+  },
+] as const;
+
 const SolarisSlider = () => {
   const navigate = useNavigate();
 
@@ -190,17 +208,143 @@ const SolarisSlider = () => {
           font-size: clamp(32px, 5.2vw, 64px);
           line-height: 0.96;
           letter-spacing: -0.04em;
-          font-weight: 700;
+          font-weight: 300;
         }
 
         .landing-section-copy {
           margin: 14px 0 0;
           max-width: 860px;
           color: rgba(6, 11, 22, 0.72);
-          font-size: clamp(16px, 1.35vw, 20px);
+          font-size: clamp(14px, 1.1vw, 17px);
           line-height: 1.6;
+          font-weight: 300;
+          letter-spacing: -0.01em;
+        }
+
+        .problem-section {
+          max-width: 1080px;
+          width: min(100%, 1080px);
+          margin: 0 0 0 auto;
+          padding: 8px 32px 80px 88px;
+          text-align: right;
+        }
+
+        .problem-title {
+          margin: 0;
+          color: #060b16;
+          font-size: clamp(28px, 4vw, 52px);
+          line-height: 1;
+          letter-spacing: -0.04em;
+          font-weight: 400;
+        }
+
+        .problem-subtitle {
+          margin: 10px 0 0;
+          color: rgba(6, 11, 22, 0.54);
+          font-size: clamp(15px, 1.2vw, 18px);
+          line-height: 1.45;
+          font-weight: 400;
+        }
+
+        .problem-list {
+          margin-top: 18px;
+          display: flex;
+          flex-direction: column;
+          gap: 28px;
+          align-items: flex-end;
+        }
+
+        .problem-item {
+          display: grid;
+          width: min(100%, 980px);
+          grid-template-columns: minmax(0, 1fr) 112px;
+          gap: 22px;
+          align-items: center;
+          padding: 6px 0 10px;
+        }
+
+        .problem-item-frame {
+          width: 112px;
+          height: 112px;
+          border-radius: 24px;
+          transform: rotate(-8deg);
+          box-shadow: 0 14px 28px rgba(6, 11, 22, 0.08);
+          align-self: start;
+          margin-bottom: 10px;
+        }
+
+        .problem-item-image {
+          width: 100%;
+          height: 100%;
+          border-radius: 24px;
+          object-fit: cover;
+          display: block;
+        }
+
+        .problem-item-copy {
+          margin: 0;
+          max-width: 760px;
+          padding: 18px 24px;
+          border-radius: 28px;
+          background: #e5f8dd;
+          color: #2f9a52;
+          font-size: clamp(16px, 1.25vw, 19px);
+          line-height: 1.55;
           font-weight: 400;
           letter-spacing: -0.01em;
+          text-align: right;
+          justify-self: end;
+          display: -webkit-box;
+          overflow: hidden;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 2;
+        }
+
+        .lft-section {
+          margin-top: 12px;
+          padding: 72px 24px 88px;
+          background: transparent;
+        }
+
+        .lft-section-inner {
+          max-width: 1220px;
+          margin: 0 auto;
+          text-align: center;
+        }
+
+        .lft-section-title {
+          margin: 0;
+          color: #2f59e8;
+          font-size: clamp(28px, 4.6vw, 56px);
+          line-height: 1;
+          letter-spacing: -0.04em;
+          font-weight: 400;
+        }
+
+        .lft-section-copy {
+          margin: 14px 0 0;
+          max-width: 760px;
+          color: rgba(6, 11, 22, 0.76);
+          font-size: clamp(16px, 1.4vw, 22px);
+          line-height: 1.5;
+          font-weight: 400;
+          margin-left: auto;
+          margin-right: auto;
+        }
+
+        .lft-image-frame {
+          width: min(100%, 1140px);
+          margin: 28px auto 0;
+          padding: 0;
+          border-radius: 18px;
+          background: transparent;
+          box-shadow: 0 22px 52px rgba(33, 86, 144, 0.14);
+        }
+
+        .lft-image {
+          width: 100%;
+          display: block;
+          border-radius: 18px;
         }
 
         @media (max-width: 1100px) {
@@ -212,6 +356,7 @@ const SolarisSlider = () => {
           .nav-links {
             display: none;
           }
+
         }
 
         @media (max-width: 768px) {
@@ -258,8 +403,86 @@ const SolarisSlider = () => {
 
           .landing-section-copy {
             margin-top: 12px;
-            font-size: clamp(15px, 4.2vw, 18px);
+            font-size: clamp(13px, 3.8vw, 16px);
             line-height: 1.55;
+          }
+
+          .problem-section {
+            width: calc(100% - 16px);
+            max-width: none;
+            margin: 0 0 0 auto;
+            padding: 8px 16px 52px;
+          }
+
+          .problem-title {
+            font-size: clamp(24px, 7vw, 34px);
+          }
+
+          .problem-subtitle {
+            font-size: 14px;
+          }
+
+          .problem-list {
+            margin-top: 14px;
+            gap: 20px;
+          }
+
+          .problem-item {
+            width: 100%;
+            grid-template-columns: minmax(0, 1fr) 88px;
+            gap: 14px;
+            padding: 4px 0 8px;
+            align-items: center;
+          }
+
+          .problem-item-frame {
+            width: 88px;
+            height: 88px;
+            border-radius: 18px;
+            margin-bottom: 6px;
+          }
+
+          .problem-item-image {
+            width: 100%;
+            height: 100%;
+            border-radius: 18px;
+          }
+
+          .problem-item-copy {
+            padding: 14px 16px;
+            border-radius: 22px;
+            font-size: 14px;
+            line-height: 1.5;
+            max-width: none;
+            text-align: right;
+            display: block;
+            overflow: visible;
+            -webkit-line-clamp: unset;
+          }
+
+          .lft-section {
+            margin-top: 8px;
+            padding: 48px 16px 56px;
+          }
+
+          .lft-section-title {
+            font-size: clamp(24px, 7vw, 34px);
+          }
+
+          .lft-section-copy {
+            margin-top: 12px;
+            font-size: 15px;
+            line-height: 1.55;
+          }
+
+          .lft-image-frame {
+            margin-top: 20px;
+            padding: 0;
+            border-radius: 13px;
+          }
+
+          .lft-image {
+            border-radius: 13px;
           }
         }
       `}</style>
@@ -300,11 +523,39 @@ const SolarisSlider = () => {
         <main className="landing-empty">
           <section className="landing-section">
             <h3 className="landing-section-title">Zero to Value.</h3>
-            <h4 className="landing-section-copy">
+            <p className="landing-section-copy">
               Digital assets shouldn&apos;t be a gamble. Most tokens today are built on hype and they end in extraction leaving
               the end users liquidated. We built something different. A token that actually has a guaranteed floor that
               requires no complex engagement such as trading, farming or drops.
-            </h4>
+            </p>
+          </section>
+
+          <section className="problem-section">
+            <h3 className="problem-title">The problem</h3>
+            <p className="problem-subtitle">Problems across all asset class</p>
+
+            <div className="problem-list">
+              {PROBLEM_ITEMS.map((item) => (
+                <div className="problem-item" key={item.text}>
+                  <p className="problem-item-copy">{item.text}</p>
+                  <div className="problem-item-frame">
+                    <img className="problem-item-image" src={item.image} alt={item.alt} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="lft-section">
+            <div className="lft-section-inner">
+              <h3 className="lft-section-title">Introducing LFTs.</h3>
+              <p className="lft-section-copy">
+                Liquidity Funded Tokens. Value-backed from day one. Guaranteed redemption that never hits zero.
+              </p>
+              <div className="lft-image-frame">
+                <img className="lft-image" src="/v2.png" alt="LFT interface preview" />
+              </div>
+            </div>
           </section>
         </main>
       </div>
