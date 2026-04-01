@@ -314,27 +314,33 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
         </CommandList>
       </CommandDialog>
 
-      <header className="sticky top-0 z-50 w-full px-2 pt-2 md:px-4">
+      <header
+        className={cn(
+          "sticky top-0 z-50 w-full transition-[padding] duration-200",
+          isScrolled ? "px-0 pt-0" : "px-2 pt-2 md:px-4",
+        )}
+      >
         <div
           className={cn(
-            "relative z-20 mx-auto max-w-[1440px] rounded-[28px] transition-[background-color,backdrop-filter,box-shadow] duration-200",
+            "relative z-20 isolate w-full overflow-hidden transition-[box-shadow,border-radius,max-width] duration-200",
             isScrolled
-              ? "bg-background/85 shadow-[0_10px_28px_rgba(6,11,22,0.08)] md:bg-background/75"
-              : "bg-transparent shadow-none",
+              ? "max-w-none rounded-none shadow-[0_10px_28px_rgba(6,11,22,0.08)]"
+              : "mx-auto max-w-[1440px] rounded-[28px] bg-transparent shadow-none",
           )}
-          style={
-            isScrolled
-              ? {
-                  WebkitBackdropFilter: "saturate(180%) blur(20px)",
-                  backdropFilter: "saturate(180%) blur(20px)",
-                }
-              : {
-                  WebkitBackdropFilter: "none",
-                  backdropFilter: "none",
-                }
-          }
         >
-          <div className="flex w-full items-center justify-between gap-3 px-4 py-2 md:px-6">
+          {isScrolled && (
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 bg-background/64 backdrop-blur-mobile md:bg-background/62"
+              style={{
+                WebkitBackdropFilter: "saturate(180%) blur(20px)",
+                backdropFilter: "saturate(180%) blur(20px)",
+                transform: "translateZ(0)",
+                willChange: "backdrop-filter, transform",
+              }}
+            />
+          )}
+          <div className="relative z-10 flex w-full items-center justify-between gap-3 px-4 py-2 md:px-6">
             <div className="flex items-center gap-3">
               <Link
                 to="/"

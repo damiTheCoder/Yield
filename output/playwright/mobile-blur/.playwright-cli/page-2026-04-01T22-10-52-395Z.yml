@@ -1,0 +1,54 @@
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - navigation [ref=e6]:
+        - generic [ref=e7]:
+          - button "Solaris logo Solaris Ledger" [ref=e8] [cursor=pointer]:
+            - img "Solaris logo" [ref=e10]
+            - generic [ref=e11]: Solaris Ledger
+          - generic [ref=e12]:
+            - button "Features" [ref=e13] [cursor=pointer]
+            - button "How It Works" [ref=e14] [cursor=pointer]
+            - button "Marketplace" [ref=e15] [cursor=pointer]
+            - button "About" [ref=e16] [cursor=pointer]
+          - button "Get Started" [ref=e17] [cursor=pointer]:
+            - text: Get Started
+            - generic [ref=e18]: ›
+      - generic [ref=e20]:
+        - heading "Solaris" [level=1] [ref=e21]
+        - img
+        - generic [ref=e22]:
+          - paragraph [ref=e23]: The era of Non extractive tokens
+          - button "Learn more" [ref=e24] [cursor=pointer]
+    - main [ref=e25]:
+      - generic [ref=e26]:
+        - heading "Zero to Value." [level=3] [ref=e27]
+        - paragraph [ref=e28]: Digital assets shouldn't be a gamble. Most tokens today are built on hype and they end in extraction leaving the end users liquidated. We built something different. A token that actually has a guaranteed floor that requires no complex engagement such as trading, farming or drops.
+      - generic [ref=e29]:
+        - heading "The problem" [level=3] [ref=e30]
+        - paragraph [ref=e31]: Problems across all asset class
+        - generic [ref=e32]:
+          - generic [ref=e33]:
+            - paragraph [ref=e34]: "Meme Coins: No intrinsic value → pump & dump → zero"
+            - img "Meme coins" [ref=e36]
+          - generic [ref=e37]:
+            - paragraph [ref=e38]: "NFTs: One-time artist revenue followed by abandonment; zero guaranteed floor; buyers risk total loss; no ongoing cash flow; reliant on resale speculation."
+            - img "NFTs" [ref=e40]
+          - generic [ref=e41]:
+            - paragraph [ref=e42]: "Utility Tokens: Utility claims rarely deliver; inflationary erosion; no real redemption rights; prone to pump-and-dumps; regulatory risks."
+            - img "Utility tokens" [ref=e44]
+      - generic [ref=e46]:
+        - heading "Introducing LFTs." [level=3] [ref=e47]
+        - paragraph [ref=e48]: Liquidity Funded Tokens. Value-backed from day one. Guaranteed redemption that never hits zero.
+        - img "LFT interface preview" [ref=e51]
+      - paragraph [ref=e54]: "Liquidity Funded Tokens (LFTs) introduce a new paradigm in digital assets: tokens backed by real liquidity from day one, with redemption value that grows in real-time as the community engages, structured in self-contained cycles that compound strength over time."
+      - generic [ref=e56]:
+        - heading "How it works" [level=3] [ref=e57]
+        - generic [ref=e58]:
+          - img "How it works step 1" [ref=e60]
+          - img "How it works step 2" [ref=e62]
+          - img "How it works step 3" [ref=e64]
+          - img "How it works step 4" [ref=e66]

@@ -678,18 +678,21 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     </div>
   );
 
+  const tableShellClasses = "overflow-hidden rounded-2xl bg-[#FAFAFA] dark:bg-[#151515] mb-6";
+  const tableStickyColumnClasses = "bg-[#F3F3F3] dark:bg-[#111111]";
+
   const renderListedList = (items: Asset[]) => (
-    <div className="overflow-hidden rounded-2xl border border-neutral-300 dark:border-neutral-800 bg-card mb-6">
+    <div className={tableShellClasses}>
       <div className="overflow-x-auto no-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <Table className="min-w-[720px] text-sm">
           <TableHeader>
             <TableRow className="border-b-0 hover:bg-transparent">
               {isDesktop && (
-                <TableHead className="w-10 border-b-0 pl-4 bg-[#F5F5F5] dark:bg-[#111111]">
+                <TableHead className={cn("w-10 border-b-0 pl-4", tableStickyColumnClasses)}>
                   <Star className="h-4 w-4 text-blue-500 fill-blue-500" />
                 </TableHead>
               )}
-              <TableHead className="sticky left-0 z-20 min-w-[200px] bg-[#F5F5F5] dark:bg-[#111111] text-left pl-4 sm:pl-6 border-b-0">Collection</TableHead>
+              <TableHead className={cn("sticky left-0 z-20 min-w-[200px] text-left pl-4 sm:pl-6 border-b-0", tableStickyColumnClasses)}>Collection</TableHead>
               <TableHead className="min-w-[140px] text-right border-b-0 px-4">Liquidity</TableHead>
               <TableHead className="min-w-[140px] text-right border-b-0 px-8">LPU</TableHead>
               <TableHead className="min-w-[140px] text-right border-b-0 px-4">CoinTag</TableHead>
@@ -709,7 +712,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                   onClick={() => navigate(`/assets/${asset.id}`)}
                 >
                   {isDesktop && (
-                    <TableCell className="w-10 pl-4 bg-[#F5F5F5] dark:bg-[#111111]" onClick={(e) => toggleFavorite(asset.id, e)}>
+                    <TableCell className={cn("w-10 pl-4", tableStickyColumnClasses)} onClick={(e) => toggleFavorite(asset.id, e)}>
                       <Star
                         className={cn(
                           "h-4 w-4 transition-all hover:scale-110",
@@ -720,7 +723,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       />
                     </TableCell>
                   )}
-                  <TableCell className="sticky left-0 z-10 min-w-[200px] bg-[#F5F5F5] dark:bg-[#111111] pl-4 sm:pl-6 pr-4">
+                  <TableCell className={cn("sticky left-0 z-10 min-w-[200px] pl-4 sm:pl-6 pr-4", tableStickyColumnClasses)}>
                     <div className="flex items-center gap-2.5 text-sm">
                       <img src={asset.image} alt={asset.name} className="h-9 w-9 rounded-full object-cover" />
                       <div className="flex flex-col min-w-0">
@@ -757,17 +760,17 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   );
 
   const renderLiveList = (items: Asset[]) => (
-    <div className="overflow-hidden rounded-2xl border border-neutral-300 dark:border-neutral-800 bg-card mb-6">
+    <div className={tableShellClasses}>
       <div className="overflow-x-auto no-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <Table className="min-w-[720px] text-sm">
           <TableHeader>
             <TableRow className="border-b-0 hover:bg-transparent">
               {isDesktop && (
-                <TableHead className="w-10 border-b-0 pl-4 bg-[#F5F5F5] dark:bg-[#111111]">
+                <TableHead className={cn("w-10 border-b-0 pl-4", tableStickyColumnClasses)}>
                   <Star className="h-4 w-4 text-blue-500 fill-blue-500" />
                 </TableHead>
               )}
-              <TableHead className="sticky left-0 z-20 min-w-[200px] bg-[#F5F5F5] dark:bg-[#111111] text-left pl-4 sm:pl-6 border-b-0">Collection</TableHead>
+              <TableHead className={cn("sticky left-0 z-20 min-w-[200px] text-left pl-4 sm:pl-6 border-b-0", tableStickyColumnClasses)}>Collection</TableHead>
               <TableHead className="min-w-[140px] text-right border-b-0 px-4">Liquidity</TableHead>
               <TableHead className="min-w-[140px] text-right border-b-0 px-8">LPU</TableHead>
               <TableHead className="min-w-[140px] text-right border-b-0 px-4">CoinTag</TableHead>
@@ -787,7 +790,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                   onClick={() => navigate(`/assets/${asset.id}/token`)}
                 >
                   {isDesktop && (
-                    <TableCell className="w-10 pl-4 bg-[#F5F5F5] dark:bg-[#111111]" onClick={(e) => toggleFavorite(asset.id, e)}>
+                    <TableCell className={cn("w-10 pl-4", tableStickyColumnClasses)} onClick={(e) => toggleFavorite(asset.id, e)}>
                       <Star
                         className={cn(
                           "h-4 w-4 transition-all hover:scale-110",
@@ -798,7 +801,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       />
                     </TableCell>
                   )}
-                  <TableCell className="sticky left-0 z-10 min-w-[200px] bg-[#F5F5F5] dark:bg-[#111111] pl-4 sm:pl-6 pr-4">
+                  <TableCell className={cn("sticky left-0 z-10 min-w-[200px] pl-4 sm:pl-6 pr-4", tableStickyColumnClasses)}>
                     <div className="flex items-center gap-2.5 text-sm">
                       <img src={asset.image} alt={asset.name} className="h-9 w-9 rounded-full object-cover" />
                       <div className="flex flex-col min-w-0">

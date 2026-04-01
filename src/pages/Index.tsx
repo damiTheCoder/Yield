@@ -153,19 +153,33 @@ const Index = () => {
       <div className="relative z-10">
         <nav
           className={cn(
-            "fixed inset-x-0 top-0 z-50 transition-all duration-300",
+            "fixed inset-x-0 top-0 z-50 isolate overflow-hidden transition-all duration-300",
             navDropped
               ? isDarkMode
-                ? "bg-black/80 shadow-[0_12px_40px_rgba(0,0,0,0.5)]"
-                : "bg-white/80 shadow-[0_12px_40px_rgba(15,24,74,0.08)]"
+                ? "shadow-[0_12px_40px_rgba(0,0,0,0.5)]"
+                : "shadow-[0_12px_40px_rgba(15,24,74,0.08)]"
               : "bg-transparent"
           )}
-          style={navDropped ? {
-            backdropFilter: 'saturate(180%) blur(20px)',
-            WebkitBackdropFilter: 'saturate(180%) blur(20px)',
-          } : undefined}
         >
-          <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-3.5">
+          {navDropped && (
+            <div
+              aria-hidden="true"
+              className={cn(
+                "pointer-events-none absolute inset-0 backdrop-blur-mobile",
+                isDarkMode ? "bg-black/68" : "bg-white/72",
+              )}
+              style={{
+                backdropFilter: "saturate(180%) blur(20px)",
+                WebkitBackdropFilter: "saturate(180%) blur(20px)",
+              }}
+            />
+          )}
+          <div
+            className={cn(
+              "relative z-10 flex items-center justify-between gap-4 py-3 sm:py-3.5",
+              navDropped ? "w-full max-w-none px-4 sm:px-6" : "mx-auto max-w-5xl px-4 sm:px-6",
+            )}
+          >
             <button
               type="button"
               onClick={() => handleCta("nav_logo", "/")}

@@ -333,9 +333,6 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
                       loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                    <span className="absolute left-3 top-3 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
-                      {item.source}
-                    </span>
                   </div>
                   <div className="space-y-1 px-3 py-2">
                     <h4 className={cn("text-sm font-medium line-clamp-2", cardTextClasses)}>{item.title}</h4>

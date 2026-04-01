@@ -101,6 +101,8 @@ const SolarisSlider = () => {
           -webkit-backdrop-filter: none;
           transition: background 0.24s ease, backdrop-filter 0.24s ease;
           pointer-events: none;
+          transform: translateZ(0);
+          will-change: backdrop-filter, transform;
         }
 
         .landing-nav.landing-nav-scrolled {
@@ -108,9 +110,9 @@ const SolarisSlider = () => {
         }
 
         .landing-nav.landing-nav-scrolled::before {
-          background: rgba(248, 252, 255, 0.88);
-          backdrop-filter: blur(18px);
-          -webkit-backdrop-filter: blur(18px);
+          background: rgba(248, 252, 255, 0.78);
+          backdrop-filter: saturate(180%) blur(20px);
+          -webkit-backdrop-filter: saturate(180%) blur(20px);
         }
 
         .landing-nav-inner {
@@ -544,9 +546,9 @@ const SolarisSlider = () => {
           }
 
           .landing-nav.landing-nav-scrolled::before {
-            background: rgba(248, 252, 255, 0.94);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: rgba(248, 252, 255, 0.74);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
           }
 
           .nav-brand {
