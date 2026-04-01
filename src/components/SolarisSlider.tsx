@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const PROBLEM_ITEMS = [
@@ -18,8 +19,29 @@ const PROBLEM_ITEMS = [
   },
 ] as const;
 
+const HOW_IT_WORKS_IMAGES = [
+  { image: "/e1.png", alt: "How it works step 1" },
+  { image: "/e2.png", alt: "How it works step 2" },
+  { image: "/e3.png", alt: "How it works step 3" },
+  { image: "/e4.png", alt: "How it works step 4" },
+] as const;
+
 const SolarisSlider = () => {
   const navigate = useNavigate();
+  const [isNavScrolled, setIsNavScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsNavScrolled(window.scrollY > 0);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   return (
     <div className="solaris-landing">
@@ -59,15 +81,41 @@ const SolarisSlider = () => {
         }
 
         .landing-nav {
-          position: sticky;
+          position: fixed;
           top: 0;
+          left: 0;
+          right: 0;
           z-index: 50;
           padding: 14px 22px;
+          isolation: isolate;
+          overflow: hidden;
+          transition: box-shadow 0.24s ease;
+        }
+
+        .landing-nav::before {
+          content: "";
+          position: absolute;
+          inset: 0;
           background: transparent;
           backdrop-filter: none;
+          -webkit-backdrop-filter: none;
+          transition: background 0.24s ease, backdrop-filter 0.24s ease;
+          pointer-events: none;
+        }
+
+        .landing-nav.landing-nav-scrolled {
+          box-shadow: 0 10px 28px rgba(6, 11, 22, 0.08);
+        }
+
+        .landing-nav.landing-nav-scrolled::before {
+          background: rgba(248, 252, 255, 0.88);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
         }
 
         .landing-nav-inner {
+          position: relative;
+          z-index: 1;
           max-width: 1220px;
           margin: 0 auto;
           display: grid;
@@ -191,21 +239,51 @@ const SolarisSlider = () => {
           pointer-events: none;
         }
 
-        .landing-hero-tagline {
+        .landing-hero-actions {
           position: absolute;
           left: 50%;
-          bottom: clamp(10px, 2vw, 28px);
+          bottom: clamp(-18px, 0vw, 8px);
           transform: translateX(-50%);
-          margin: 0;
-          color: #42bf67;
-          font-size: clamp(14px, 1.35vw, 20px);
-          line-height: 1.2;
+          z-index: 4;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0;
+          width: max-content;
+        }
+
+        .landing-hero-tagline {
+          margin: 0 0 32px;
+          color: #060b16;
+          font-size: clamp(18px, 1.9vw, 28px);
+          line-height: 1.08;
           letter-spacing: -0.02em;
-          font-weight: 500;
+          font-weight: 600;
           text-align: center;
           white-space: nowrap;
-          z-index: 4;
-          text-shadow: 0 6px 18px rgba(255, 255, 255, 0.36);
+          text-shadow: 0 6px 20px rgba(255, 255, 255, 0.28);
+        }
+
+        .learn-more-btn {
+          border: none;
+          border-radius: 999px;
+          min-height: 56px;
+          padding: 0 30px;
+          background: #c6e6ff;
+          color: #060b16;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 17px;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 16px 34px rgba(120, 180, 235, 0.22);
+          transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .learn-more-btn:hover {
+          transform: translateY(-1px);
+          background: #d7efff;
         }
 
         .landing-empty {
@@ -369,6 +447,81 @@ const SolarisSlider = () => {
           display: block;
         }
 
+        .paradigm-section {
+          padding: 0 24px 104px;
+        }
+
+        .paradigm-section-inner {
+          max-width: 1220px;
+          margin: 0 auto;
+          padding: clamp(72px, 10vw, 124px) clamp(24px, 4vw, 72px);
+          border-radius: 36px;
+          background: url("/r2.png") center / cover no-repeat;
+        }
+
+        .paradigm-copy {
+          max-width: 920px;
+          margin: 0 auto;
+          color: #060b16;
+          text-align: center;
+          font-size: clamp(22px, 2.15vw, 34px);
+          line-height: 1.42;
+          letter-spacing: -0.03em;
+          font-weight: 400;
+        }
+
+        .how-it-works-section {
+          padding: 0 24px 120px;
+        }
+
+        .how-it-works-inner {
+          max-width: 1220px;
+          margin: 0 auto;
+        }
+
+        .how-it-works-heading {
+          width: fit-content;
+          margin: 0 0 28px;
+          padding: 12px 18px;
+          border: 1px solid #f2d45e;
+          border-radius: 999px;
+          background: #fff7cf;
+          color: #d2a40c;
+          font-size: clamp(22px, 2.4vw, 36px);
+          line-height: 1;
+          letter-spacing: -0.03em;
+          font-weight: 500;
+        }
+
+        .how-it-works-track {
+          display: flex;
+          gap: 22px;
+          overflow-x: auto;
+          padding: 6px 4px 10px;
+          scroll-snap-type: x mandatory;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+
+        .how-it-works-track::-webkit-scrollbar {
+          display: none;
+        }
+
+        .how-it-works-card {
+          flex: 0 0 min(84vw, 460px);
+          scroll-snap-align: start;
+          border-radius: 28px;
+          overflow: hidden;
+          background: #ffffff;
+          border: 1px solid #060b16;
+        }
+
+        .how-it-works-image {
+          width: 100%;
+          height: auto;
+          display: block;
+        }
+
         @media (max-width: 1100px) {
           .landing-nav-inner {
             grid-template-columns: 1fr auto;
@@ -384,6 +537,16 @@ const SolarisSlider = () => {
         @media (max-width: 768px) {
           .landing-nav {
             padding: 10px 12px;
+          }
+
+          .landing-nav.landing-nav-scrolled {
+            box-shadow: 0 10px 28px rgba(6, 11, 22, 0.1);
+          }
+
+          .landing-nav.landing-nav-scrolled::before {
+            background: rgba(248, 252, 255, 0.94);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
           }
 
           .nav-brand {
@@ -415,11 +578,22 @@ const SolarisSlider = () => {
             width: clamp(180px, 52vw, 300px);
           }
 
+          .landing-hero-actions {
+            bottom: -14px;
+            width: min(90vw, 320px);
+          }
+
           .landing-hero-tagline {
-            bottom: 8px;
+            margin: 0 0 22px;
             font-size: clamp(12px, 3.5vw, 16px);
             white-space: normal;
-            width: min(90vw, 320px);
+            width: 100%;
+          }
+
+          .learn-more-btn {
+            min-height: 46px;
+            padding: 0 22px;
+            font-size: 14px;
           }
 
           .landing-section {
@@ -514,12 +688,50 @@ const SolarisSlider = () => {
           .lft-image {
             border-radius: 13px;
           }
+
+          .paradigm-section {
+            padding: 0 12px 32px;
+          }
+
+          .paradigm-section-inner {
+            min-height: 500px;
+            padding: 28px 14px;
+            border-radius: 24px;
+            background: url("/r3.png") center / cover no-repeat;
+            display: flex;
+            align-items: center;
+          }
+
+          .paradigm-copy {
+            font-size: clamp(17px, 5vw, 22px);
+            line-height: 1.5;
+          }
+
+          .how-it-works-section {
+            padding: 0 12px 72px;
+          }
+
+          .how-it-works-heading {
+            margin-bottom: 18px;
+            padding: 10px 14px;
+            font-size: clamp(18px, 5.8vw, 26px);
+          }
+
+          .how-it-works-track {
+            gap: 14px;
+            padding: 4px 2px 8px;
+          }
+
+          .how-it-works-card {
+            flex-basis: min(88vw, 340px);
+            border-radius: 22px;
+          }
         }
       `}</style>
 
       <div className="landing-shell">
         <div className="landing-top-band">
-          <nav className="landing-nav">
+          <nav className={`landing-nav${isNavScrolled ? " landing-nav-scrolled" : ""}`}>
             <div className="landing-nav-inner">
               <button className="nav-brand" onClick={() => navigate("/")}>
                 <span className="nav-logo">
@@ -546,7 +758,17 @@ const SolarisSlider = () => {
             <div className="landing-hero-inner">
               <h1 className="landing-hero-title">Solaris</h1>
               <img className="landing-hero-ring" src="/G5.png" alt="" aria-hidden="true" />
-              <p className="landing-hero-tagline">The era of Non extractive tokens</p>
+              <div className="landing-hero-actions">
+                <p className="landing-hero-tagline">The era of Non extractive tokens</p>
+                <button
+                  className="learn-more-btn"
+                  onClick={() =>
+                    document.getElementById("lft-section")?.scrollIntoView({ behavior: "smooth", block: "start" })
+                  }
+                >
+                  Learn more
+                </button>
+              </div>
             </div>
           </section>
         </div>
@@ -577,7 +799,7 @@ const SolarisSlider = () => {
             </div>
           </section>
 
-          <section className="lft-section">
+          <section className="lft-section" id="lft-section">
             <div className="lft-section-inner">
               <h3 className="lft-section-title">Introducing LFTs.</h3>
               <p className="lft-section-copy">
@@ -588,6 +810,29 @@ const SolarisSlider = () => {
                   <source media="(max-width: 768px)" srcSet="/v3.png" />
                   <img className="lft-image" src="/v2.png" alt="LFT interface preview" />
                 </picture>
+              </div>
+            </div>
+          </section>
+
+          <section className="paradigm-section">
+            <div className="paradigm-section-inner">
+              <p className="paradigm-copy">
+                Liquidity Funded Tokens (LFTs) introduce a new paradigm in digital assets: tokens backed by real liquidity
+                from day one, with redemption value that grows in real-time as the community engages, structured in
+                self-contained cycles that compound strength over time.
+              </p>
+            </div>
+          </section>
+
+          <section className="how-it-works-section">
+            <div className="how-it-works-inner">
+              <h3 className="how-it-works-heading">How it works</h3>
+              <div className="how-it-works-track">
+                {HOW_IT_WORKS_IMAGES.map((item) => (
+                  <div className="how-it-works-card" key={item.image}>
+                    <img className="how-it-works-image" src={item.image} alt={item.alt} />
+                  </div>
+                ))}
               </div>
             </div>
           </section>
