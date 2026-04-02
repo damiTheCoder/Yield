@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import Web3News from "@/components/Web3News";
 import type { TouchEvent } from "react";
-import SiteFooter from "@/components/SiteFooter";
 
 const MAX_TRENDING = 10;
 type Network = "all" | "bitcoin" | "ethereum" | "solana" | "base" | "monad";
@@ -1027,7 +1026,6 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
           </div>
         </div>
       </main>
-      <SiteFooter />
     </div>
   );
 }

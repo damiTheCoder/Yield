@@ -1,6 +1,20 @@
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Search, Sun, Moon, Check, Loader2 } from "lucide-react";
+import {
+  ArrowLeftRight,
+  ArrowUpRight,
+  BarChart3,
+  Bell,
+  Check,
+  Grid3X3,
+  Loader2,
+  Newspaper,
+  PieChart,
+  Search,
+  Tag,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
@@ -33,6 +47,12 @@ export type MobileNavItem =
   | { type: "link"; label: string; href: string }
   | { type: "action"; label: string; active: boolean; onClick: () => void };
 
+type MobileMenuSection = {
+  title?: string;
+  items: MobileNavItem[];
+  showArrow?: boolean;
+};
+
 const NAV_LINKS = [
   { label: "Assets", href: "/assets" },
   { label: "Portfolio", href: "/portfolio" },
@@ -42,6 +62,24 @@ const NAV_LINKS = [
   { label: "Revenue", href: "/revenue" },
 ];
 
+const MOBILE_NAV_ICONS: Record<string, LucideIcon> = {
+  "/assets": Grid3X3,
+  "/portfolio": PieChart,
+  "/wallet": Wallet,
+  "/notifications": Bell,
+  "/coin-tags": Tag,
+  "/revenue": BarChart3,
+  "/blog": Newspaper,
+};
+
+const getMobileNavIcon = (item: MobileNavItem): LucideIcon => {
+  if (item.type === "action") {
+    return ArrowLeftRight;
+  }
+
+  return MOBILE_NAV_ICONS[item.href] ?? Grid3X3;
+};
+
 type HeaderProps = {
   mobileNavItems?: MobileNavItem[];
 };
@@ -49,7 +87,7 @@ type HeaderProps = {
 const Header = ({ mobileNavItems = [] }: HeaderProps) => {
   const { assets } = useApp();
   const navigate = useNavigate();
-  const { theme, setTheme } = useTheme();
+  const { theme } = useTheme();
   const isDarkTheme = theme === "dark";
   const { toast } = useToast();
   const [searchOpen, setSearchOpen] = useState(false);
@@ -60,6 +98,24 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+
+  const mobileMenuSections = useMemo<MobileMenuSection[]>(() => {
+    const primaryItems = mobileNavItems.filter(
+      (item) => item.type === "link" && ["/assets", "/portfolio"].includes(item.href),
+    );
+    const exploreItems = mobileNavItems.filter(
+      (item) => item.type === "link" && ["/wallet", "/notifications", "/coin-tags"].includes(item.href),
+    );
+    const protocolItems = mobileNavItems.filter(
+      (item) => !primaryItems.includes(item) && !exploreItems.includes(item),
+    );
+
+    return [
+      { items: primaryItems },
+      { title: "Explore", items: exploreItems },
+      { title: "Protocol", items: protocolItems, showArrow: true },
+    ].filter((section) => section.items.length > 0);
+  }, [mobileNavItems]);
 
   const staticPages = useMemo<SearchResult[]>(
     () => [
@@ -315,32 +371,19 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
       </CommandDialog>
 
       <header
-        className={cn(
-          "sticky top-0 z-50 w-full transition-[padding] duration-200",
-          isScrolled ? "px-0 pt-0" : "px-2 pt-2 md:px-4",
-        )}
+        className="sticky top-0 z-50 w-full px-0 pt-0 transition-[padding] duration-200"
       >
         <div
           className={cn(
-            "relative z-20 isolate w-full overflow-hidden transition-[box-shadow,border-radius,max-width] duration-200",
+            "relative w-full transition-[box-shadow,border-radius,max-width,background-color,backdrop-filter] duration-200",
             isScrolled
               ? "max-w-none rounded-none shadow-[0_10px_28px_rgba(6,11,22,0.08)]"
-              : "mx-auto max-w-[1440px] rounded-[28px] bg-transparent shadow-none",
+              : "max-w-none rounded-none bg-white shadow-none",
+            isScrolled && "header-glass-blur",
+            isScrolled && (isDarkTheme ? "header-glass-app-dark" : "header-glass-app-light"),
           )}
         >
-          {isScrolled && (
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 bg-background/64 backdrop-blur-mobile md:bg-background/62"
-              style={{
-                WebkitBackdropFilter: "saturate(180%) blur(20px)",
-                backdropFilter: "saturate(180%) blur(20px)",
-                transform: "translateZ(0)",
-                willChange: "backdrop-filter, transform",
-              }}
-            />
-          )}
-          <div className="relative z-10 flex w-full items-center justify-between gap-3 px-4 py-2 md:px-6">
+          <div className="relative flex w-full items-center justify-between gap-2 px-3 py-2 md:px-6">
             <div className="flex items-center gap-3">
               <Link
                 to="/"
@@ -349,7 +392,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                 <img
                   src="/h4.png"
                   alt="Solaris logo"
-                  className="h-6 w-6 rounded-full object-cover"
+                  className="h-7 w-7 rounded-full object-cover"
                 />
                 <span className="text-lg font-extrabold text-foreground">Solaris</span>
               </Link>
@@ -396,41 +439,6 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                 </span>
               </Button>
 
-              <div className="hidden md:flex items-center gap-0 rounded-full bg-neutral-800 dark:bg-neutral-800 p-0.5">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setTheme("system")}
-                  aria-label="System theme"
-                  className={`h-7 w-7 rounded-full hover:bg-transparent p-0 transition-all ${theme === "system" ? "!bg-white text-black" : "bg-transparent text-gray-400"}`}
-                >
-                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <rect x="3" y="3" width="18" height="14" rx="2" strokeWidth="2" />
-                    <line x1="3" y1="20" x2="21" y2="20" strokeWidth="2" />
-                    <line x1="8" y1="17" x2="8" y2="20" strokeWidth="2" />
-                    <line x1="16" y1="17" x2="16" y2="20" strokeWidth="2" />
-                  </svg>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setTheme("dark")}
-                  aria-label="Dark theme"
-                  className={`h-7 w-7 rounded-full hover:bg-transparent p-0 transition-all ${theme === "dark" ? "!bg-white text-black" : "bg-transparent text-gray-400"}`}
-                >
-                  <Moon className="h-3.5 w-3.5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setTheme("light")}
-                  aria-label="Light theme"
-                  className={`h-7 w-7 rounded-full hover:bg-transparent p-0 transition-all ${theme === "light" ? "!bg-white text-black" : "bg-transparent text-gray-400"}`}
-                >
-                  <Sun className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-
               <Dialog open={walletDialogOpen} onOpenChange={setWalletDialogOpen}>
                 <DialogTrigger asChild>
                   <Button
@@ -466,6 +474,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                         variant="ghost"
                         size="icon"
                         className="h-9 w-9 p-0 bg-transparent text-foreground hover:bg-transparent"
+                        aria-label="Open navigation menu"
                       >
                         <svg
                           viewBox="0 0 24 24"
@@ -481,41 +490,75 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                         </svg>
                       </Button>
                     </SheetTrigger>
-                    <SheetContent side="left" className="w-[300px] sm:w-[340px] pt-12">
+                    <SheetContent
+                      side="top"
+                      className="h-[100dvh] max-h-[100dvh] gap-0 overflow-y-auto rounded-none border-0 bg-white p-0 text-slate-700 shadow-none"
+                    >
                       <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                      <div className="flex flex-col gap-4">
-                        {mobileNavItems.map((item, index) => {
-                          if (item.type === 'link') {
-                            return (
-                              <Link
-                                key={index}
-                                to={item.href}
-                                onClick={() => setSheetOpen(false)}
-                                className={cn(
-                                  "text-lg font-medium transition-colors hover:text-primary",
-                                  location.pathname === item.href || (item.href !== '/' && location.pathname.startsWith(item.href)) ? "text-primary" : "text-muted-foreground"
-                                )}
-                              >
-                                {item.label}
-                              </Link>
-                            )
-                          }
-                          return (
-                            <button
-                              key={index}
-                              onClick={() => {
-                                item.onClick();
-                                setSheetOpen(false);
-                              }}
-                              className={cn(
-                                "text-lg font-medium text-left transition-colors hover:text-primary",
-                                item.active ? "text-primary" : "text-muted-foreground"
-                              )}
-                            >
-                              {item.label}
-                            </button>
-                          )
-                        })}
+                      <div className="min-h-full border-t border-slate-200 px-5 pb-12 pt-16">
+                        {mobileMenuSections.map((section, sectionIndex) => (
+                          <div
+                            key={section.title ?? "primary"}
+                            className={cn(sectionIndex === 0 ? "" : "mt-11")}
+                          >
+                            {section.title ? (
+                              <div className="mb-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                                {section.title}
+                              </div>
+                            ) : null}
+                            <div className="flex flex-col gap-5">
+                              {section.items.map((item, index) => {
+                                const isActive =
+                                  item.type === "link"
+                                    ? location.pathname === item.href || (item.href !== "/" && location.pathname.startsWith(item.href))
+                                    : item.active;
+                                const Icon = getMobileNavIcon(item);
+                                const itemClass = cn(
+                                  "flex min-h-[34px] w-full items-center gap-3 text-left text-[14px] font-medium tracking-[-0.01em] transition-colors",
+                                  isActive ? "text-slate-950" : "text-slate-600 hover:text-slate-950",
+                                );
+                                const iconClass = cn(
+                                  "h-[18px] w-[18px] shrink-0",
+                                  isActive ? "text-slate-950" : "text-slate-500",
+                                );
+
+                                if (item.type === "link") {
+                                  return (
+                                    <Link
+                                      key={`${section.title ?? "primary"}-${item.href}-${index}`}
+                                      to={item.href}
+                                      onClick={() => setSheetOpen(false)}
+                                      className={itemClass}
+                                    >
+                                      <Icon className={iconClass} strokeWidth={1.9} />
+                                      <span className="flex-1">{item.label}</span>
+                                      {section.showArrow ? (
+                                        <ArrowUpRight className="h-4 w-4 shrink-0 text-slate-400" strokeWidth={2} />
+                                      ) : null}
+                                    </Link>
+                                  );
+                                }
+
+                                return (
+                                  <button
+                                    key={`${section.title ?? "primary"}-${item.label}-${index}`}
+                                    onClick={() => {
+                                      item.onClick();
+                                      setSheetOpen(false);
+                                    }}
+                                    className={itemClass}
+                                  >
+                                    <Icon className={iconClass} strokeWidth={1.9} />
+                                    <span className="flex-1">{item.label}</span>
+                                    {section.showArrow ? (
+                                      <ArrowUpRight className="h-4 w-4 shrink-0 text-slate-400" strokeWidth={2} />
+                                    ) : null}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </SheetContent>
                   </Sheet>

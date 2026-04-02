@@ -1,0 +1,85 @@
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e6]:
+        - link "Solaris logo Solaris" [ref=e8] [cursor=pointer]:
+          - /url: /
+          - img "Solaris logo" [ref=e9]
+          - generic [ref=e10]: Solaris
+        - navigation [ref=e11]:
+          - link "Assets" [ref=e12] [cursor=pointer]:
+            - /url: /assets
+          - link "Portfolio" [ref=e13] [cursor=pointer]:
+            - /url: /portfolio
+          - link "Wallet" [ref=e14] [cursor=pointer]:
+            - /url: /wallet
+          - link "Notifications" [ref=e15] [cursor=pointer]:
+            - /url: /notifications
+          - link "LaunchPad" [ref=e16] [cursor=pointer]:
+            - /url: /coin-tags
+          - link "Revenue" [ref=e17] [cursor=pointer]:
+            - /url: /revenue
+        - generic [ref=e18]:
+          - button "Search ⌘K" [ref=e19] [cursor=pointer]:
+            - img
+            - generic [ref=e20]: Search
+            - generic [ref=e21]: ⌘K
+          - button "Connect" [ref=e22] [cursor=pointer]
+    - main [ref=e23]:
+      - main [ref=e24]:
+        - generic [ref=e26]:
+          - generic [ref=e27]:
+            - paragraph [ref=e28]: Library
+            - heading "Latest thinking from Forge" [level=1] [ref=e29]
+            - paragraph [ref=e30]: Playbooks, experiments, and frameworks for building sustainable liquidity funded tokens.
+          - generic [ref=e31]:
+            - complementary [ref=e32]:
+              - generic [ref=e33]:
+                - generic [ref=e34]:
+                  - paragraph [ref=e35]: Decrypt
+                  - heading "Current Headlines" [level=2] [ref=e36]
+                - link "Source" [ref=e37] [cursor=pointer]:
+                  - /url: https://decrypt.co/feed
+            - generic [ref=e54]:
+              - 'link "Reimagining Liquidity: How Tokenized Yield Is Bridging Traditional Finance and Web3 Liquidity Futures August 2, 2024 Reimagining Liquidity: How Tokenized Yield Is Bridging Traditional Finance and Web3 Why USYC and tokenized Treasuries signal programmable liquidity for institutions, DAOs, and DeFi protocols alike. 8 min read Read article →" [ref=e55] [cursor=pointer]':
+                - /url: /blog/tokenized-yield-liquidity
+                - 'img "Reimagining Liquidity: How Tokenized Yield Is Bridging Traditional Finance and Web3" [ref=e57]'
+                - generic [ref=e58]:
+                  - generic [ref=e59]:
+                    - generic [ref=e60]: Liquidity Futures
+                    - generic [ref=e61]: August 2, 2024
+                  - 'heading "Reimagining Liquidity: How Tokenized Yield Is Bridging Traditional Finance and Web3" [level=2] [ref=e62]'
+                  - paragraph [ref=e63]: Why USYC and tokenized Treasuries signal programmable liquidity for institutions, DAOs, and DeFi protocols alike.
+                  - generic [ref=e64]:
+                    - generic [ref=e65]: 8 min read
+                    - generic [ref=e66]: •
+                    - generic [ref=e67]: Read article →
+              - link "The Creative Use of Liquidity in the Web3 Space Liquidity Futures July 9, 2024 The Creative Use of Liquidity in the Web3 Space Liquidity is now a design language for DAOs, NFT studios, and token projects—here’s how teams use it as a creative medium. 7 min read Read article →" [ref=e68] [cursor=pointer]:
+                - /url: /blog/creative-liquidity-web3
+                - img "The Creative Use of Liquidity in the Web3 Space" [ref=e70]
+                - generic [ref=e71]:
+                  - generic [ref=e72]:
+                    - generic [ref=e73]: Liquidity Futures
+                    - generic [ref=e74]: July 9, 2024
+                  - heading "The Creative Use of Liquidity in the Web3 Space" [level=2] [ref=e75]
+                  - paragraph [ref=e76]: Liquidity is now a design language for DAOs, NFT studios, and token projects—here’s how teams use it as a creative medium.
+                  - generic [ref=e77]:
+                    - generic [ref=e78]: 7 min read
+                    - generic [ref=e79]: •
+                    - generic [ref=e80]: Read article →
+              - 'link "Liquidity Funded Tokens (LFTs): Turning Hype Into Durable Value LFT Playbook May 21, 2024 Liquidity Funded Tokens (LFTs): Turning Hype Into Durable Value A deep dive into how Solaris’s liquidity-backed launch model keeps communities engaged long after the mint frenzy fades. 6 min read Read article →" [ref=e81] [cursor=pointer]':
+                - /url: /blog/liquidity-funded-tokens
+                - 'img "Liquidity Funded Tokens (LFTs): Turning Hype Into Durable Value" [ref=e83]'
+                - generic [ref=e84]:
+                  - generic [ref=e85]:
+                    - generic [ref=e86]: LFT Playbook
+                    - generic [ref=e87]: May 21, 2024
+                  - 'heading "Liquidity Funded Tokens (LFTs): Turning Hype Into Durable Value" [level=2] [ref=e88]'
+                  - paragraph [ref=e89]: A deep dive into how Solaris’s liquidity-backed launch model keeps communities engaged long after the mint frenzy fades.
+                  - generic [ref=e90]:
+                    - generic [ref=e91]: 6 min read
+                    - generic [ref=e92]: •
+                    - generic [ref=e93]: Read article →

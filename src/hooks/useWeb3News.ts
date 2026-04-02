@@ -9,19 +9,12 @@ export type Web3NewsItem = {
   publishedAt: Date;
 };
 
-interface RawNewsItem {
-  id?: string;
-  guid?: string;
-  title?: string;
-  url?: string;
-  imageurl?: string;
-  source_info?: { name?: string };
-  source?: string;
-  published_on?: number;
+interface RawDecryptNewsResponse {
+  contents?: string;
 }
 
 const NEWS_ENDPOINT =
-  "https://min-api.cryptocompare.com/data/v2/news/?lang=EN&categories=Blockchain";
+  "https://api.allorigins.win/get?url=https%3A%2F%2Fdecrypt.co%2Ffeed";
 
 let cachedNews: Web3NewsItem[] | null = null;
 let cacheTimestamp = 0;
@@ -78,30 +71,41 @@ async function fetchWeb3News(forceRefresh = false): Promise<Web3NewsItem[]> {
       if (!response.ok) {
         return cacheNews(FALLBACK_NEWS);
       }
-      const payload = await response.json();
-      if (!payload?.Data || !Array.isArray(payload.Data)) {
+      const payload = (await response.json()) as RawDecryptNewsResponse;
+      if (!payload?.contents) {
+        return cacheNews(FALLBACK_NEWS);
+      }
+
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(payload.contents, "application/xml");
+      const xmlError = xml.querySelector("parsererror");
+      if (xmlError) {
         return cacheNews(FALLBACK_NEWS);
       }
 
       const now = Date.now();
-      const normalized = payload.Data.filter((item: RawNewsItem) => item?.title && item?.url)
-        .map((item: RawNewsItem) => ({
-          id: String(item.id ?? item.guid ?? item.url),
-          title: String(item.title),
-          url: String(item.url),
-          imageUrl: String(item.imageurl || ""),
-          source: String((item.source_info?.name || item.source || "").toString()),
-          publishedAt: new Date((item.published_on ?? 0) * 1000),
-        }))
+      const normalized = Array.from(xml.querySelectorAll("item"))
+        .map((itemNode, index) => {
+          const title = itemNode.querySelector("title")?.textContent?.trim() ?? "";
+          const link = itemNode.querySelector("link")?.textContent?.trim() ?? "";
+          const guid = itemNode.querySelector("guid")?.textContent?.trim() || link || `decrypt-${index}`;
+          const pubDate = itemNode.querySelector("pubDate")?.textContent?.trim() ?? "";
+          const mediaThumbnail = itemNode.getElementsByTagName("media:thumbnail")[0]?.getAttribute("url") ?? "";
+          const enclosure = itemNode.getElementsByTagName("enclosure")[0]?.getAttribute("url") ?? "";
+
+          return {
+            id: guid,
+            title,
+            url: link,
+            imageUrl: mediaThumbnail || enclosure,
+            source: "Decrypt",
+            publishedAt: new Date(pubDate),
+          };
+        })
         .filter((item: Web3NewsItem) => {
+          if (!item.title || !item.url) return false;
           if (!item.imageUrl) return false;
-          const source = item.source?.toLowerCase() ?? "";
-          const isSupportedSource =
-            source.includes("coindesk") ||
-            source.includes("cointelegraph") ||
-            source.includes("bloomberg") ||
-            source.includes("techcrunch");
-          if (!isSupportedSource) return false;
+          if (Number.isNaN(item.publishedAt.getTime())) return false;
           return now - item.publishedAt.getTime() <= STALE_THRESHOLD;
         })
         .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());

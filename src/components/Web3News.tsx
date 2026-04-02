@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useWeb3News } from "@/hooks/useWeb3News";
-import type { Web3NewsItem } from "@/hooks/useWeb3News";
 import { useTheme } from "@/hooks/useTheme";
 import { cn } from "@/lib/utils";
 
@@ -10,22 +9,6 @@ interface Web3NewsProps {
 }
 
 const shimmerItems = Array.from({ length: 3 }, (_, index) => index);
-
-const FEATURED_SUBSTACK_ARTICLE: Web3NewsItem = {
-  id: "substack-liquidity-funded-tokens",
-  title: "Liquidity Funded Tokens (LFTs): The Future of Sustainable Digital Assets",
-  url: "https://open.substack.com/pub/daminathan/p/liquidity-funded-tokens-lfts-the?r=52dbsh&utm_campaign=post&utm_medium=web&showWelcomeOnShare=false",
-  imageUrl:
-    "https://substackcdn.com/image/fetch/$s_!jW0s!,w_1200,h_600,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb940a014-a274-41a7-8a5c-c8cba578ab71_1536x1024.png",
-  source: "Solaris Substack",
-  publishedAt: new Date("2024-04-29T00:00:00.000Z"),
-};
-
-const isFeaturedSubstackArticle = (item?: Web3NewsItem | null) =>
-  !!item &&
-  (item.id === FEATURED_SUBSTACK_ARTICLE.id ||
-    item.url === FEATURED_SUBSTACK_ARTICLE.url ||
-    item.title === FEATURED_SUBSTACK_ARTICLE.title);
 
 function formatRelativeTime(date?: Date) {
   if (!date) return "";
@@ -98,79 +81,9 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
       ? ""
       : cn("flex gap-4 overflow-x-auto no-scrollbar pb-1", variant === "sidebar" ? "md:w-64" : "");
 
-  const normalizeSource = (source?: string) => (source ?? "").toLowerCase();
-  const coindeskItems = items.filter((i) => normalizeSource(i.source).includes("coindesk"));
-  const cointelegraphItems = items.filter((i) => normalizeSource(i.source).includes("cointelegraph"));
-  const bloombergItems = items.filter((i) => normalizeSource(i.source).includes("bloomberg"));
-
-  const picked = new Set<typeof items[number]>();
-  const selected: typeof items = [];
-
   const desiredSlots = variant === "webview" ? 4 : 3;
   const MIN_REAL_ITEMS = desiredSlots;
-
-  const addFromCategory = (categoryItems: typeof items, desiredCount: number) => {
-    let added = 0;
-    for (const item of categoryItems) {
-      if (picked.has(item)) continue;
-      selected.push(item);
-      picked.add(item);
-      added += 1;
-      if (added >= desiredCount) break;
-    }
-  };
-
-  // Enforce requested mix: 2 CoinDesk, 2 CoinTelegraph, 1 Bloomberg
-  addFromCategory(coindeskItems, 2);
-  addFromCategory(cointelegraphItems, 2);
-  addFromCategory(bloombergItems, 1);
-
-  // Fill remaining slots with any other items, preserving order
-  if (selected.length < desiredSlots) {
-    for (const item of items) {
-      if (picked.has(item)) continue;
-      selected.push(item);
-      picked.add(item);
-      if (selected.length >= desiredSlots) break;
-    }
-  }
-
-  let displayedItems = selected.slice(0, desiredSlots);
-
-  const realItemsMap = new Map<string, (typeof items)[number]>();
-  for (const item of displayedItems) {
-    if (!item.title) continue;
-    const key = item.url || item.id || item.title;
-    if (!realItemsMap.has(key)) {
-      realItemsMap.set(key, item);
-    }
-  }
-
-  if (realItemsMap.size < MIN_REAL_ITEMS) {
-    for (const item of items) {
-      if (!item.title) continue;
-      const key = item.url || item.id || item.title;
-      if (!realItemsMap.has(key)) {
-        realItemsMap.set(key, item);
-      }
-      if (realItemsMap.size >= MIN_REAL_ITEMS) break;
-    }
-  }
-
-  displayedItems = Array.from(realItemsMap.values()).slice(0, MIN_REAL_ITEMS);
-
-  const hasFeaturedArticle = displayedItems.some((item) => isFeaturedSubstackArticle(item));
-
-  if (!hasFeaturedArticle) {
-    const insertIndex = variant === "webview" ? Math.min(1, displayedItems.length) : 0;
-    displayedItems = [
-      ...displayedItems.slice(0, insertIndex),
-      FEATURED_SUBSTACK_ARTICLE,
-      ...displayedItems.slice(insertIndex),
-    ];
-  }
-
-  displayedItems = displayedItems.slice(0, MIN_REAL_ITEMS);
+  let displayedItems = items.slice(0, MIN_REAL_ITEMS);
 
   if (displayedItems.length < MIN_REAL_ITEMS) {
     const placeholders = Array.from({ length: MIN_REAL_ITEMS - displayedItems.length }).map((_, i) => ({

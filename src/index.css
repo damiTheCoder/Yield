@@ -50,6 +50,47 @@
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
   }
+
+  .header-glass-blur {
+    -webkit-backdrop-filter: saturate(180%) blur(24px) !important;
+    backdrop-filter: saturate(180%) blur(24px) !important;
+    transform: translate3d(0, 0, 0);
+    will-change: backdrop-filter;
+  }
+
+  .header-glass-app-dark {
+    background-color: rgba(0, 0, 0, 0.55) !important;
+  }
+
+  .header-glass-app-light {
+    background-color: rgba(255, 255, 255, 0.55) !important;
+  }
+
+  .header-glass-landing-dark {
+    background-color: rgba(0, 0, 0, 0.68) !important;
+  }
+
+  .header-glass-landing-light {
+    background-color: rgba(255, 255, 255, 0.72) !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .header-glass-app-dark {
+    background-color: rgba(0, 0, 0, 0.62) !important;
+  }
+
+  .header-glass-app-light {
+    background-color: rgba(255, 255, 255, 0.64) !important;
+  }
+
+  .header-glass-landing-dark {
+    background-color: rgb(0, 0, 0) !important;
+  }
+
+  .header-glass-landing-light {
+    background-color: rgb(255, 255, 255) !important;
+  }
 }
 
   @keyframes float-soft {
