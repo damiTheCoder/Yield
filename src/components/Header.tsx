@@ -495,7 +495,20 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                       className="h-[100dvh] max-h-[100dvh] gap-0 overflow-y-auto rounded-none border-0 bg-white p-0 text-slate-700 shadow-none"
                     >
                       <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                      <div className="min-h-full border-t border-slate-200 px-5 pb-12 pt-16">
+                      <div className="flex items-center px-5 pt-4 pr-14">
+                        <Link
+                          to="/"
+                          onClick={() => setSheetOpen(false)}
+                          className="flex items-center"
+                        >
+                          <img
+                            src="/h4.png"
+                            alt="Solaris logo"
+                            className="h-8 w-8 rounded-full object-cover"
+                          />
+                        </Link>
+                      </div>
+                      <div className="min-h-full px-5 pb-12 pt-8">
                         {mobileMenuSections.map((section, sectionIndex) => (
                           <div
                             key={section.title ?? "primary"}

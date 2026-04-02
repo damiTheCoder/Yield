@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const PROBLEM_ITEMS = [
@@ -29,17 +29,38 @@ const HOW_IT_WORKS_IMAGES = [
 const SolarisSlider = () => {
   const navigate = useNavigate();
   const [isNavScrolled, setIsNavScrolled] = useState(false);
+  const [isNavPastHero, setIsNavPastHero] = useState(false);
+  const heroSectionRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const mobileMediaQuery = window.matchMedia("(max-width: 768px)");
     const handleScroll = () => {
-      setIsNavScrolled(window.scrollY > 0);
+      const scrollY = window.scrollY;
+      setIsNavScrolled(scrollY > 0);
+
+      if (!mobileMediaQuery.matches) {
+        setIsNavPastHero(false);
+        return;
+      }
+
+      const heroBottom = heroSectionRef.current
+        ? heroSectionRef.current.getBoundingClientRect().bottom + scrollY
+        : window.innerHeight;
+
+      setIsNavPastHero(scrollY >= Math.max(heroBottom - 72, 0));
     };
 
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll);
+    mobileMediaQuery.addEventListener("change", handleScroll);
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+      mobileMediaQuery.removeEventListener("change", handleScroll);
     };
   }, []);
 
@@ -496,26 +517,22 @@ const SolarisSlider = () => {
         }
 
         .how-it-works-track {
-          display: flex;
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 22px;
-          overflow-x: auto;
+          align-items: start;
           padding: 6px 4px 10px;
-          scroll-snap-type: x mandatory;
-          scrollbar-width: none;
-          -ms-overflow-style: none;
-        }
-
-        .how-it-works-track::-webkit-scrollbar {
-          display: none;
         }
 
         .how-it-works-card {
-          flex: 0 0 min(84vw, 460px);
-          scroll-snap-align: start;
+          width: 100%;
+          max-width: 580px;
+          justify-self: center;
           border-radius: 28px;
           overflow: hidden;
           background: #ffffff;
-          border: 1px solid #060b16;
+          border: 0;
+          box-shadow: 0 20px 48px rgba(6, 11, 22, 0.12);
         }
 
         .how-it-works-image {
@@ -549,6 +566,12 @@ const SolarisSlider = () => {
             background: rgba(248, 252, 255, 0.74);
             backdrop-filter: saturate(180%) blur(20px);
             -webkit-backdrop-filter: saturate(180%) blur(20px);
+          }
+
+          .landing-nav.landing-nav-past-hero::before {
+            background: #ffffff;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
           }
 
           .nav-brand {
@@ -720,12 +743,24 @@ const SolarisSlider = () => {
           }
 
           .how-it-works-track {
+            display: flex;
             gap: 14px;
             padding: 4px 2px 8px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+          }
+
+          .how-it-works-track::-webkit-scrollbar {
+            display: none;
           }
 
           .how-it-works-card {
-            flex-basis: min(88vw, 340px);
+            flex: 0 0 min(88vw, 340px);
+            width: min(88vw, 340px);
+            max-width: 340px;
+            scroll-snap-align: start;
             border-radius: 22px;
           }
         }
@@ -733,7 +768,7 @@ const SolarisSlider = () => {
 
       <div className="landing-shell">
         <div className="landing-top-band">
-          <nav className={`landing-nav${isNavScrolled ? " landing-nav-scrolled" : ""}`}>
+          <nav className={`landing-nav${isNavScrolled ? " landing-nav-scrolled" : ""}${isNavPastHero ? " landing-nav-past-hero" : ""}`}>
             <div className="landing-nav-inner">
               <button className="nav-brand" onClick={() => navigate("/")}>
                 <span className="nav-logo">
@@ -756,7 +791,7 @@ const SolarisSlider = () => {
             </div>
           </nav>
 
-          <section className="landing-hero">
+          <section ref={heroSectionRef} className="landing-hero">
             <div className="landing-hero-inner">
               <h1 className="landing-hero-title">Solaris</h1>
               <img className="landing-hero-ring" src="/G5.png" alt="" aria-hidden="true" />

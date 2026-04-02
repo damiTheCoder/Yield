@@ -1,0 +1,215 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - region "Notifications (F8)":
+      - list
+    - region "Notifications alt+T"
+    - generic [ref=e3]:
+      - banner [ref=e4]:
+        - generic [ref=e6]:
+          - link "Solaris logo Solaris" [ref=e8] [cursor=pointer]:
+            - /url: /
+            - img "Solaris logo" [ref=e9]
+            - generic [ref=e10]: Solaris
+          - navigation [ref=e11]:
+            - link "Assets" [ref=e12] [cursor=pointer]:
+              - /url: /assets
+            - link "Portfolio" [ref=e13] [cursor=pointer]:
+              - /url: /portfolio
+            - link "Wallet" [ref=e14] [cursor=pointer]:
+              - /url: /wallet
+            - link "Notifications" [ref=e15] [cursor=pointer]:
+              - /url: /notifications
+            - link "LaunchPad" [ref=e16] [cursor=pointer]:
+              - /url: /coin-tags
+            - link "Revenue" [ref=e17] [cursor=pointer]:
+              - /url: /revenue
+          - generic [ref=e18]:
+            - button "Search ⌘K" [ref=e19] [cursor=pointer]:
+              - img
+              - generic [ref=e20]: Search
+              - generic [ref=e21]: ⌘K
+            - button "Connect" [ref=e22] [cursor=pointer]
+      - main [ref=e23]:
+        - generic [ref=e24]:
+          - main [ref=e25]:
+            - generic [ref=e26]:
+              - generic [ref=e27]:
+                - generic [ref=e28]:
+                  - generic [ref=e29]:
+                    - generic [ref=e30]:
+                      - generic [ref=e31]:
+                        - img "Omicron Vault" [ref=e32]
+                        - generic [ref=e33]:
+                          - generic [ref=e34]:
+                            - heading "Omicron Vault" [level=1] [ref=e35]
+                            - img "verified" [ref=e36]
+                          - generic [ref=e37]:
+                            - generic [ref=e38]: Live Chart
+                            - generic [ref=e40]: • Cycle 1
+                      - switch "Toggle image view" [ref=e41] [cursor=pointer]
+                    - generic [ref=e42]: $2.0K
+                  - generic [ref=e43]:
+                    - img [ref=e48]:
+                      - generic [ref=e52]:
+                        - generic [ref=e54]: $0.00
+                        - generic [ref=e56]: $6.0h
+                        - generic [ref=e58]: $1.2K
+                        - generic [ref=e60]: $1.8K
+                        - generic [ref=e62]: $2.4K
+                    - generic:
+                      - img "Omicron Vault"
+                  - generic [ref=e67]:
+                    - img [ref=e68]
+                    - text: Live Data
+                    - generic [ref=e70]: •
+                    - text: Updates every 3s
+                - generic [ref=e72]:
+                  - generic [ref=e73]:
+                    - heading "Omicron Vault" [level=2] [ref=e74]
+                    - generic [ref=e75]: "Collection: Omicron Vault • By OpenYield Labs"
+                  - paragraph [ref=e76]: Liquidity-backed artifacts with verifiable reserves and real-time CoinTag discovery. Hunt, redeem, and monitor live performance across every cycle.
+                - button "Tap to pay" [active] [ref=e78] [cursor=pointer]
+                - button "View cycle halving & distribution Current supply 1000K" [ref=e80] [cursor=pointer]:
+                  - text: View cycle halving & distribution
+                  - generic [ref=e81]: Current supply 1000K
+                - generic [ref=e85]:
+                  - paragraph [ref=e86]: Ecosystem Token
+                  - paragraph [ref=e87]: OMICRONVAULT-TOKEN
+                  - paragraph [ref=e88]: Token trading unlocks once all LFTs are discovered.
+              - generic [ref=e89]:
+                - generic [ref=e91]:
+                  - generic [ref=e92]:
+                    - generic [ref=e93]: current liquidity
+                    - generic [ref=e94]: $2.0K
+                    - generic [ref=e95]: Total value
+                  - generic [ref=e96]:
+                    - generic [ref=e97]: backing reserve
+                    - generic [ref=e98]: $1.9K
+                    - generic [ref=e99]: Seeded liquidity
+                  - generic [ref=e100]:
+                    - generic [ref=e101]: cointag price
+                    - generic [ref=e102]: $4.20
+                    - generic [ref=e103]: Hunt entry fee
+                  - generic [ref=e104]:
+                    - generic [ref=e105]: price per unit
+                    - generic [ref=e106]: $0.00
+                    - generic [ref=e107]: Redeemable floor
+                - generic [ref=e110]:
+                  - generic [ref=e111]: Discovery Progress
+                  - generic [ref=e112]: 0 / 1000000 units • 0.0% discovered
+                - generic [ref=e242]:
+                  - generic [ref=e243]:
+                    - generic [ref=e244]:
+                      - heading "Transaction History" [level=3] [ref=e245]
+                      - paragraph [ref=e246]: Latest token book fills from current cycle activity.
+                    - generic [ref=e247]: Last 24h
+                  - generic [ref=e248]:
+                    - generic [ref=e249]:
+                      - generic [ref=e250]: Date
+                      - generic [ref=e251]: Type
+                      - generic [ref=e252]: Price
+                    - generic [ref=e253]:
+                      - generic [ref=e254]:
+                        - generic [ref=e255]: 1 Jan, 01:00
+                        - generic [ref=e256]: Sell
+                        - generic [ref=e257]: $0.52
+                      - generic [ref=e258]:
+                        - generic [ref=e259]: 1 Jan, 00:13
+                        - generic [ref=e260]: Buy
+                        - generic [ref=e261]: $0.51
+                      - generic [ref=e262]:
+                        - generic [ref=e263]: 31 Dec, 23:26
+                        - generic [ref=e264]: Buy
+                        - generic [ref=e265]: $0.50
+                      - generic [ref=e266]:
+                        - generic [ref=e267]: 31 Dec, 22:39
+                        - generic [ref=e268]: Buy
+                        - generic [ref=e269]: $0.49
+                      - generic [ref=e270]:
+                        - generic [ref=e271]: 31 Dec, 21:52
+                        - generic [ref=e272]: Buy
+                        - generic [ref=e273]: $0.50
+                      - generic [ref=e274]:
+                        - generic [ref=e275]: 31 Dec, 21:05
+                        - generic [ref=e276]: Sell
+                        - generic [ref=e277]: $0.51
+                      - generic [ref=e278]:
+                        - generic [ref=e279]: 31 Dec, 20:18
+                        - generic [ref=e280]: Buy
+                        - generic [ref=e281]: $0.52
+                      - generic [ref=e282]:
+                        - generic [ref=e283]: 31 Dec, 19:31
+                        - generic [ref=e284]: Buy
+                        - generic [ref=e285]: $0.51
+                      - generic [ref=e286]:
+                        - generic [ref=e287]: 31 Dec, 18:44
+                        - generic [ref=e288]: Buy
+                        - generic [ref=e289]: $0.49
+                      - generic [ref=e290]:
+                        - generic [ref=e291]: 31 Dec, 17:57
+                        - generic [ref=e292]: Buy
+                        - generic [ref=e293]: $0.49
+                      - generic [ref=e294]:
+                        - generic [ref=e295]: 31 Dec, 17:10
+                        - generic [ref=e296]: Sell
+                        - generic [ref=e297]: $0.50
+                      - generic [ref=e298]:
+                        - generic [ref=e299]: 31 Dec, 16:23
+                        - generic [ref=e300]: Buy
+                        - generic [ref=e301]: $0.51
+                      - generic [ref=e302]:
+                        - generic [ref=e303]: 31 Dec, 15:36
+                        - generic [ref=e304]: Buy
+                        - generic [ref=e305]: $0.51
+                      - generic [ref=e306]:
+                        - generic [ref=e307]: 31 Dec, 14:49
+                        - generic [ref=e308]: Buy
+                        - generic [ref=e309]: $0.50
+                      - generic [ref=e310]:
+                        - generic [ref=e311]: 31 Dec, 14:02
+                        - generic [ref=e312]: Buy
+                        - generic [ref=e313]: $0.49
+                      - generic [ref=e314]:
+                        - generic [ref=e315]: 31 Dec, 13:15
+                        - generic [ref=e316]: Sell
+                        - generic [ref=e317]: $0.49
+              - generic [ref=e318]:
+                - generic [ref=e319]:
+                  - heading "Cycle Analytics" [level=3] [ref=e320]
+                  - paragraph [ref=e321]: Tap a cycle bar to inspect demand, revenue, and payouts.
+                - img [ref=e326]:
+                  - generic [ref=e330]: C1
+                  - generic [ref=e332]:
+                    - generic [ref=e334]: $0.00
+                    - generic [ref=e336]: $150.00
+                    - generic [ref=e338]: $300.00
+                    - generic [ref=e340]: $450.00
+                    - generic [ref=e342]: $600.00
+                - generic [ref=e348]:
+                  - generic [ref=e349]:
+                    - generic [ref=e350]: Cycle
+                    - generic [ref=e351]: "#1"
+                  - generic [ref=e352]:
+                    - generic [ref=e353]: Active Users
+                    - generic [ref=e354]: "114"
+                  - generic [ref=e355]:
+                    - generic [ref=e356]: Revenue
+                    - generic [ref=e357]: $480.00
+                  - generic [ref=e358]:
+                    - generic [ref=e359]: Payout
+                    - generic [ref=e360]: $24.00
+                    - generic [ref=e361]: 0 LFT / unit
+          - generic [ref=e365]:
+            - generic [ref=e366]:
+              - paragraph [ref=e368]: Buy CoinTag
+              - button [ref=e369] [cursor=pointer]:
+                - img
+            - generic [ref=e371]:
+              - generic [ref=e372]:
+                - text: You pay
+                - generic [ref=e373]:
+                  - generic [ref=e374]: $4.20
+                  - generic [ref=e375]: USD
+                - generic [ref=e376]: Deducted from your wallet balance.
+              - button "Pay $4.20" [ref=e377] [cursor=pointer]
+  - generic [ref=e236]: $0.00

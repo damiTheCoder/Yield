@@ -75,7 +75,11 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
   const items = useMemo(() => news ?? [], [news]);
 
   const headingSize =
-    variant === "sidebar" ? "text-sm" : variant === "mobile" ? "text-base" : "text-xl";
+    variant === "sidebar"
+      ? "text-sm"
+      : variant === "mobile"
+        ? "text-[18px] tracking-[-0.02em]"
+        : "text-xl";
   const listWrapperClass =
     variant === "webview"
       ? ""
@@ -200,7 +204,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
 
   return (
     <section className={cn("flex flex-col gap-3", className)}>
-      <div className={cn("font-bold text-foreground", headingSize)}>
+      <div className={cn("text-foreground", variant === "mobile" ? "font-extrabold" : "font-bold", headingSize)}>
         Web3 Headlines
       </div>
       <div className={listWrapperClass}>

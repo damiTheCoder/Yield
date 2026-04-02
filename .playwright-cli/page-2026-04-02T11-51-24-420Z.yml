@@ -1,0 +1,201 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - region "Notifications (F8)":
+      - list
+    - region "Notifications alt+T"
+    - generic [ref=e3]:
+      - banner [ref=e4]:
+        - generic [ref=e6]:
+          - link "Solaris logo Solaris" [ref=e8] [cursor=pointer]:
+            - /url: /
+            - img "Solaris logo" [ref=e9]
+            - generic [ref=e10]: Solaris
+          - navigation [ref=e11]:
+            - link "Assets" [ref=e12] [cursor=pointer]:
+              - /url: /assets
+            - link "Portfolio" [ref=e13] [cursor=pointer]:
+              - /url: /portfolio
+            - link "Wallet" [ref=e14] [cursor=pointer]:
+              - /url: /wallet
+            - link "Notifications" [ref=e15] [cursor=pointer]:
+              - /url: /notifications
+            - link "LaunchPad" [ref=e16] [cursor=pointer]:
+              - /url: /coin-tags
+            - link "Revenue" [ref=e17] [cursor=pointer]:
+              - /url: /revenue
+          - generic [ref=e18]:
+            - button "Search ⌘K" [ref=e19] [cursor=pointer]:
+              - img
+              - generic [ref=e20]: Search
+              - generic [ref=e21]: ⌘K
+            - button "Connect" [ref=e22] [cursor=pointer]
+      - main [ref=e23]:
+        - main [ref=e25]:
+          - generic [ref=e26]:
+            - generic [ref=e27]:
+              - generic [ref=e28]:
+                - generic [ref=e29]:
+                  - generic [ref=e30]:
+                    - generic [ref=e31]:
+                      - img "Alpha Ecosystem" [ref=e32]
+                      - generic [ref=e33]:
+                        - generic [ref=e34]:
+                          - heading "Alpha Ecosystem" [level=1] [ref=e35]
+                          - img "verified" [ref=e36]
+                        - generic [ref=e37]:
+                          - generic [ref=e38]: Live Chart
+                          - generic [ref=e40]: • Cycle 1
+                    - switch "Toggle image view" [ref=e41] [cursor=pointer]
+                  - generic [ref=e42]: $1.3K
+                - generic [ref=e43]:
+                  - generic [ref=e44]:
+                    - generic [ref=e45]:
+                      - heading "Transaction History" [level=3] [ref=e46]
+                      - paragraph [ref=e47]: Latest token book fills from current cycle activity.
+                    - generic [ref=e48]: Last 24h
+                  - generic [ref=e49]:
+                    - generic [ref=e50]:
+                      - generic [ref=e51]: Date
+                      - generic [ref=e52]: Type
+                      - generic [ref=e53]: Price
+                    - generic [ref=e54]:
+                      - generic [ref=e55]:
+                        - generic [ref=e56]: 1 Jan, 01:00
+                        - generic [ref=e57]: Sell
+                        - generic [ref=e58]: $0.49
+                      - generic [ref=e59]:
+                        - generic [ref=e60]: 1 Jan, 00:13
+                        - generic [ref=e61]: Buy
+                        - generic [ref=e62]: $0.51
+                      - generic [ref=e63]:
+                        - generic [ref=e64]: 31 Dec, 23:26
+                        - generic [ref=e65]: Buy
+                        - generic [ref=e66]: $0.52
+                      - generic [ref=e67]:
+                        - generic [ref=e68]: 31 Dec, 22:39
+                        - generic [ref=e69]: Buy
+                        - generic [ref=e70]: $0.51
+                      - generic [ref=e71]:
+                        - generic [ref=e72]: 31 Dec, 21:52
+                        - generic [ref=e73]: Buy
+                        - generic [ref=e74]: $0.50
+                      - generic [ref=e75]:
+                        - generic [ref=e76]: 31 Dec, 21:05
+                        - generic [ref=e77]: Sell
+                        - generic [ref=e78]: $0.49
+                      - generic [ref=e79]:
+                        - generic [ref=e80]: 31 Dec, 20:18
+                        - generic [ref=e81]: Buy
+                        - generic [ref=e82]: $0.50
+                      - generic [ref=e83]:
+                        - generic [ref=e84]: 31 Dec, 19:31
+                        - generic [ref=e85]: Buy
+                        - generic [ref=e86]: $0.51
+                      - generic [ref=e87]:
+                        - generic [ref=e88]: 31 Dec, 18:44
+                        - generic [ref=e89]: Buy
+                        - generic [ref=e90]: $0.52
+                      - generic [ref=e91]:
+                        - generic [ref=e92]: 31 Dec, 17:57
+                        - generic [ref=e93]: Buy
+                        - generic [ref=e94]: $0.51
+                      - generic [ref=e95]:
+                        - generic [ref=e96]: 31 Dec, 17:10
+                        - generic [ref=e97]: Sell
+                        - generic [ref=e98]: $0.49
+                      - generic [ref=e99]:
+                        - generic [ref=e100]: 31 Dec, 16:23
+                        - generic [ref=e101]: Buy
+                        - generic [ref=e102]: $0.49
+                      - generic [ref=e103]:
+                        - generic [ref=e104]: 31 Dec, 15:36
+                        - generic [ref=e105]: Buy
+                        - generic [ref=e106]: $0.50
+                      - generic [ref=e107]:
+                        - generic [ref=e108]: 31 Dec, 14:49
+                        - generic [ref=e109]: Buy
+                        - generic [ref=e110]: $0.51
+                      - generic [ref=e111]:
+                        - generic [ref=e112]: 31 Dec, 14:02
+                        - generic [ref=e113]: Buy
+                        - generic [ref=e114]: $0.51
+                      - generic [ref=e115]:
+                        - generic [ref=e116]: 31 Dec, 13:15
+                        - generic [ref=e117]: Sell
+                        - generic [ref=e118]: $0.50
+                - generic [ref=e119]:
+                  - img [ref=e124]:
+                    - generic [ref=e126]:
+                      - generic [ref=e128]: $0.00
+                      - generic [ref=e130]: $4.0h
+                      - generic [ref=e132]: $8.0h
+                      - generic [ref=e134]: $1.2K
+                      - generic [ref=e136]: $1.6K
+                  - generic:
+                    - img "Alpha Ecosystem"
+                - generic [ref=e139]:
+                  - img [ref=e140]
+                  - text: Live Data
+                  - generic [ref=e142]: •
+                  - text: Updates every 3s
+              - generic [ref=e144]:
+                - generic [ref=e145]:
+                  - heading "Alpha Ecosystem" [level=2] [ref=e146]
+                  - generic [ref=e147]: "Collection: Alpha Ecosystem • By OpenYield Labs"
+                - paragraph [ref=e148]: Liquidity-backed artifacts with verifiable reserves and real-time CoinTag discovery. Hunt, redeem, and monitor live performance across every cycle.
+              - button "Tap to pay" [ref=e150] [cursor=pointer]
+              - generic [ref=e151]:
+                - generic [ref=e152]:
+                  - heading "Cycle Analytics" [level=3] [ref=e153]
+                  - paragraph [ref=e154]: Tap a cycle bar to inspect demand, revenue, and payouts.
+                - img [ref=e159]:
+                  - generic [ref=e163]: C1
+                  - generic [ref=e165]:
+                    - generic [ref=e167]: $0.00
+                    - generic [ref=e169]: $65.00
+                    - generic [ref=e171]: $130.00
+                    - generic [ref=e173]: $195.00
+                    - generic [ref=e175]: $260.00
+                - generic [ref=e176]:
+                  - generic [ref=e177]:
+                    - generic [ref=e178]: Cycle
+                    - generic [ref=e179]: "#1"
+                  - generic [ref=e180]:
+                    - generic [ref=e181]: Active Users
+                    - generic [ref=e182]: "60"
+                  - generic [ref=e183]:
+                    - generic [ref=e184]: Revenue
+                    - generic [ref=e185]: $250.00
+                  - generic [ref=e186]:
+                    - generic [ref=e187]: Payout
+                    - generic [ref=e188]: $12.50
+                    - generic [ref=e189]: 0 LFT / unit
+              - button "View cycle halving & distribution Current supply 1000K" [ref=e191] [cursor=pointer]:
+                - text: View cycle halving & distribution
+                - generic [ref=e192]: Current supply 1000K
+              - generic [ref=e196]:
+                - paragraph [ref=e197]: Ecosystem Token
+                - paragraph [ref=e198]: ALPHAECOSYSTEM-TOKEN
+                - paragraph [ref=e199]: Token trading unlocks once all LFTs are discovered.
+            - generic [ref=e200]:
+              - generic [ref=e202]:
+                - generic [ref=e203]:
+                  - generic [ref=e204]: current liquidity
+                  - generic [ref=e205]: $1.3K
+                  - generic [ref=e206]: Total value
+                - generic [ref=e207]:
+                  - generic [ref=e208]: backing reserve
+                  - generic [ref=e209]: $1.2K
+                  - generic [ref=e210]: Seeded liquidity
+                - generic [ref=e211]:
+                  - generic [ref=e212]: cointag price
+                  - generic [ref=e213]: $4.20
+                  - generic [ref=e214]: Hunt entry fee
+                - generic [ref=e215]:
+                  - generic [ref=e216]: price per unit
+                  - generic [ref=e217]: $0.00
+                  - generic [ref=e218]: Redeemable floor
+              - generic [ref=e221]:
+                - generic [ref=e222]: Discovery Progress
+                - generic [ref=e223]: 0 / 1000000 units • 0.0% discovered
+  - generic [ref=e231]: $0.00

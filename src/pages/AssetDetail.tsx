@@ -9,7 +9,7 @@ import { useApp } from "@/lib/app-state";
 import { cn, formatCurrency, formatCurrencyK } from "@/lib/utils";
 import { DEFAULT_LAUNCHPAD_DISTRIBUTION } from "@/domain/tokenomics";
 import { Dot, Image as ImageIcon, LineChart as LineChartIcon, X } from "lucide-react";
-import { Bar, BarChart as RechartsBarChart, Cell, Line, LineChart as RechartsLineChart, XAxis, YAxis } from "recharts";
+import { Area, Bar, BarChart as RechartsBarChart, CartesianGrid, Cell, Line, LineChart as RechartsLineChart, XAxis, YAxis } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 function detectWebView(): boolean {
@@ -112,18 +112,18 @@ export default function AssetDetail() {
       }
     };
 
-    // Seed initial value at lower left
-    ratios.push(0.32);
-    // Sharp initial dip
-    pushSegment(4, 0.22, 0.015, 1.4);
-    // Recovery and early buildup
-    pushSegment(10, 0.55, 0.012, 0.8);
-    // Mid plateau with gentle chop
-    pushSegment(12, 0.62, 0.01, 1.1);
-    // Strong rally toward top right
-    pushSegment(14, 1.05, 0.018, 0.9, 0.01);
-    // Minor pullback and final push
-    pushSegment(8, 1.12, 0.012, 1.3);
+    // Start lower, then recover into a more standard upward market structure.
+    ratios.push(0.72);
+    // Early soft dip
+    pushSegment(5, 0.67, 0.008, 1.15);
+    // Steady recovery
+    pushSegment(9, 0.79, 0.007, 0.9);
+    // Sideways consolidation
+    pushSegment(10, 0.83, 0.006, 1.2);
+    // Gradual trend continuation
+    pushSegment(10, 0.94, 0.008, 0.95);
+    // Controlled finish near current value
+    pushSegment(8, 1.01, 0.005, 1.1);
 
     const mapped = ratios.map((ratio, idx) => ({
       label: `T${idx + 1}`,
@@ -131,8 +131,8 @@ export default function AssetDetail() {
     }));
 
     if (mapped.length > 0) {
-      mapped[0].value = Number((base * 0.18).toFixed(2));
-      mapped[mapped.length - 1].value = Number((base * 1.15).toFixed(2));
+      mapped[0].value = Number((base * 0.74).toFixed(2));
+      mapped[mapped.length - 1].value = Number((base * 1.02).toFixed(2));
     }
     return mapped;
   }, [asset, currentLiquidity]);
@@ -432,23 +432,23 @@ export default function AssetDetail() {
         </ChartContainer>
       </div>
       {selectedCycle && (
-        <div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
-          <div className="rounded-xl border border-border/40 bg-background/70 p-3">
-            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Cycle</div>
-            <div className="mt-1 text-lg font-semibold text-foreground">#{selectedCycle.cycle}</div>
+        <div className="grid grid-cols-2 gap-2 text-[11px]">
+          <div className="rounded-xl border border-border/40 bg-background/70 p-2.5 xl:p-3">
+            <div className="text-[9px] uppercase tracking-wide text-muted-foreground xl:text-[10px]">Cycle</div>
+            <div className="mt-1 text-base font-semibold text-foreground xl:text-lg">#{selectedCycle.cycle}</div>
           </div>
-          <div className="rounded-xl border border-border/40 bg-background/70 p-3">
-            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Active Users</div>
-            <div className="mt-1 text-lg font-semibold text-foreground">{selectedCycle.users.toLocaleString()}</div>
+          <div className="rounded-xl border border-border/40 bg-background/70 p-2.5 xl:p-3">
+            <div className="text-[9px] uppercase tracking-wide text-muted-foreground xl:text-[10px]">Active Users</div>
+            <div className="mt-1 text-base font-semibold text-foreground xl:text-lg">{selectedCycle.users.toLocaleString()}</div>
           </div>
-          <div className="rounded-xl border border-border/40 bg-background/70 p-3">
-            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Revenue</div>
-            <div className="mt-1 text-lg font-semibold text-emerald-300">{formatCurrency(selectedCycle.revenue)}</div>
+          <div className="rounded-xl border border-border/40 bg-background/70 p-2.5 xl:p-3">
+            <div className="text-[9px] uppercase tracking-wide text-muted-foreground xl:text-[10px]">Revenue</div>
+            <div className="mt-1 text-base font-semibold text-emerald-300 xl:text-lg">{formatCurrency(selectedCycle.revenue)}</div>
           </div>
-          <div className="rounded-xl border border-border/40 bg-background/70 p-3 sm:col-span-2 lg:col-span-1">
-            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Payout</div>
-            <div className="mt-1 text-lg font-semibold text-foreground">{formatCurrency(selectedCycle.payout)}</div>
-            <div className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground/70">
+          <div className="rounded-xl border border-border/40 bg-background/70 p-2.5 xl:p-3">
+            <div className="text-[9px] uppercase tracking-wide text-muted-foreground xl:text-[10px]">Payout</div>
+            <div className="mt-1 text-base font-semibold text-foreground xl:text-lg">{formatCurrency(selectedCycle.payout)}</div>
+            <div className="mt-1 text-[9px] uppercase tracking-wide text-muted-foreground/70 xl:text-[10px]">
               {selectedCycle.lftPerUnit} LFT / unit
             </div>
           </div>
@@ -509,7 +509,7 @@ export default function AssetDetail() {
       <Button
         className={cn(
           "h-11 w-full rounded-lg border-0 text-sm font-semibold shadow-sm transition-colors",
-          "bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 text-white hover:opacity-95",
+          "bg-blue-500 text-white hover:bg-blue-600",
           "disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground",
         )}
         disabled={user.usd < huntFee || ua.coinTags >= 1 || isMarketOnlyPhase}
@@ -546,7 +546,7 @@ export default function AssetDetail() {
         {showHuntPrompt && (
           <Button
             onClick={() => navigate(`/assets/${asset.id}/hunt`)}
-            className="h-10 w-full rounded-lg border-0 bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 text-white shadow-sm hover:opacity-95"
+            className="h-10 w-full rounded-lg border-0 bg-blue-500 text-white shadow-sm hover:bg-blue-600"
             disabled={isMarketOnlyPhase}
           >
             Start Hunt
@@ -559,7 +559,7 @@ export default function AssetDetail() {
   return (
     <div className="min-h-screen">
       <main className="container mx-auto px-4 pt-4 pb-24 sm:pb-8">
-        <div className="space-y-10 lg:grid lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)] lg:gap-10 lg:space-y-0">
+        <div className="space-y-10 lg:grid lg:grid-cols-[minmax(0,1.45fr)_minmax(0,0.95fr)_minmax(0,0.95fr)] lg:gap-8 lg:space-y-0">
           <div className="space-y-8 md:space-y-10">
             <section className="space-y-4">
               {!isImageMode && (
@@ -608,10 +608,17 @@ export default function AssetDetail() {
                     <RechartsLineChart data={chartData} margin={{ left: 0, right: 0, top: 20, bottom: 20 }}>
                       <defs>
                         <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#84cc16" stopOpacity={0.3} />
-                          <stop offset="100%" stopColor="#84cc16" stopOpacity={0} />
+                          <stop offset="0%" stopColor="#4ade80" stopOpacity={0.22} />
+                          <stop offset="65%" stopColor="#22c55e" stopOpacity={0.1} />
+                          <stop offset="100%" stopColor="#16a34a" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="chartLineStroke" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#84cc16" />
+                          <stop offset="55%" stopColor="#22c55e" />
+                          <stop offset="100%" stopColor="#16a34a" />
                         </linearGradient>
                       </defs>
+                      <CartesianGrid vertical={false} stroke="rgba(148, 163, 184, 0.16)" strokeDasharray="4 8" />
                       <XAxis dataKey="label" hide />
                       <YAxis
                         orientation="right"
@@ -624,16 +631,36 @@ export default function AssetDetail() {
                         domain={['auto', 'auto']}
                         padding={{ top: 10, bottom: 10 }}
                       />
-                      <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                      <ChartTooltip
+                        cursor={{ stroke: "rgba(34, 197, 94, 0.22)", strokeWidth: 1.25, strokeDasharray: "4 4" }}
+                        content={<ChartTooltipContent hideLabel />}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="value"
+                        stroke="none"
+                        fill="url(#colorValue)"
+                        fillOpacity={1}
+                      />
                       <Line
                         type="monotone"
                         dataKey="value"
-                        stroke="#84cc16"
-                        strokeWidth={2.5}
+                        stroke="rgba(34, 197, 94, 0.12)"
+                        strokeWidth={4}
                         dot={false}
+                        activeDot={false}
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        fill="url(#colorValue)"
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="url(#chartLineStroke)"
+                        strokeWidth={2.1}
+                        dot={false}
+                        activeDot={{ r: 3.5, fill: "#ffffff", stroke: "#16a34a", strokeWidth: 1.75 }}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       />
                     </RechartsLineChart>
                   </ChartContainer>
@@ -680,14 +707,13 @@ export default function AssetDetail() {
               <section className="hidden sm:block">
                 <Button
                   onClick={() => setMobileBuyOpen(true)}
-                  className="h-12 w-full rounded-2xl bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 text-base font-semibold text-white shadow-sm hover:opacity-95"
+                  className="h-12 w-full rounded-2xl bg-blue-500 text-base font-semibold text-white shadow-sm hover:bg-blue-600"
                   disabled={isMarketOnlyPhase}
                 >
                   Tap to pay
                 </Button>
               </section>
             )}
-            <AnalyticsSection className="hidden lg:block" />
             <section className="hidden lg:block">
               <Button
                 variant="outline"
@@ -856,6 +882,10 @@ export default function AssetDetail() {
 
             <TransactionHistorySection className="hidden lg:block" />
           </div>
+
+          <div className="hidden lg:block lg:pt-2">
+            <AnalyticsSection />
+          </div>
         </div>
       </main>
 
@@ -866,7 +896,7 @@ export default function AssetDetail() {
               onClick={() => setMobileBuyOpen(true)}
               className={cn(
                 "w-full max-w-xs rounded-2xl py-3 text-base font-semibold shadow-lg transition-colors",
-                "bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 text-white hover:opacity-95",
+                "bg-blue-500 text-white hover:bg-blue-600",
               )}
               disabled={isMarketOnlyPhase}
             >
@@ -887,7 +917,7 @@ export default function AssetDetail() {
                 </div>
                 <Button
                   variant="ghost"
-                  className="h-8 w-8 rounded-lg border-0 bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 p-0 text-white hover:opacity-95"
+                  className="h-8 w-8 rounded-lg border-0 bg-blue-500 p-0 text-white hover:bg-blue-600"
                   onClick={() => setMobileBuyOpen(false)}
                 >
                   <X className="h-4 w-4" />

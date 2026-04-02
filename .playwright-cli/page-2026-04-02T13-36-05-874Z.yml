@@ -1,0 +1,266 @@
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e6]:
+        - link "Solaris logo Solaris" [ref=e8] [cursor=pointer]:
+          - /url: /
+          - img "Solaris logo" [ref=e9]
+          - generic [ref=e10]: Solaris
+        - navigation [ref=e11]:
+          - link "Assets" [ref=e12] [cursor=pointer]:
+            - /url: /assets
+          - link "Portfolio" [ref=e13] [cursor=pointer]:
+            - /url: /portfolio
+          - link "Wallet" [ref=e14] [cursor=pointer]:
+            - /url: /wallet
+          - link "Notifications" [ref=e15] [cursor=pointer]:
+            - /url: /notifications
+          - link "LaunchPad" [ref=e16] [cursor=pointer]:
+            - /url: /coin-tags
+          - link "Revenue" [ref=e17] [cursor=pointer]:
+            - /url: /revenue
+        - generic [ref=e18]:
+          - button "Search ⌘K" [ref=e19] [cursor=pointer]:
+            - img
+            - generic [ref=e20]: Search
+            - generic [ref=e21]: ⌘K
+          - button "Connect" [ref=e22] [cursor=pointer]
+    - main [ref=e23]:
+      - main [ref=e25]:
+        - generic [ref=e27]:
+          - generic [ref=e29]: Web3 Headlines
+          - generic [ref=e41]:
+            - generic [ref=e42]:
+              - generic [ref=e43]: Total LFT volume
+              - generic [ref=e44]:
+                - generic [ref=e45]: $25.07M
+                - generic [ref=e47]: ▼ 36.1% today
+            - generic [ref=e49]:
+              - generic [ref=e50]: Total profit from LFT volume
+              - generic [ref=e51]:
+                - generic [ref=e52]: $2.06M
+                - generic [ref=e54]: ▼ 1.79% today
+          - generic [ref=e55]:
+            - button "Listed" [ref=e56] [cursor=pointer]
+            - button "Live" [ref=e57] [cursor=pointer]
+            - button "View all tokens" [ref=e58] [cursor=pointer]
+          - generic [ref=e59]:
+            - button "All networks All networks" [ref=e60] [cursor=pointer]:
+              - generic [ref=e61]:
+                - img "All networks" [ref=e63]
+                - generic [ref=e64]: All networks
+              - img [ref=e65]
+            - button "Bitcoin Bitcoin" [ref=e67] [cursor=pointer]:
+              - generic [ref=e68]:
+                - img "Bitcoin" [ref=e70]
+                - generic [ref=e71]: Bitcoin
+            - button "Ethereum Ethereum" [ref=e72] [cursor=pointer]:
+              - generic [ref=e73]:
+                - img "Ethereum" [ref=e75]
+                - generic [ref=e76]: Ethereum
+            - button "Solana Solana" [ref=e77] [cursor=pointer]:
+              - generic [ref=e78]:
+                - img "Solana" [ref=e80]
+                - generic [ref=e81]: Solana
+            - button "Base Base" [ref=e82] [cursor=pointer]:
+              - generic [ref=e83]:
+                - img "Base" [ref=e85]
+                - generic [ref=e86]: Base
+            - button "Monad Monad" [ref=e87] [cursor=pointer]:
+              - generic [ref=e88]:
+                - img "Monad" [ref=e90]
+                - generic [ref=e91]: Monad
+          - table [ref=e95]:
+            - rowgroup [ref=e96]:
+              - row "Collection Liquidity LPU CoinTag Backing Reserve" [ref=e97]:
+                - columnheader [ref=e98]:
+                  - img [ref=e99]
+                - columnheader "Collection" [ref=e101]
+                - columnheader "Liquidity" [ref=e102]
+                - columnheader "LPU" [ref=e103]
+                - columnheader "CoinTag" [ref=e104]
+                - columnheader "Backing Reserve" [ref=e105]
+            - rowgroup [ref=e106]:
+              - row "Alpha Ecosystem Alpha Ecosystem verified -3.9% $1.3K $0.00 $4.20 $1.2K" [ref=e107] [cursor=pointer]:
+                - cell [ref=e108]:
+                  - img [ref=e109]
+                - cell "Alpha Ecosystem Alpha Ecosystem verified -3.9%" [ref=e111]:
+                  - generic [ref=e112]:
+                    - img "Alpha Ecosystem" [ref=e113]
+                    - generic [ref=e114]:
+                      - generic [ref=e115]:
+                        - generic [ref=e116]: Alpha Ecosystem
+                        - img "verified" [ref=e117]
+                      - generic [ref=e118]: "-3.9%"
+                - cell "$1.3K" [ref=e119]
+                - cell "$0.00" [ref=e120]
+                - cell "$4.20" [ref=e121]
+                - cell "$1.2K" [ref=e122]
+              - row "Beta Studio Beta Studio verified -1.9% $2.6K $0.00 $4.20 $2.4K" [ref=e123] [cursor=pointer]:
+                - cell [ref=e124]:
+                  - img [ref=e125]
+                - cell "Beta Studio Beta Studio verified -1.9%" [ref=e127]:
+                  - generic [ref=e128]:
+                    - img "Beta Studio" [ref=e129]
+                    - generic [ref=e130]:
+                      - generic [ref=e131]:
+                        - generic [ref=e132]: Beta Studio
+                        - img "verified" [ref=e133]
+                      - generic [ref=e134]: "-1.9%"
+                - cell "$2.6K" [ref=e135]
+                - cell "$0.00" [ref=e136]
+                - cell "$4.20" [ref=e137]
+                - cell "$2.4K" [ref=e138]
+              - row "Gamma Labs Gamma Labs verified +5.9% $836.00 $0.00 $4.20 $800.00" [ref=e139] [cursor=pointer]:
+                - cell [ref=e140]:
+                  - img [ref=e141]
+                - cell "Gamma Labs Gamma Labs verified +5.9%" [ref=e143]:
+                  - generic [ref=e144]:
+                    - img "Gamma Labs" [ref=e145]
+                    - generic [ref=e146]:
+                      - generic [ref=e147]:
+                        - generic [ref=e148]: Gamma Labs
+                        - img "verified" [ref=e149]
+                      - generic [ref=e150]: +5.9%
+                - cell "$836.00" [ref=e151]
+                - cell "$0.00" [ref=e152]
+                - cell "$4.20" [ref=e153]
+                - cell "$800.00" [ref=e154]
+              - row "Delta Collective Delta Collective verified -1.7% $1.6K $0.00 $4.20 $1.5K" [ref=e155] [cursor=pointer]:
+                - cell [ref=e156]:
+                  - img [ref=e157]
+                - cell "Delta Collective Delta Collective verified -1.7%" [ref=e159]:
+                  - generic [ref=e160]:
+                    - img "Delta Collective" [ref=e161]
+                    - generic [ref=e162]:
+                      - generic [ref=e163]:
+                        - generic [ref=e164]: Delta Collective
+                        - img "verified" [ref=e165]
+                      - generic [ref=e166]: "-1.7%"
+                - cell "$1.6K" [ref=e167]
+                - cell "$0.00" [ref=e168]
+                - cell "$4.20" [ref=e169]
+                - cell "$1.5K" [ref=e170]
+              - row "Epsilon Arts Epsilon Arts verified -3.1% $1.0K $0.00 $4.20 $950.00" [ref=e171] [cursor=pointer]:
+                - cell [ref=e172]:
+                  - img [ref=e173]
+                - cell "Epsilon Arts Epsilon Arts verified -3.1%" [ref=e175]:
+                  - generic [ref=e176]:
+                    - img "Epsilon Arts" [ref=e177]
+                    - generic [ref=e178]:
+                      - generic [ref=e179]:
+                        - generic [ref=e180]: Epsilon Arts
+                        - img "verified" [ref=e181]
+                      - generic [ref=e182]: "-3.1%"
+                - cell "$1.0K" [ref=e183]
+                - cell "$0.00" [ref=e184]
+                - cell "$4.20" [ref=e185]
+                - cell "$950.00" [ref=e186]
+              - row "Zeta Labs Zeta Labs verified -4.7% $1.4K $0.00 $4.20 $1.3K" [ref=e187] [cursor=pointer]:
+                - cell [ref=e188]:
+                  - img [ref=e189]
+                - cell "Zeta Labs Zeta Labs verified -4.7%" [ref=e191]:
+                  - generic [ref=e192]:
+                    - img "Zeta Labs" [ref=e193]
+                    - generic [ref=e194]:
+                      - generic [ref=e195]:
+                        - generic [ref=e196]: Zeta Labs
+                        - img "verified" [ref=e197]
+                      - generic [ref=e198]: "-4.7%"
+                - cell "$1.4K" [ref=e199]
+                - cell "$0.00" [ref=e200]
+                - cell "$4.20" [ref=e201]
+                - cell "$1.3K" [ref=e202]
+              - row "Theta Network Theta Network verified -2.5% $1.8K $0.00 $4.20 $1.7K" [ref=e203] [cursor=pointer]:
+                - cell [ref=e204]:
+                  - img [ref=e205]
+                - cell "Theta Network Theta Network verified -2.5%" [ref=e207]:
+                  - generic [ref=e208]:
+                    - img "Theta Network" [ref=e209]
+                    - generic [ref=e210]:
+                      - generic [ref=e211]:
+                        - generic [ref=e212]: Theta Network
+                        - img "verified" [ref=e213]
+                      - generic [ref=e214]: "-2.5%"
+                - cell "$1.8K" [ref=e215]
+                - cell "$0.00" [ref=e216]
+                - cell "$4.20" [ref=e217]
+                - cell "$1.7K" [ref=e218]
+              - row "Sigma Studio Sigma Studio verified +3.7% $1.2K $0.00 $4.20 $1.1K" [ref=e219] [cursor=pointer]:
+                - cell [ref=e220]:
+                  - img [ref=e221]
+                - cell "Sigma Studio Sigma Studio verified +3.7%" [ref=e223]:
+                  - generic [ref=e224]:
+                    - img "Sigma Studio" [ref=e225]
+                    - generic [ref=e226]:
+                      - generic [ref=e227]:
+                        - generic [ref=e228]: Sigma Studio
+                        - img "verified" [ref=e229]
+                      - generic [ref=e230]: +3.7%
+                - cell "$1.2K" [ref=e231]
+                - cell "$0.00" [ref=e232]
+                - cell "$4.20" [ref=e233]
+                - cell "$1.1K" [ref=e234]
+              - row "Orion Guild Orion Guild verified +4.4% $2.4K $0.00 $4.20 $2.2K" [ref=e235] [cursor=pointer]:
+                - cell [ref=e236]:
+                  - img [ref=e237]
+                - cell "Orion Guild Orion Guild verified +4.4%" [ref=e239]:
+                  - generic [ref=e240]:
+                    - img "Orion Guild" [ref=e241]
+                    - generic [ref=e242]:
+                      - generic [ref=e243]:
+                        - generic [ref=e244]: Orion Guild
+                        - img "verified" [ref=e245]
+                      - generic [ref=e246]: +4.4%
+                - cell "$2.4K" [ref=e247]
+                - cell "$0.00" [ref=e248]
+                - cell "$4.20" [ref=e249]
+                - cell "$2.2K" [ref=e250]
+              - row "Nova Builders Nova Builders verified +3.3% $1.1K $0.00 $4.20 $1.1K" [ref=e251] [cursor=pointer]:
+                - cell [ref=e252]:
+                  - img [ref=e253]
+                - cell "Nova Builders Nova Builders verified +3.3%" [ref=e255]:
+                  - generic [ref=e256]:
+                    - img "Nova Builders" [ref=e257]
+                    - generic [ref=e258]:
+                      - generic [ref=e259]:
+                        - generic [ref=e260]: Nova Builders
+                        - img "verified" [ref=e261]
+                      - generic [ref=e262]: +3.3%
+                - cell "$1.1K" [ref=e263]
+                - cell "$0.00" [ref=e264]
+                - cell "$4.20" [ref=e265]
+                - cell "$1.1K" [ref=e266]
+              - row "Kappa Syndicate Kappa Syndicate verified -4.7% $1.6K $0.00 $4.20 $1.4K" [ref=e267] [cursor=pointer]:
+                - cell [ref=e268]:
+                  - img [ref=e269]
+                - cell "Kappa Syndicate Kappa Syndicate verified -4.7%" [ref=e271]:
+                  - generic [ref=e272]:
+                    - img "Kappa Syndicate" [ref=e273]
+                    - generic [ref=e274]:
+                      - generic [ref=e275]:
+                        - generic [ref=e276]: Kappa Syndicate
+                        - img "verified" [ref=e277]
+                      - generic [ref=e278]: "-4.7%"
+                - cell "$1.6K" [ref=e279]
+                - cell "$0.00" [ref=e280]
+                - cell "$4.20" [ref=e281]
+                - cell "$1.4K" [ref=e282]
+              - row "Lambda Atelier Lambda Atelier verified -5.5% $1.0K $0.00 $4.20 $980.00" [ref=e283] [cursor=pointer]:
+                - cell [ref=e284]:
+                  - img [ref=e285]
+                - cell "Lambda Atelier Lambda Atelier verified -5.5%" [ref=e287]:
+                  - generic [ref=e288]:
+                    - img "Lambda Atelier" [ref=e289]
+                    - generic [ref=e290]:
+                      - generic [ref=e291]:
+                        - generic [ref=e292]: Lambda Atelier
+                        - img "verified" [ref=e293]
+                      - generic [ref=e294]: "-5.5%"
+                - cell "$1.0K" [ref=e295]
+                - cell "$0.00" [ref=e296]
+                - cell "$4.20" [ref=e297]
+                - cell "$980.00" [ref=e298]

@@ -10,11 +10,22 @@ export type Web3NewsItem = {
 };
 
 interface RawDecryptNewsResponse {
-  contents?: string;
+  status?: string;
+  items?: Array<{
+    guid?: string;
+    title?: string;
+    link?: string;
+    thumbnail?: string;
+    enclosure?: {
+      link?: string;
+      thumbnail?: string;
+    };
+    pubDate?: string;
+  }>;
 }
 
 const NEWS_ENDPOINT =
-  "https://api.allorigins.win/get?url=https%3A%2F%2Fdecrypt.co%2Ffeed";
+  "https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fdecrypt.co%2Ffeed";
 
 let cachedNews: Web3NewsItem[] | null = null;
 let cacheTimestamp = 0;
@@ -22,34 +33,6 @@ let inflightRequest: Promise<Web3NewsItem[]> | null = null;
 
 const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
 const REFRESH_INTERVAL = 1000 * 60 * 5; // auto refresh every 5 minutes
-const STALE_THRESHOLD = 1000 * 60 * 60 * 24 * 7; // 7 days
-
-const FALLBACK_NEWS: Web3NewsItem[] = [
-  {
-    id: "fallback-tokenized-yield",
-    title: "Reimagining Liquidity: How Tokenized Yield Is Bridging TradFi and Web3",
-    url: "/blog/tokenized-yield-liquidity",
-    imageUrl: "/d5.png",
-    source: "Solaris Research",
-    publishedAt: new Date("2024-08-02T00:00:00.000Z"),
-  },
-  {
-    id: "fallback-lft-future",
-    title: "Liquidity Funded Tokens (LFTs): The Future of Sustainable Digital Assets",
-    url: "/blog/liquidity-funded-tokens",
-    imageUrl: "/d1.png",
-    source: "Solaris Research",
-    publishedAt: new Date("2024-05-21T00:00:00.000Z"),
-  },
-  {
-    id: "fallback-creative-liquidity",
-    title: "The Creative Use of Liquidity in the Web3 Space",
-    url: "/blog/creative-liquidity-web3",
-    imageUrl: "/d3.png",
-    source: "Solaris Research",
-    publishedAt: new Date("2024-07-09T00:00:00.000Z"),
-  },
-];
 
 function cacheNews(items: Web3NewsItem[]) {
   cachedNews = items;
@@ -69,51 +52,34 @@ async function fetchWeb3News(forceRefresh = false): Promise<Web3NewsItem[]> {
   inflightRequest = fetch(NEWS_ENDPOINT)
     .then(async (response) => {
       if (!response.ok) {
-        return cacheNews(FALLBACK_NEWS);
+        return cacheNews([]);
       }
       const payload = (await response.json()) as RawDecryptNewsResponse;
-      if (!payload?.contents) {
-        return cacheNews(FALLBACK_NEWS);
+      if (payload?.status !== "ok" || !Array.isArray(payload.items)) {
+        return cacheNews([]);
       }
 
-      const parser = new DOMParser();
-      const xml = parser.parseFromString(payload.contents, "application/xml");
-      const xmlError = xml.querySelector("parsererror");
-      if (xmlError) {
-        return cacheNews(FALLBACK_NEWS);
-      }
-
-      const now = Date.now();
-      const normalized = Array.from(xml.querySelectorAll("item"))
-        .map((itemNode, index) => {
-          const title = itemNode.querySelector("title")?.textContent?.trim() ?? "";
-          const link = itemNode.querySelector("link")?.textContent?.trim() ?? "";
-          const guid = itemNode.querySelector("guid")?.textContent?.trim() || link || `decrypt-${index}`;
-          const pubDate = itemNode.querySelector("pubDate")?.textContent?.trim() ?? "";
-          const mediaThumbnail = itemNode.getElementsByTagName("media:thumbnail")[0]?.getAttribute("url") ?? "";
-          const enclosure = itemNode.getElementsByTagName("enclosure")[0]?.getAttribute("url") ?? "";
-
-          return {
-            id: guid,
-            title,
-            url: link,
-            imageUrl: mediaThumbnail || enclosure,
-            source: "Decrypt",
-            publishedAt: new Date(pubDate),
-          };
-        })
+      const normalized = payload.items
+        .map((item, index) => ({
+          id: item.guid || item.link || `decrypt-${index}`,
+          title: item.title ?? "",
+          url: item.link ?? "",
+          imageUrl: item.enclosure?.thumbnail || item.thumbnail || item.enclosure?.link || "",
+          source: "Decrypt",
+          publishedAt: new Date(item.pubDate ?? ""),
+        }))
         .filter((item: Web3NewsItem) => {
           if (!item.title || !item.url) return false;
           if (!item.imageUrl) return false;
           if (Number.isNaN(item.publishedAt.getTime())) return false;
-          return now - item.publishedAt.getTime() <= STALE_THRESHOLD;
+          return true;
         })
         .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
 
-      return cacheNews(normalized.length > 0 ? normalized : FALLBACK_NEWS);
+      return cacheNews(normalized);
     })
     .catch(() => {
-      return cacheNews(FALLBACK_NEWS);
+      return cacheNews([]);
     })
     .finally(() => {
       inflightRequest = null;
@@ -143,6 +109,7 @@ export function useWeb3News(limit?: number) {
             const next = limit !== undefined ? items.slice(0, limit) : items;
             setNews(next);
             setLoading(false);
+            setError(null);
           }
         })
         .catch((err: unknown) => {

@@ -37,7 +37,9 @@ const posts = [
 ];
 
 export default function Blog() {
-  const { news, loading } = useWeb3News(3);
+  const { news, loading } = useWeb3News(4);
+  const decryptStories = news ?? [];
+  const showDecryptSection = loading || decryptStories.length > 0;
 
   const formatNewsTime = (date?: Date) => {
     if (!date) return "";
@@ -67,71 +69,79 @@ export default function Blog() {
             </p>
           </div>
 
-          <div className="grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
-            <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary/70">Decrypt</p>
-                  <h2 className="mt-2 text-xl font-semibold">Current Headlines</h2>
+          <div className="space-y-10">
+            {showDecryptSection ? (
+              <section className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary/70">Decrypt</p>
+                    <h2 className="mt-2 text-xl font-semibold">Web3 Headlines</h2>
+                  </div>
+                  <a
+                    href="https://decrypt.co/feed"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground"
+                  >
+                    Source
+                  </a>
                 </div>
-                <a
-                  href="https://decrypt.co/feed"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground"
-                >
-                  Source
-                </a>
-              </div>
 
-              <div className="space-y-4">
-                {(loading ? Array.from({ length: 3 }) : news ?? []).map((item, index) =>
-                  item ? (
-                    <a
-                      key={item.id}
-                      href={item.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="group block overflow-hidden rounded-3xl border border-border/60 bg-surface/60 transition hover:-translate-y-0.5 hover:border-border hover:bg-surface/90"
-                    >
-                      <div className="relative h-40 overflow-hidden bg-muted">
-                        <img
-                          src={item.imageUrl}
-                          alt={item.title}
-                          className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-                          loading="lazy"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between px-4 pb-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/90">
-                          <span>{item.source}</span>
-                          <span>{formatNewsTime(item.publishedAt)}</span>
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  {(loading ? Array.from({ length: 4 }) : decryptStories).map((item, index) =>
+                    item ? (
+                      <a
+                        key={item.id}
+                        href={item.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="group block overflow-hidden rounded-3xl border border-border/60 bg-surface/60 transition hover:-translate-y-0.5 hover:border-border hover:bg-surface/90"
+                      >
+                        <div className="relative h-40 overflow-hidden bg-muted">
+                          <img
+                            src={item.imageUrl}
+                            alt={item.title}
+                            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                            loading="lazy"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between px-4 pb-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/90">
+                            <span>{item.source}</span>
+                            <span>{formatNewsTime(item.publishedAt)}</span>
+                          </div>
+                        </div>
+                        <div className="space-y-2 p-4">
+                          <h3 className="text-base font-semibold leading-snug text-foreground">{item.title}</h3>
+                          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                            <span>Open story</span>
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </div>
+                        </div>
+                      </a>
+                    ) : (
+                      <div
+                        key={`decrypt-loading-${index}`}
+                        className="overflow-hidden rounded-3xl border border-border/60 bg-surface/60"
+                      >
+                        <div className="h-40 animate-pulse bg-muted" />
+                        <div className="space-y-2 p-4">
+                          <div className="h-4 w-3/4 animate-pulse rounded bg-border/50" />
+                          <div className="h-4 w-5/6 animate-pulse rounded bg-border/50" />
                         </div>
                       </div>
-                      <div className="space-y-2 p-4">
-                        <h3 className="text-base font-semibold leading-snug text-foreground">{item.title}</h3>
-                        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                          <span>Open story</span>
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </div>
-                      </div>
-                    </a>
-                  ) : (
-                    <div
-                      key={`decrypt-loading-${index}`}
-                      className="overflow-hidden rounded-3xl border border-border/60 bg-surface/60"
-                    >
-                      <div className="h-40 animate-pulse bg-muted" />
-                      <div className="space-y-2 p-4">
-                        <div className="h-4 w-3/4 animate-pulse rounded bg-border/50" />
-                        <div className="h-4 w-5/6 animate-pulse rounded bg-border/50" />
-                      </div>
-                    </div>
-                  ),
-                )}
-              </div>
-            </aside>
+                    ),
+                  )}
+                </div>
+              </section>
+            ) : null}
 
-            <div className="grid gap-4">
+            <section className="space-y-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary/70">Solaris</p>
+                <h2 className="mt-2 text-xl font-semibold">Research & Blogs</h2>
+              </div>
+
+              <div className="grid gap-4">
               {posts.map((post) => (
                 <Link
                   key={post.slug}
@@ -163,7 +173,8 @@ export default function Blog() {
                   </div>
                 </Link>
               ))}
-            </div>
+              </div>
+            </section>
           </div>
         </div>
       </div>
