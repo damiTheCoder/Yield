@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface Web3NewsProps {
-  variant?: "sidebar" | "mobile" | "webview";
+  variant?: "sidebar" | "mobile" | "webview" | "detail";
   className?: string;
 }
 
@@ -67,11 +67,11 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
   const cardBackgroundClasses =
     activeTheme === "dark"
       ? "bg-[#1a1a1a] border-transparent"
-      : "bg-gray-50 border border-gray-200";
+      : "bg-gray-50";
   const shimmerBackgroundClasses =
     activeTheme === "dark"
       ? "bg-[#1a1a1a] border-transparent"
-      : "bg-gray-50 border border-gray-200";
+      : "bg-gray-50";
   const cardTextClasses = activeTheme === "dark" ? "text-white" : "text-gray-900";
 
   const items = useMemo(() => news ?? [], [news]);
@@ -79,15 +79,17 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
   const headingSize =
     variant === "sidebar"
       ? "text-sm"
+      : variant === "detail"
+        ? "text-[17px] tracking-[-0.02em]"
       : variant === "mobile"
         ? "text-[18px] tracking-[-0.02em]"
         : "text-xl";
   const listWrapperClass =
-    variant === "webview"
+    variant === "webview" || variant === "detail"
       ? ""
       : cn("flex gap-4 overflow-x-auto no-scrollbar pb-1", variant === "sidebar" ? "md:w-64" : "");
 
-  const desiredSlots = variant === "webview" ? 4 : 3;
+  const desiredSlots = variant === "webview" || variant === "detail" || variant === "mobile" ? 4 : 3;
   const MIN_REAL_ITEMS = desiredSlots;
   let displayedItems = items.slice(0, MIN_REAL_ITEMS);
 
@@ -114,7 +116,11 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
     return (
       <Popover>
         <PopoverTrigger asChild>
-          <button type="button" className="flex items-center justify-end pl-3" aria-label="Why these icons are here">
+          <button
+            type="button"
+            className={cn("flex items-center", variant === "mobile" ? "justify-start" : "justify-end pl-3")}
+            aria-label="Why these icons are here"
+          >
             {headerIcons.map((icon, index) => (
               <span
                 key={icon}
@@ -129,7 +135,12 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
             ))}
           </button>
         </PopoverTrigger>
-        <PopoverContent align="end" className="w-[240px] rounded-2xl border border-[#D5DCE8] bg-white p-3 text-sm font-medium leading-6 text-[#344054] shadow-xl">
+        <PopoverContent
+          align={variant === "mobile" ? "start" : "end"}
+          alignOffset={variant === "mobile" ? 10 : 0}
+          collisionPadding={16}
+          className="w-[240px] max-w-[calc(100vw-2rem)] rounded-2xl border border-[#D5DCE8] bg-white p-3 text-sm font-medium leading-6 text-[#344054] shadow-xl"
+        >
           {iconStackMessage}
         </PopoverContent>
       </Popover>
@@ -150,7 +161,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
         <div className="grid gap-5 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
           <div
             className={cn(
-              "group relative overflow-hidden rounded-[28px] border transition-colors",
+              "group relative overflow-hidden rounded-[28px] transition-colors",
               heroIsPlaceholder ? shimmerBackgroundClasses : cardBackgroundClasses,
               "min-h-[280px] md:min-h-[360px]",
             )}
@@ -186,7 +197,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
                 <div
                   key={`shimmer-${index}`}
                   className={cn(
-                    "h-28 w-full rounded-2xl border px-4 py-3 animate-pulse",
+                    "h-28 w-full rounded-2xl px-4 py-3 animate-pulse",
                     shimmerBackgroundClasses,
                   )}
                 />
@@ -197,7 +208,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
                   target="_blank"
                   rel="noreferrer"
                   className={cn(
-                    "group flex w-full items-center gap-4 rounded-2xl border px-4 py-4 transition-colors hover:border-white/40",
+                    "group flex w-full items-center gap-4 rounded-2xl px-4 py-4 transition-colors",
                     cardBackgroundClasses,
                   )}
                 >
@@ -228,17 +239,91 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
     );
   };
 
+  const renderDetailLayout = () => {
+    return (
+      <section className={cn("flex flex-col gap-4", className)}>
+        <div className="flex items-center justify-between gap-3">
+          <div className={cn("font-bold text-foreground", headingSize)}>Web3 Headlines</div>
+          {renderHeaderIcons()}
+        </div>
+        <div className="space-y-3">
+          {loading || displayedItems.length === 0
+            ? shimmerItems.concat(3).slice(0, 4).map((index) => (
+                <div key={index} className={cn("h-24 w-full animate-pulse rounded-2xl", shimmerBackgroundClasses)} />
+              ))
+            : displayedItems.map((item) => {
+                const isPlaceholder = !item.title;
+                return isPlaceholder ? (
+                  <div
+                    key={item.id}
+                    className={cn(
+                      "h-24 w-full rounded-2xl transition-transform",
+                      shimmerBackgroundClasses,
+                    )}
+                  />
+                ) : (
+                  <a
+                    key={item.id}
+                    href={item.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={cn(
+                      "group flex items-center gap-3 rounded-2xl p-3 transition-transform hover:-translate-y-0.5",
+                      cardBackgroundClasses,
+                    )}
+                  >
+                    <div className="relative h-20 w-24 shrink-0 overflow-hidden rounded-xl">
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                    </div>
+                    <div className="min-w-0 space-y-1">
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                        {item.source || "Web3"}
+                      </div>
+                      <h4 className={cn("text-sm font-semibold leading-snug line-clamp-3", cardTextClasses)}>
+                        {item.title}
+                      </h4>
+                      <p className="text-[11px] text-muted-foreground">{formatRelativeTime(item.publishedAt)}</p>
+                    </div>
+                  </a>
+                );
+              })}
+        </div>
+      </section>
+    );
+  };
+
   if (variant === "webview") {
     return renderWebviewLayout();
+  }
+
+  if (variant === "detail") {
+    return renderDetailLayout();
   }
 
   return (
     <section className={cn("flex flex-col gap-3", className)}>
       <div className="flex items-center justify-between gap-3">
-        <div className={cn("text-foreground", variant === "mobile" ? "font-extrabold" : "font-bold", headingSize)}>
-          Web3 Headlines
-        </div>
-        {renderHeaderIcons()}
+        {variant === "mobile" ? (
+          <>
+            {renderHeaderIcons()}
+            <div className={cn("text-right text-foreground font-extrabold", headingSize)}>
+              Web3 Headlines
+            </div>
+          </>
+        ) : (
+          <>
+            <div className={cn("text-foreground", variant === "mobile" ? "font-extrabold" : "font-bold", headingSize)}>
+              Web3 Headlines
+            </div>
+            {renderHeaderIcons()}
+          </>
+        )}
       </div>
       <div className={listWrapperClass}>
         {loading || displayedItems.length === 0

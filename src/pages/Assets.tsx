@@ -16,6 +16,7 @@ import type { TouchEvent } from "react";
 const MAX_TRENDING = 10;
 const MONTH_OPTIONS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
 const ASSET_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/z4.jpeg"];
+const MOBILE_ASSET_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/z4.jpeg", "/r1.jpeg", "/r3.jpeg"];
 const ICON_STACK_MESSAGE = "we just felt this will make the UX design look good 😂";
 type Network = "all" | "bitcoin" | "ethereum" | "solana" | "base" | "monad";
 const NETWORKS = [
@@ -429,6 +430,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   const listedAssets = filteredAssets;
   const displayListedAssets = listedLimit ? listedAssets.slice(0, listedLimit) : listedAssets;
   const totalVisibleAssets = listedAssets.length;
+  const listedHeaderIcons = isDesktop ? ASSET_HEADER_ICONS : MOBILE_ASSET_HEADER_ICONS;
   const cardBorderClass = "";
   const cardMediaBorderClass = isDarkTheme ? "border-b-0" : "border-b border-slate-200/60";
   const baseTotalVolume = useMemo(
@@ -821,12 +823,13 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       className="flex items-center whitespace-nowrap transition-transform hover:scale-[1.02]"
                       aria-label="Why these icons are here"
                     >
-                      {ASSET_HEADER_ICONS.map((icon, index) => (
+                      {listedHeaderIcons.map((icon, index) => (
                         <span
                           key={icon}
                           className={cn(
-                            "h-8 w-8 overflow-hidden rounded-full border-[2px] border-black bg-white",
-                            index === 0 ? "ml-0" : "-ml-2.5",
+                            "overflow-hidden rounded-full border-[2px] border-black bg-white",
+                            isDesktop ? "h-8 w-8" : "h-7 w-7",
+                            index === 0 ? "ml-0" : isDesktop ? "-ml-2.5" : "-ml-2",
                           )}
                         >
                           <img src={icon} alt="" className="h-full w-full object-cover" loading="lazy" />
@@ -834,7 +837,12 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       ))}
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent align="end" className="w-[240px] rounded-2xl border border-[#D5DCE8] bg-white p-3 text-sm font-medium leading-6 text-[#344054] shadow-xl">
+                  <PopoverContent
+                    align={isDesktop ? "end" : "start"}
+                    alignOffset={isDesktop ? 0 : 10}
+                    collisionPadding={16}
+                    className="w-[240px] max-w-[calc(100vw-2rem)] rounded-2xl border border-[#D5DCE8] bg-white p-3 text-sm font-medium leading-6 text-[#344054] shadow-xl"
+                  >
                     {ICON_STACK_MESSAGE}
                   </PopoverContent>
                 </Popover>

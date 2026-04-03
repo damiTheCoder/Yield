@@ -5,7 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
+const PORTFOLIO_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/z4.jpeg"];
+const ICON_STACK_MESSAGE = "we just felt this will make the UX design look good 😂";
 
 const toNumeric = (value: unknown) => {
   const parsed = typeof value === "number" ? value : Number(value);
@@ -163,11 +166,35 @@ export default function Portfolio() {
       <main className="container mx-auto space-y-8 px-4 pb-10 pt-3 text-sm [&_svg]:h-3.5 [&_svg]:w-3.5 sm:pt-8">
         <Card className="rounded-3xl border-none bg-transparent p-0 text-white shadow-none">
           <CardContent className="p-0">
-            <div className="flex items-center justify-center text-foreground">
-              <div className="flex flex-col items-center gap-1 text-center">
+            <div className="flex items-start justify-between gap-4 text-foreground">
+              <div className="flex flex-col items-start gap-1 text-left">
                 <p className="text-[10px] uppercase text-muted-foreground">Total LFT Holdings</p>
                 <p className="text-4xl font-semibold text-foreground sm:text-[44px]">{formatCurrency(totalLftValue)}</p>
               </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex items-center pt-1 transition-transform hover:scale-[1.02]"
+                    aria-label="Why these icons are here"
+                  >
+                    {PORTFOLIO_HEADER_ICONS.map((icon, index) => (
+                      <span
+                        key={icon}
+                        className={cn(
+                          "h-8 w-8 overflow-hidden rounded-full border-[2px] border-black bg-white",
+                          index === 0 ? "ml-0" : "-ml-2.5",
+                        )}
+                      >
+                        <img src={icon} alt="" className="h-full w-full object-cover" loading="lazy" />
+                      </span>
+                    ))}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-[240px] rounded-2xl border border-[#D5DCE8] bg-white p-3 text-sm font-medium leading-6 text-[#344054] shadow-xl">
+                  {ICON_STACK_MESSAGE}
+                </PopoverContent>
+              </Popover>
             </div>
           </CardContent>
         </Card>
@@ -189,7 +216,7 @@ export default function Portfolio() {
                 </div>
               </div>
               <Button
-                className="h-9 w-full border-0 bg-sky-300 text-xs font-semibold text-sky-950 shadow-[0_8px_20px_rgba(56,189,248,0.2)] hover:bg-sky-400"
+                className="h-9 w-full border-0 bg-[#2F66F6] text-xs font-semibold text-white shadow-[0_10px_24px_rgba(47,102,246,0.25)] hover:bg-[#2558DE]"
                 onClick={() => claimRewards()}
                 disabled={accruedRewards <= 0}
               >
@@ -243,7 +270,7 @@ export default function Portfolio() {
                         </div>
                         <div className="text-right">
                           <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Total value</p>
-                          <p className="font-mono text-xs font-semibold text-blue-400">
+                          <p className="font-mono text-xs font-semibold text-emerald-500">
                             {formatCurrency(assetValue)}
                             <span className="ml-1 text-[10px] text-muted-foreground">/{balances.lfts} LFTs</span>
                           </p>

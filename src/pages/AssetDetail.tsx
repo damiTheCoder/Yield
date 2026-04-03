@@ -11,6 +11,7 @@ import { DEFAULT_LAUNCHPAD_DISTRIBUTION } from "@/domain/tokenomics";
 import { Dot, Image as ImageIcon, LineChart as LineChartIcon, X } from "lucide-react";
 import { Area, Bar, BarChart as RechartsBarChart, CartesianGrid, Cell, Line, LineChart as RechartsLineChart, XAxis, YAxis } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import Web3News from "@/components/Web3News";
 
 function detectWebView(): boolean {
   if (typeof window === "undefined" || typeof navigator === "undefined") return false;
@@ -558,8 +559,13 @@ export default function AssetDetail() {
 
   return (
     <div className="min-h-screen">
-      <main className="container mx-auto px-4 pt-4 pb-24 sm:pb-8">
-        <div className="space-y-10 lg:grid lg:grid-cols-[minmax(0,1.45fr)_minmax(0,0.95fr)_minmax(0,0.95fr)] lg:gap-8 lg:space-y-0">
+      <main className="container mx-auto px-4 pt-0 pb-24 sm:pt-4 sm:pb-8">
+        <div className="space-y-10 lg:grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.35fr)_minmax(0,1fr)] lg:gap-8 lg:space-y-0">
+          <div className="hidden lg:block lg:space-y-6 lg:pt-2">
+            <Web3News variant="detail" />
+            <AnalyticsSection />
+          </div>
+
           <div className="space-y-8 md:space-y-10">
             <section className="space-y-4">
               {!isImageMode && (
@@ -881,10 +887,6 @@ export default function AssetDetail() {
             </section>
 
             <TransactionHistorySection className="hidden lg:block" />
-          </div>
-
-          <div className="hidden lg:block lg:pt-2">
-            <AnalyticsSection />
           </div>
         </div>
       </main>
