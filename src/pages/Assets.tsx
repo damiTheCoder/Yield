@@ -15,6 +15,8 @@ import type { TouchEvent } from "react";
 
 const MAX_TRENDING = 10;
 const MONTH_OPTIONS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
+const ASSET_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/z4.jpeg"];
+const ICON_STACK_MESSAGE = "we just felt this will make the UX design look good 😂";
 type Network = "all" | "bitcoin" | "ethereum" | "solana" | "base" | "monad";
 const NETWORKS = [
   {
@@ -812,13 +814,30 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                 Listed
               </span>
               {showViewAllButton && (
-                <button
-                  type="button"
-                  onClick={() => navigate("/assets/all")}
-                  className="text-[22px] font-semibold transition-colors text-muted-foreground hover:text-foreground cursor-pointer whitespace-nowrap"
-                >
-                  View all tokens
-                </button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="flex items-center whitespace-nowrap transition-transform hover:scale-[1.02]"
+                      aria-label="Why these icons are here"
+                    >
+                      {ASSET_HEADER_ICONS.map((icon, index) => (
+                        <span
+                          key={icon}
+                          className={cn(
+                            "h-8 w-8 overflow-hidden rounded-full border-[2px] border-black bg-white",
+                            index === 0 ? "ml-0" : "-ml-2.5",
+                          )}
+                        >
+                          <img src={icon} alt="" className="h-full w-full object-cover" loading="lazy" />
+                        </span>
+                      ))}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-[240px] rounded-2xl border border-[#D5DCE8] bg-white p-3 text-sm font-medium leading-6 text-[#344054] shadow-xl">
+                    {ICON_STACK_MESSAGE}
+                  </PopoverContent>
+                </Popover>
               )}
             </div>
 

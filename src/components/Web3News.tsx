@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useWeb3News } from "@/hooks/useWeb3News";
 import { useTheme } from "@/hooks/useTheme";
 import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface Web3NewsProps {
   variant?: "sidebar" | "mobile" | "webview";
@@ -10,6 +11,7 @@ interface Web3NewsProps {
 
 const shimmerItems = Array.from({ length: 3 }, (_, index) => index);
 const headerIcons = ["/z1.png", "/z2.png", "/z3.png", "/z4.jpeg"];
+const iconStackMessage = "we just felt this will make the UX design look good 😂";
 
 function formatRelativeTime(date?: Date) {
   if (!date) return "";
@@ -110,20 +112,27 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
           : "h-7 w-7";
 
     return (
-      <div className="flex items-center justify-end pl-3">
-        {headerIcons.map((icon, index) => (
-          <div
-            key={icon}
-            className={cn(
-              "overflow-hidden rounded-full border-[2px] border-black bg-white",
-              iconSizeClass,
-              index === 0 ? "ml-0" : "-ml-2.5",
-            )}
-          >
-            <img src={icon} alt="" className="h-full w-full object-cover" loading="lazy" />
-          </div>
-        ))}
-      </div>
+      <Popover>
+        <PopoverTrigger asChild>
+          <button type="button" className="flex items-center justify-end pl-3" aria-label="Why these icons are here">
+            {headerIcons.map((icon, index) => (
+              <span
+                key={icon}
+                className={cn(
+                  "overflow-hidden rounded-full border-[2px] border-black bg-white",
+                  iconSizeClass,
+                  index === 0 ? "ml-0" : "-ml-2.5",
+                )}
+              >
+                <img src={icon} alt="" className="h-full w-full object-cover" loading="lazy" />
+              </span>
+            ))}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-[240px] rounded-2xl border border-[#D5DCE8] bg-white p-3 text-sm font-medium leading-6 text-[#344054] shadow-xl">
+          {iconStackMessage}
+        </PopoverContent>
+      </Popover>
     );
   };
 
