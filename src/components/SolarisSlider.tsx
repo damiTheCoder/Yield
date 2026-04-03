@@ -277,14 +277,14 @@ const SolarisSlider = () => {
 
         .landing-hero-tagline {
           margin: 0 0 32px;
-          color: #060b16;
+          color: #ffffff;
           font-size: clamp(18px, 1.9vw, 28px);
           line-height: 1.08;
           letter-spacing: -0.02em;
           font-weight: 600;
           text-align: center;
           white-space: nowrap;
-          text-shadow: 0 6px 20px rgba(255, 255, 255, 0.28);
+          text-shadow: 0 10px 24px rgba(6, 11, 22, 0.28);
         }
 
         .learn-more-btn {
@@ -292,21 +292,21 @@ const SolarisSlider = () => {
           border-radius: 999px;
           min-height: 56px;
           padding: 0 30px;
-          background: #c6e6ff;
-          color: #060b16;
+          background: #2f66f6;
+          color: #ffffff;
           display: inline-flex;
           align-items: center;
           justify-content: center;
           font-size: 17px;
           font-weight: 700;
           cursor: pointer;
-          box-shadow: 0 16px 34px rgba(120, 180, 235, 0.22);
+          box-shadow: 0 16px 34px rgba(47, 102, 246, 0.28);
           transition: transform 0.2s ease, background 0.2s ease;
         }
 
         .learn-more-btn:hover {
           transform: translateY(-1px);
-          background: #d7efff;
+          background: #2558de;
         }
 
         .landing-empty {
@@ -419,6 +419,25 @@ const SolarisSlider = () => {
           -webkit-line-clamp: 2;
         }
 
+        .problem-item:nth-child(2) {
+          margin-right: auto;
+          grid-template-columns: 112px minmax(0, 1fr);
+        }
+
+        .problem-item:nth-child(2) .problem-item-copy {
+          grid-column: 2;
+          grid-row: 1;
+          justify-self: start;
+          text-align: left;
+        }
+
+        .problem-item:nth-child(2) .problem-item-frame {
+          grid-column: 1;
+          grid-row: 1;
+          justify-self: start;
+          align-self: center;
+        }
+
         .lft-section {
           margin-top: 12px;
           padding: 72px 24px 88px;
@@ -428,7 +447,7 @@ const SolarisSlider = () => {
         .lft-section-inner {
           max-width: 1220px;
           margin: 0 auto;
-          text-align: center;
+          text-align: left;
         }
 
         .lft-section-title {
@@ -447,7 +466,7 @@ const SolarisSlider = () => {
           font-size: clamp(16px, 1.4vw, 22px);
           line-height: 1.5;
           font-weight: 400;
-          margin-left: auto;
+          margin-left: 0;
           margin-right: auto;
         }
 
@@ -686,6 +705,25 @@ const SolarisSlider = () => {
             display: block;
             overflow: visible;
             -webkit-line-clamp: unset;
+          }
+
+          .problem-item:nth-child(2) {
+            margin-right: auto;
+            grid-template-columns: 88px minmax(0, 1fr);
+          }
+
+          .problem-item:nth-child(2) .problem-item-copy {
+            grid-column: 2;
+            grid-row: 1;
+            justify-self: start;
+            text-align: left;
+          }
+
+          .problem-item:nth-child(2) .problem-item-frame {
+            grid-column: 1;
+            grid-row: 1;
+            justify-self: start;
+            align-self: center;
           }
 
           .lft-section {
