@@ -9,6 +9,7 @@ interface Web3NewsProps {
 }
 
 const shimmerItems = Array.from({ length: 3 }, (_, index) => index);
+const headerIcons = ["/z1.png", "/z2.png", "/z3.png", "/z4.jpeg"];
 
 function formatRelativeTime(date?: Date) {
   if (!date) return "";
@@ -61,7 +62,6 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
     return () => observer.disconnect();
   }, []);
 
-  const headingColorClass = activeTheme === "dark" ? "text-white" : "text-black";
   const cardBackgroundClasses =
     activeTheme === "dark"
       ? "bg-[#1a1a1a] border-transparent"
@@ -101,6 +101,32 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
     displayedItems = [...displayedItems, ...placeholders];
   }
 
+  const renderHeaderIcons = () => {
+    const iconSizeClass =
+      variant === "mobile"
+        ? "h-8 w-8"
+        : variant === "webview"
+          ? "h-9 w-9"
+          : "h-7 w-7";
+
+    return (
+      <div className="flex items-center justify-end pl-3">
+        {headerIcons.map((icon, index) => (
+          <div
+            key={icon}
+            className={cn(
+              "overflow-hidden rounded-full border-[2px] border-black bg-white",
+              iconSizeClass,
+              index === 0 ? "ml-0" : "-ml-2.5",
+            )}
+          >
+            <img src={icon} alt="" className="h-full w-full object-cover" loading="lazy" />
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   const renderWebviewLayout = () => {
     const hero = displayedItems[0];
     const remainder = displayedItems.slice(1);
@@ -110,12 +136,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
       <section className={cn("flex flex-col gap-5", className)}>
         <div className="flex items-center justify-between">
           <div className={cn("font-bold text-foreground", headingSize)}>Web3 Headlines</div>
-          <a
-            href="/blog"
-            className="text-xs font-semibold uppercase tracking-widest text-primary hover:text-primary/80"
-          >
-            View all
-          </a>
+          {renderHeaderIcons()}
         </div>
         <div className="grid gap-5 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
           <div
@@ -204,8 +225,11 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
 
   return (
     <section className={cn("flex flex-col gap-3", className)}>
-      <div className={cn("text-foreground", variant === "mobile" ? "font-extrabold" : "font-bold", headingSize)}>
-        Web3 Headlines
+      <div className="flex items-center justify-between gap-3">
+        <div className={cn("text-foreground", variant === "mobile" ? "font-extrabold" : "font-bold", headingSize)}>
+          Web3 Headlines
+        </div>
+        {renderHeaderIcons()}
       </div>
       <div className={listWrapperClass}>
         {loading || displayedItems.length === 0

@@ -18,8 +18,7 @@ export default function MarketTickerTape({ className }: { className?: string }) 
     <section className={cn("mb-4 overflow-hidden", className)}>
       {React.createElement("gecko-coin-price-marquee-widget", {
         locale: "en",
-        "transparent-background": "true",
-        "coin-ids": "aave,ripple-usd,gho,global-dollar,usd-coin,opensea",
+        "coin-ids": "global-dollar,gho,aave,monad,usd-coin,polymarket",
         "initial-currency": "usd",
       })}
     </section>

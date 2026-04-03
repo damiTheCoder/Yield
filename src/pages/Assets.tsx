@@ -5,14 +5,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { cn, formatCurrency, formatCurrencyK, formatCompactCurrency } from "@/lib/utils";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, Check, ChevronDown, Search, Star, X } from "lucide-react";
+import { ArrowRight, CalendarDays, Check, ChevronLeft, ChevronRight, Search, Star } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import Web3News from "@/components/Web3News";
 import MarketTickerTape from "@/components/MarketTickerTape";
 import type { TouchEvent } from "react";
 
 const MAX_TRENDING = 10;
+const MONTH_OPTIONS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
 type Network = "all" | "bitcoin" | "ethereum" | "solana" | "base" | "monad";
 const NETWORKS = [
   {
@@ -108,6 +110,47 @@ function formatLiquidityPerUnit(value: number) {
   if (value >= 1) return value.toFixed(2);
   if (value >= 0.01) return value.toFixed(3);
   return value.toFixed(4);
+}
+
+function clampNumber(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function getMonthStart(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function getMonthOffset(date: Date, reference = new Date()) {
+  return (date.getFullYear() - reference.getFullYear()) * 12 + (date.getMonth() - reference.getMonth());
+}
+
+function createMonthlyOverviewStats(baseTotalVolume: number, monthDate: Date) {
+  const normalizedMonth = getMonthStart(monthDate);
+  const monthOffset = getMonthOffset(normalizedMonth);
+  const monthIndex = normalizedMonth.getMonth();
+  const yearOffset = normalizedMonth.getFullYear() - 2025;
+
+  const volumeFactor = clampNumber(
+    1 + Math.sin((monthIndex + 1) * 1.24) * 0.1 - monthOffset * 0.018 + yearOffset * 0.022,
+    0.72,
+    1.42,
+  );
+  const profitMargin = clampNumber(
+    0.078 + Math.cos((monthIndex + 2) * 0.86) * 0.011 + yearOffset * 0.002,
+    0.058,
+    0.11,
+  );
+
+  const totalVolume = baseTotalVolume * volumeFactor;
+  const totalProfit = totalVolume * profitMargin;
+
+  return {
+    id: `${normalizedMonth.getFullYear()}-${String(normalizedMonth.getMonth() + 1).padStart(2, "0")}`,
+    label: normalizedMonth.toLocaleString("en-US", { month: "short", year: "numeric" }),
+    monthLabel: normalizedMonth.toLocaleString("en-US", { month: "short" }),
+    totalVolume,
+    totalProfit,
+  };
 }
 
 function hslToRgb(h: number, s: number, l: number): RGBColor {
@@ -281,6 +324,10 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   });
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [activeOverviewMetric, setActiveOverviewMetric] = useState<"volume" | "profit">("volume");
+  const [selectedOverviewDate, setSelectedOverviewDate] = useState(() => getMonthStart(new Date()));
+  const [isOverviewPickerOpen, setIsOverviewPickerOpen] = useState(false);
+  const [overviewPickerYear, setOverviewPickerYear] = useState(() => getMonthStart(new Date()).getFullYear());
 
   const toggleFavorite = useCallback((id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -341,6 +388,10 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     }
   }, [isWebview, isDesktop, viewMode]);
 
+  useEffect(() => {
+    setOverviewPickerYear(selectedOverviewDate.getFullYear());
+  }, [selectedOverviewDate]);
+
   const normalizedSearch = searchTerm.trim().toLowerCase();
 
   const handleToggleViewMode = useCallback(() => {
@@ -378,6 +429,14 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   const totalVisibleAssets = listedAssets.length;
   const cardBorderClass = "";
   const cardMediaBorderClass = isDarkTheme ? "border-b-0" : "border-b border-slate-200/60";
+  const baseTotalVolume = useMemo(
+    () => assets.reduce((sum, asset) => sum + (asset.cycle?.reserve || 0), 0) * 1000,
+    [assets],
+  );
+  const activeOverviewStats = useMemo(
+    () => createMonthlyOverviewStats(baseTotalVolume, selectedOverviewDate),
+    [baseTotalVolume, selectedOverviewDate],
+  );
 
   const selectedNetworkInfo = NETWORKS.find(n => n.id === selectedNetwork) || NETWORKS[0];
   const brandHeadingGradient = "linear-gradient(130deg, #7dd3fc 0%, #38bdf8 45%, #0ea5e9 100%)";
@@ -485,8 +544,8 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     </div>
   );
 
-  const tableShellClasses = "overflow-hidden rounded-2xl bg-[#FAFAFA] dark:bg-[#151515] mb-6";
-  const tableStickyColumnClasses = "bg-[#F3F3F3] dark:bg-[#111111]";
+  const tableShellClasses = "overflow-hidden rounded-2xl bg-transparent md:bg-[#FAFAFA] dark:bg-transparent dark:md:bg-[#151515] mb-6";
+  const tableStickyColumnClasses = "bg-white md:bg-[#F3F3F3] dark:bg-white dark:md:bg-[#111111]";
 
   const renderListedList = (items: Asset[]) => (
     <div className={tableShellClasses}>
@@ -516,7 +575,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
               return (
                 <TableRow
                   key={asset.id}
-                  className="cursor-pointer text-sm transition-colors hover:bg-surface/30 border-0 group"
+                  className="cursor-pointer text-sm transition-colors hover:bg-surface/30 border-b border-[#D9DDE6] md:border-0 group"
                   onClick={() => navigate(`/assets/${asset.id}`)}
                 >
                   {isDesktop && (
@@ -531,25 +590,25 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       />
                     </TableCell>
                   )}
-                  <TableCell className={cn("sticky left-0 z-10 min-w-[200px] pl-4 sm:pl-6 pr-4", tableStickyColumnClasses)}>
-                    <div className="flex items-center gap-2.5 text-sm">
-                      <img src={asset.image} alt={asset.name} className="h-9 w-9 rounded-full object-cover" />
+                  <TableCell className={cn("sticky left-0 z-10 min-w-[200px] border-b border-[#D9DDE6] pl-4 pr-4 sm:pl-6 md:border-b-0", tableStickyColumnClasses)}>
+                    <div className="flex items-center gap-3 text-[15px] md:text-sm">
+                      <img src={asset.image} alt={asset.name} className="h-10 w-10 rounded-full object-cover md:h-9 md:w-9" />
                       <div className="flex flex-col min-w-0">
                         <div className="flex items-center gap-1">
-                          <span className="font-medium text-foreground truncate">{asset.name}</span>
-                          <img src="/checklist.png" alt="verified" className="h-4 w-4 opacity-80 flex-shrink-0" />
+                          <span className="truncate text-[17px] font-semibold text-foreground md:text-base">{asset.name}</span>
+                          <img src="/checklist.png" alt="verified" className="h-[18px] w-[18px] flex-shrink-0 opacity-80 md:h-4 md:w-4" />
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <span className={`text-xs font-semibold ${changeClass}`}>{changeText}</span>
+                          <span className={`text-sm font-semibold md:text-xs ${changeClass}`}>{changeText}</span>
                           {assetLive ? <span className="text-[11px] font-semibold text-emerald-500">Live</span> : null}
                         </div>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="min-w-[140px] text-right font-mono text-sm px-4">{formatCurrencyK(asset.cycle.reserve)}</TableCell>
-                  <TableCell className="min-w-[140px] text-right font-mono text-sm px-8">{formatCurrency(asset.cycle.lpu)}</TableCell>
-                  <TableCell className="min-w-[140px] text-right font-mono text-sm px-4">{formatCurrency(coinTagPrice)}</TableCell>
-                  <TableCell className="min-w-[160px] text-right font-mono text-sm pl-4 pr-6">
+                  <TableCell className="min-w-[140px] border-b border-[#D9DDE6] px-4 text-right font-mono text-[15px] md:border-b-0 md:text-sm">{formatCurrencyK(asset.cycle.reserve)}</TableCell>
+                  <TableCell className="min-w-[140px] border-b border-[#D9DDE6] px-8 text-right font-mono text-[15px] md:border-b-0 md:text-sm">{formatCurrency(asset.cycle.lpu)}</TableCell>
+                  <TableCell className="min-w-[140px] border-b border-[#D9DDE6] px-4 text-right font-mono text-[15px] md:border-b-0 md:text-sm">{formatCurrency(coinTagPrice)}</TableCell>
+                  <TableCell className="min-w-[160px] border-b border-[#D9DDE6] pl-4 pr-6 text-right font-mono text-[15px] md:border-b-0 md:text-sm">
                     {formatCurrencyK(asset.params.initialReserve)}
                   </TableCell>
                 </TableRow>
@@ -611,41 +670,108 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     );
   };
   const AssetStatsOverview = ({ className }: { className?: string }) => {
-    const totalVolume = (assets.reduce((sum, a) => sum + (a.cycle?.reserve || 0), 0)) * 1000;
-    const totalProfit = totalVolume * 0.082; // 8.2% profit placeholder
+    const isVolumeView = activeOverviewMetric === "volume";
+    const activeTitle = isVolumeView ? "Total LFT volume" : "Total profit from LFT volume";
+    const activeValue = isVolumeView ? activeOverviewStats.totalVolume : activeOverviewStats.totalProfit;
 
     return (
-      <section className={cn("relative -mx-4", className ?? "mb-6")}>
-        <div className="px-4 py-4 grid grid-cols-2 gap-4">
-          <div className="space-y-1 text-left pr-4">
-            <span className="text-[14px] font-medium text-muted-foreground block">
-              Total LFT volume
+      <section
+        className={cn(
+          "relative overflow-hidden rounded-[24px] bg-white px-2 py-1 sm:px-3 sm:py-2",
+          className ?? "mb-6",
+        )}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1 space-y-2">
+            <span className="block text-[13px] font-medium text-[#5E6B84] sm:text-[15px]">
+              {activeTitle}
             </span>
-            <div className="flex flex-col gap-1 items-start">
-              <span className="text-2xl font-bold tracking-tight">
-                {formatCompactCurrency(totalVolume)}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[1.75rem] font-semibold tracking-[-0.04em] text-[#2F66F6] sm:text-[2.1rem]">
+                {formatCompactCurrency(activeValue)}
               </span>
-              <div className="flex items-center gap-1.5 text-rose-500 font-medium">
-                <span className="text-[12px]">▼ 36.1% today</span>
-              </div>
-            </div>
-          </div>
+              <Popover
+                open={isOverviewPickerOpen}
+                onOpenChange={(open) => {
+                  setIsOverviewPickerOpen(open);
+                  if (open) {
+                    setOverviewPickerYear(selectedOverviewDate.getFullYear());
+                  }
+                }}
+              >
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex h-9 items-center gap-1 rounded-full border border-[#D5DCE8] bg-white px-2 pr-1.5 text-[13px] font-medium text-[#44516B] transition-colors hover:border-[#B8C4DA] sm:h-10 sm:px-2.5 sm:pr-2 sm:text-sm"
+                    aria-label="Choose overview month"
+                  >
+                    <CalendarDays className="h-3.5 w-3.5 text-[#7B8AA5]" />
+                    <span>{activeOverviewStats.monthLabel}</span>
+                    <ChevronRight className="h-3.5 w-3.5 rotate-90 text-[#7B8AA5]" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="start" className="w-[240px] rounded-2xl border border-[#D5DCE8] bg-white p-3 shadow-xl">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <button
+                        type="button"
+                        onClick={() => setOverviewPickerYear((year) => year - 1)}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#D5DCE8] text-[#667085] transition-colors hover:border-[#B8C4DA] hover:text-[#344054]"
+                        aria-label="Previous year"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </button>
+                      <span className="text-sm font-semibold text-[#344054]">{overviewPickerYear}</span>
+                      <button
+                        type="button"
+                        onClick={() => setOverviewPickerYear((year) => year + 1)}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#D5DCE8] text-[#667085] transition-colors hover:border-[#B8C4DA] hover:text-[#344054]"
+                        aria-label="Next year"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {MONTH_OPTIONS.map((monthLabel, monthIndex) => {
+                        const isSelected =
+                          selectedOverviewDate.getFullYear() === overviewPickerYear &&
+                          selectedOverviewDate.getMonth() === monthIndex;
 
-          <div className="absolute left-1/2 top-4 bottom-4 w-px bg-neutral-200 dark:bg-neutral-800" />
-
-          <div className="space-y-1 pl-4 text-right">
-            <span className="text-[14px] font-medium text-muted-foreground block">
-              Total profit from LFT volume
-            </span>
-            <div className="flex flex-col gap-1 items-end">
-              <span className="text-2xl font-bold tracking-tight">
-                {formatCompactCurrency(totalProfit)}
-              </span>
-              <div className="flex items-center gap-1.5 text-rose-500 font-medium">
-                <span className="text-[12px]">▼ 1.79% today</span>
-              </div>
+                        return (
+                          <button
+                            key={monthLabel}
+                            type="button"
+                            onClick={() => {
+                              setSelectedOverviewDate(new Date(overviewPickerYear, monthIndex, 1));
+                              setIsOverviewPickerOpen(false);
+                            }}
+                            className={cn(
+                              "rounded-xl px-2 py-2 text-sm font-medium transition-colors",
+                              isSelected
+                                ? "bg-[#2F66F6] text-white"
+                                : "bg-[#F8FAFC] text-[#475467] hover:bg-[#EEF4FF] hover:text-[#2F66F6]",
+                            )}
+                          >
+                            {monthLabel}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
+            <p className="text-[13px] text-[#98A2B3] sm:text-sm">For {activeOverviewStats.label}</p>
           </div>
+          <Button
+            type="button"
+            size="icon"
+            onClick={() => setActiveOverviewMetric((current) => (current === "volume" ? "profit" : "volume"))}
+            className="h-9 w-9 shrink-0 rounded-full bg-[#2F66F6] p-0 text-white hover:bg-[#2558DE] sm:h-10 sm:w-10"
+            aria-label={isVolumeView ? "Show total profit from LFT volume" : "Show total LFT volume"}
+          >
+            <ArrowRight className="h-[15px] w-[15px] sm:h-4 sm:w-4" strokeWidth={3} />
+          </Button>
         </div>
       </section>
     );

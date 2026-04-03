@@ -9,6 +9,12 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
     historyApiFallback: true,
+    allowedHosts: ["solaris-w0xw.onrender.com", ".onrender.com"],
+  },
+  preview: {
+    host: "::",
+    port: Number(process.env.PORT || 4173),
+    allowedHosts: ["solaris-w0xw.onrender.com", ".onrender.com"],
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {

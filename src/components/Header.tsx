@@ -466,7 +466,6 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                   </Button>
                 </DialogTrigger>
 
-                {/* Mobile Menu Trigger */}
                 <div className="md:hidden ml-0">
                   <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                     <SheetTrigger asChild>
