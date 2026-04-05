@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { cn, formatCurrency, formatCurrencyK, formatCompactCurrency } from "@/lib/utils";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CalendarDays, Check, ChevronLeft, ChevronRight, Search, Star } from "lucide-react";
+import { ArrowRight, CalendarDays, Check, ChevronLeft, ChevronRight, LayoutGrid, Rows3, Search, Star } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -320,7 +320,6 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   const [showNetworkDropdown, setShowNetworkDropdown] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
-  const [isWebview, setIsWebview] = useState(() => detectWebView());
   const [isDesktop, setIsDesktop] = useState(() => {
     if (typeof window === "undefined") return true;
     return window.matchMedia("(min-width: 768px)").matches;
@@ -360,36 +359,18 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   }, [selectedNetwork]);
 
   useEffect(() => {
-    setIsWebview(detectWebView());
-  }, []);
-
-  useEffect(() => {
     if (typeof window === "undefined") return;
 
     const mediaQuery = window.matchMedia("(min-width: 768px)");
     const handleResize = (e: MediaQueryListEvent) => {
       setIsDesktop(e.matches);
-      // Force list view on desktop
-      if (e.matches) {
-        setViewMode("list");
-      }
     };
 
-    // Set initial state
     setIsDesktop(mediaQuery.matches);
-    if (mediaQuery.matches || isWebview) {
-      setViewMode("list");
-    }
 
     mediaQuery.addEventListener("change", handleResize);
     return () => mediaQuery.removeEventListener("change", handleResize);
-  }, [isWebview]);
-
-  useEffect(() => {
-    if ((isWebview || isDesktop) && viewMode !== "list") {
-      setViewMode("list");
-    }
-  }, [isWebview, isDesktop, viewMode]);
+  }, []);
 
   useEffect(() => {
     setOverviewPickerYear(selectedOverviewDate.getFullYear());
@@ -398,7 +379,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   const normalizedSearch = searchTerm.trim().toLowerCase();
 
   const handleToggleViewMode = useCallback(() => {
-    setViewMode("list");
+    setViewMode((current) => (current === "list" ? "grid" : "list"));
   }, []);
 
   const filteredAssets = useMemo(() => {
@@ -444,8 +425,6 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 
   const selectedNetworkInfo = NETWORKS.find(n => n.id === selectedNetwork) || NETWORKS[0];
   const brandHeadingGradient = "linear-gradient(130deg, #7dd3fc 0%, #38bdf8 45%, #0ea5e9 100%)";
-  const isGridView = false;
-  const isListView = true;
   const getAssetChange = (asset: Asset) => {
     const baseHash = hashString(`${asset.id}-${asset.name}`);
     const raw = ((baseHash % 140) - 60) / 10;
@@ -498,36 +477,51 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
           }
         }}
         className={cn(
-          "group flex w-full flex-col gap-3 border-b border-border/40 pb-5 text-left transition hover:-translate-y-0.5",
-          "sm:rounded-3xl sm:border sm:border-border/60 sm:bg-surface/60 sm:px-5 sm:py-5 sm:shadow-sm sm:border-b-0 sm:hover:-translate-y-1",
+          "group flex w-full flex-col gap-3 rounded-[24px] bg-[#F3F5F9] p-3.5 text-left transition hover:-translate-y-0.5 sm:p-4",
         )}
       >
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 overflow-hidden rounded-xl sm:h-12 sm:w-12">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-start gap-3">
+            <div className="h-10 w-10 overflow-hidden rounded-[18px] border border-black/5 shadow-sm sm:h-11 sm:w-11">
               <img src={asset.image} alt={asset.name} className="h-full w-full object-cover" />
             </div>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm font-semibold text-foreground sm:text-base">{asset.name}</span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start gap-1.5">
+                <span className="line-clamp-2 text-[0.98rem] font-semibold leading-tight text-[#111827] sm:text-[1.06rem]">
+                  {asset.name}
+                </span>
                 <img src="/checklist.png" alt="verified" className="h-3 w-3 opacity-80 sm:h-4 sm:w-4" />
               </div>
-              <span className="text-[11px] text-muted-foreground sm:text-xs">Cycle {asset.cycle.cycle}</span>
+              <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                <span className={cn("text-[13px] font-semibold", changeClass)}>{formatChange(change)}</span>
+                {assetLive ? (
+                  <span className="rounded-full bg-[#E7F8EE] px-2 py-0.5 text-[10px] font-semibold text-emerald-600">
+                    Live
+                  </span>
+                ) : null}
+                <span className="text-[11px] text-[#7C879A]">Cycle {asset.cycle.cycle}</span>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className={cn("text-sm font-semibold", changeClass)}>{formatChange(change)}</span>
-            {assetLive ? <span className="text-[11px] font-semibold text-emerald-500">Live</span> : null}
+          <div className="rounded-full border border-[#E3E8F2] bg-[#F8FAFC] px-2.5 py-1 text-[10px] font-medium text-[#687588]">
+            {asset.ticker?.toUpperCase() ?? asset.id.toUpperCase()}
           </div>
         </div>
 
-        <div className="flex w-full flex-nowrap items-start justify-between gap-4 overflow-x-auto text-[11px] uppercase tracking-wide text-muted-foreground sm:grid sm:flex-none sm:grid-cols-4 sm:gap-5 sm:overflow-visible">
+        <div className="grid grid-cols-2 gap-2">
           {stats.map((stat) => (
-            <div key={`${asset.id}-${stat.label}`} className="flex min-w-[4.75rem] flex-col gap-0.5 sm:min-w-0">
-              <span className="text-[10px]">{stat.label}</span>
-              <span className="font-mono text-sm text-foreground">{stat.value}</span>
+            <div
+              key={`${asset.id}-${stat.label}`}
+              className="rounded-[18px] bg-[#E2E7F0] px-2.5 py-2.5"
+            >
+              <span className="block text-[9px] uppercase tracking-[0.14em] text-[#8B97AB]">{stat.label}</span>
+              <span className="mt-0.5 block font-mono text-[0.92rem] font-semibold text-[#101828]">{stat.value}</span>
             </div>
           ))}
+        </div>
+        <div className="flex items-center justify-between text-[12px] text-[#6B7280]">
+          <span>{asset.network}</span>
+          <span>{formatCurrencyK(asset.cycle.reserve)} reserve</span>
         </div>
         {bottomContent}
       </div>
@@ -625,7 +619,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   );
 
   const renderListedGrid = (items: Asset[]) => (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:gap-6">
+    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3 lg:gap-4">
       {items.map((asset) => {
         const change = getAssetChange(asset);
         return renderGridCard(asset, change, () => navigate(`/assets/${asset.id}`));
@@ -811,42 +805,57 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
             )}
 
             {/* Text Navigation Links - Unified */}
-            <div className="flex items-center gap-6 mt-2 pb-2 overflow-x-auto no-scrollbar">
-              <span className="text-[22px] font-semibold text-foreground whitespace-nowrap">
-                Listed
-              </span>
-              {showViewAllButton && (
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button
-                      type="button"
-                      className="flex items-center whitespace-nowrap transition-transform hover:scale-[1.02]"
-                      aria-label="Why these icons are here"
+            <div className="mt-2 flex items-center justify-between gap-4 pb-2">
+              <div className="flex min-w-0 items-center gap-4">
+                <span className="text-[22px] font-semibold text-foreground whitespace-nowrap">
+                  Listed
+                </span>
+                {showViewAllButton && (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className="flex items-center whitespace-nowrap transition-transform hover:scale-[1.02]"
+                        aria-label="Why these icons are here"
+                      >
+                        {listedHeaderIcons.map((icon, index) => (
+                          <span
+                            key={icon}
+                            className={cn(
+                              "overflow-hidden rounded-full border-[2px] border-black bg-white",
+                              "h-8 w-8",
+                              index === 0 ? "ml-0" : "-ml-2.5",
+                            )}
+                          >
+                            <img src={icon} alt="" className="h-full w-full object-cover" loading="lazy" />
+                          </span>
+                        ))}
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      align={isDesktop ? "end" : "start"}
+                      alignOffset={isDesktop ? 0 : 10}
+                      collisionPadding={16}
+                      className="w-[240px] max-w-[calc(100vw-2rem)] rounded-2xl border border-[#D5DCE8] bg-white p-3 text-sm font-medium leading-6 text-[#344054] shadow-xl"
                     >
-                      {listedHeaderIcons.map((icon, index) => (
-                        <span
-                          key={icon}
-                          className={cn(
-                            "overflow-hidden rounded-full border-[2px] border-black bg-white",
-                            "h-8 w-8",
-                            index === 0 ? "ml-0" : "-ml-2.5",
-                          )}
-                        >
-                          <img src={icon} alt="" className="h-full w-full object-cover" loading="lazy" />
-                        </span>
-                      ))}
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    align={isDesktop ? "end" : "start"}
-                    alignOffset={isDesktop ? 0 : 10}
-                    collisionPadding={16}
-                    className="w-[240px] max-w-[calc(100vw-2rem)] rounded-2xl border border-[#D5DCE8] bg-white p-3 text-sm font-medium leading-6 text-[#344054] shadow-xl"
-                  >
-                    {ICON_STACK_MESSAGE}
-                  </PopoverContent>
-                </Popover>
-              )}
+                      {ICON_STACK_MESSAGE}
+                    </PopoverContent>
+                  </Popover>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleToggleViewMode}
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-transparent text-[#344054] transition-all hover:bg-transparent hover:text-[#111827]"
+                aria-label={viewMode === "grid" ? "Switch listed assets to list view" : "Switch listed assets to card view"}
+              >
+                {viewMode === "grid" ? (
+                  <LayoutGrid className="h-5 w-5" strokeWidth={2.4} />
+                ) : (
+                  <Rows3 className="h-5 w-5" strokeWidth={2.4} />
+                )}
+              </button>
             </div>
 
             {/* Control Buttons Row - Unified */}

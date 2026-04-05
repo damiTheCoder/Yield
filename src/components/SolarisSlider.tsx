@@ -17,19 +17,39 @@ const PROBLEM_ITEMS = [
     alt: "Utility tokens",
     text: "Utility Tokens: Utility claims rarely deliver; inflationary erosion; no real redemption rights; prone to pump-and-dumps; regulatory risks.",
   },
+  {
+    image: "/r1.jpeg",
+    alt: "Result",
+    text: "Result: Users get burned, creators lack sustainable income, regulators skeptical.",
+  },
 ] as const;
 
-const HOW_IT_WORKS_IMAGES = [
-  { image: "/e1.png", alt: "How it works step 1" },
-  { image: "/e2.png", alt: "How it works step 2" },
-  { image: "/e3.png", alt: "How it works step 3" },
-  { image: "/e4.png", alt: "How it works step 4" },
+const [PRIMARY_PROBLEM, SECONDARY_PROBLEM, TERTIARY_PROBLEM, QUATERNARY_PROBLEM] = PROBLEM_ITEMS;
+
+const HOW_IT_WORKS_STEPS = [
+  {
+    title: "Launch an LFT",
+    body: "A creator deploys a Liquidity Funded Token and seeds the first cycle with real reserve liquidity from day one.",
+  },
+  {
+    title: "Users enter through CoinTags",
+    body: "Participants access the token cycle through CoinTags, creating trackable demand instead of pure hype-driven speculation.",
+  },
+  {
+    title: "Revenue splits in real time",
+    body: "Every cycle routes value into current liquidity, next-cycle seed, creator income, holder rewards, and protocol revenue.",
+  },
+  {
+    title: "Redeem or continue the cycle",
+    body: "Holders keep a reserve-backed redemption path while the next cycle launches with stronger liquidity and cleaner economics.",
+  },
 ] as const;
 
 const SolarisSlider = () => {
   const navigate = useNavigate();
   const [isNavScrolled, setIsNavScrolled] = useState(false);
   const [isNavPastHero, setIsNavPastHero] = useState(false);
+  const [openHowItWorks, setOpenHowItWorks] = useState(0);
   const heroSectionRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -341,11 +361,11 @@ const SolarisSlider = () => {
         }
 
         .problem-section {
-          max-width: 1080px;
-          width: min(100%, 1080px);
-          margin: 0 0 0 auto;
-          padding: 8px 32px 80px 88px;
-          text-align: right;
+          max-width: 1240px;
+          width: min(100%, 1240px);
+          margin: 0 auto;
+          padding: 8px 24px 80px;
+          text-align: left;
         }
 
         .problem-title {
@@ -366,76 +386,94 @@ const SolarisSlider = () => {
         }
 
         .problem-list {
-          margin-top: 18px;
+          margin-top: 22px;
           display: flex;
           flex-direction: column;
           gap: 28px;
-          align-items: flex-end;
+          align-items: stretch;
         }
 
-        .problem-item {
+        .problem-box-row {
+          width: 100%;
           display: grid;
-          width: min(100%, 980px);
-          grid-template-columns: minmax(0, 1fr) 112px;
-          gap: 22px;
-          align-items: center;
-          padding: 6px 0 10px;
+          gap: 28px;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          max-width: none;
+          margin: 0;
         }
 
-        .problem-item-frame {
-          width: 112px;
-          height: 112px;
-          border-radius: 24px;
-          transform: rotate(-8deg);
-          box-shadow: 0 14px 28px rgba(6, 11, 22, 0.08);
-          align-self: start;
-          margin-bottom: 10px;
+        .problem-box {
+          position: relative;
+          overflow: hidden;
+          width: 100%;
+          min-height: 390px;
+          padding: 30px 30px 168px;
+          border-radius: 34px;
+          text-align: left;
+          display: flex;
+          align-items: flex-start;
         }
 
-        .problem-item-image {
+        .problem-box--blue {
+          background: linear-gradient(180deg, #edf4ff 0%, #e4ecff 100%);
+        }
+
+        .problem-box--yellow {
+          background: linear-gradient(180deg, #fff7de 0%, #fff0c2 100%);
+        }
+
+        .problem-box--green {
+          background: linear-gradient(180deg, #edf9e6 0%, #e1f3d3 100%);
+        }
+
+        .problem-box--purple {
+          background: linear-gradient(180deg, #f2ebff 0%, #eadfff 100%);
+        }
+
+        .problem-box-copy {
+          margin: 0;
+          max-width: 620px;
+          font-size: clamp(19px, 1.7vw, 28px);
+          line-height: 1.38;
+          letter-spacing: -0.02em;
+          font-weight: 400;
+        }
+
+        .problem-box--blue .problem-box-copy {
+          color: #1c4399;
+        }
+
+        .problem-box--yellow .problem-box-copy {
+          color: #8a5a07;
+        }
+
+        .problem-box--green .problem-box-copy {
+          color: #2f7f49;
+        }
+
+        .problem-box--purple .problem-box-copy {
+          color: #6b38b8;
+        }
+
+        .problem-box-frame {
+          position: absolute;
+          left: 50%;
+          bottom: -18px;
+          width: 190px;
+          height: 190px;
+          border-radius: 28px;
+          transform: translateX(-50%) rotate(-8deg);
+          box-shadow: 0 18px 36px rgba(6, 11, 22, 0.14);
+          overflow: hidden;
+          background: #ffffff;
+        }
+
+        .problem-box-image {
           width: 100%;
           height: 100%;
-          border-radius: 24px;
           object-fit: cover;
           display: block;
-        }
-
-        .problem-item-copy {
-          margin: 0;
-          max-width: 760px;
-          padding: 18px 24px;
           border-radius: 28px;
-          background: #e5f8dd;
-          color: #2f9a52;
-          font-size: clamp(16px, 1.25vw, 19px);
-          line-height: 1.55;
-          font-weight: 400;
-          letter-spacing: -0.01em;
-          text-align: right;
-          justify-self: end;
-          display: -webkit-box;
-          overflow: hidden;
-          -webkit-box-orient: vertical;
-          -webkit-line-clamp: 2;
-        }
-
-        .problem-item:nth-child(2) {
-          margin-right: auto;
-          grid-template-columns: 112px minmax(0, 1fr);
-        }
-
-        .problem-item:nth-child(2) .problem-item-copy {
-          grid-column: 2;
-          grid-row: 1;
-          justify-self: start;
-          text-align: left;
-        }
-
-        .problem-item:nth-child(2) .problem-item-frame {
-          grid-column: 1;
-          grid-row: 1;
-          justify-self: start;
-          align-self: center;
         }
 
         .lft-section {
@@ -536,28 +574,95 @@ const SolarisSlider = () => {
         }
 
         .how-it-works-track {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 22px;
-          align-items: start;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+          align-items: stretch;
           padding: 6px 4px 10px;
         }
 
         .how-it-works-card {
           width: 100%;
-          max-width: 580px;
-          justify-self: center;
-          border-radius: 28px;
-          overflow: hidden;
+          border-radius: 26px;
           background: #ffffff;
-          border: 0;
-          box-shadow: 0 20px 48px rgba(6, 11, 22, 0.12);
+          border: 1px solid rgba(6, 11, 22, 0.08);
+          box-shadow: 0 16px 38px rgba(6, 11, 22, 0.08);
         }
 
-        .how-it-works-image {
+        .how-it-works-trigger {
           width: 100%;
-          height: auto;
-          display: block;
+          display: grid;
+          grid-template-columns: 70px minmax(0, 1fr) 40px;
+          align-items: center;
+          gap: 16px;
+          padding: 22px 24px;
+          border: 0;
+          background: transparent;
+          text-align: left;
+          color: #060b16;
+          cursor: pointer;
+        }
+
+        .how-it-works-number {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 52px;
+          height: 52px;
+          border-radius: 18px;
+          background: #fff7cf;
+          color: #d2a40c;
+          font-size: 18px;
+          line-height: 1;
+          font-weight: 500;
+          letter-spacing: -0.03em;
+        }
+
+        .how-it-works-question {
+          font-size: clamp(18px, 2vw, 28px);
+          line-height: 1.15;
+          letter-spacing: -0.03em;
+          font-weight: 500;
+        }
+
+        .how-it-works-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 34px;
+          height: 34px;
+          border-radius: 999px;
+          background: #edf4ff;
+          color: #2f59e8;
+          font-size: 22px;
+          line-height: 1;
+          font-weight: 400;
+          transition: transform 0.24s ease;
+        }
+
+        .how-it-works-card[data-open="true"] .how-it-works-icon {
+          transform: rotate(45deg);
+        }
+
+        .how-it-works-answer {
+          padding: 0 24px 24px 110px;
+          color: rgba(6, 11, 22, 0.72);
+          font-size: clamp(15px, 1.25vw, 20px);
+          line-height: 1.55;
+          letter-spacing: -0.01em;
+        }
+
+        .how-it-works-answer p {
+          margin: 0;
+        }
+
+        .how-it-works-answer[hidden] {
+          display: none;
+        }
+
+        .how-it-works-answer-inner {
+          width: 100%;
+          max-width: 860px;
         }
 
         @media (max-width: 1100px) {
@@ -674,56 +779,34 @@ const SolarisSlider = () => {
             gap: 20px;
           }
 
-          .problem-item {
+          .problem-box-row {
             width: 100%;
-            grid-template-columns: minmax(0, 1fr) 88px;
-            gap: 14px;
-            padding: 4px 0 8px;
-            align-items: center;
+            grid-template-columns: 1fr;
+            gap: 20px;
           }
 
-          .problem-item-frame {
-            width: 88px;
-            height: 88px;
-            border-radius: 18px;
-            margin-bottom: 6px;
-          }
-
-          .problem-item-image {
+          .problem-box {
             width: 100%;
-            height: 100%;
-            border-radius: 18px;
+            min-height: 290px;
+            padding: 20px 18px 112px;
+            border-radius: 24px;
           }
 
-          .problem-item-copy {
-            padding: 14px 16px;
-            border-radius: 22px;
-            font-size: 14px;
-            line-height: 1.5;
+          .problem-box-copy {
             max-width: none;
-            text-align: right;
-            display: block;
-            overflow: visible;
-            -webkit-line-clamp: unset;
+            font-size: 16px;
+            line-height: 1.45;
           }
 
-          .problem-item:nth-child(2) {
-            margin-right: auto;
-            grid-template-columns: 88px minmax(0, 1fr);
+          .problem-box-frame {
+            width: 118px;
+            height: 118px;
+            bottom: -10px;
+            border-radius: 20px;
           }
 
-          .problem-item:nth-child(2) .problem-item-copy {
-            grid-column: 2;
-            grid-row: 1;
-            justify-self: start;
-            text-align: left;
-          }
-
-          .problem-item:nth-child(2) .problem-item-frame {
-            grid-column: 1;
-            grid-row: 1;
-            justify-self: start;
-            align-self: center;
+          .problem-box-image {
+            border-radius: 20px;
           }
 
           .lft-section {
@@ -781,25 +864,42 @@ const SolarisSlider = () => {
           }
 
           .how-it-works-track {
-            display: flex;
-            gap: 14px;
+            gap: 12px;
             padding: 4px 2px 8px;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-          }
-
-          .how-it-works-track::-webkit-scrollbar {
-            display: none;
           }
 
           .how-it-works-card {
-            flex: 0 0 min(88vw, 340px);
-            width: min(88vw, 340px);
-            max-width: 340px;
-            scroll-snap-align: start;
-            border-radius: 22px;
+            border-radius: 20px;
+          }
+
+          .how-it-works-trigger {
+            grid-template-columns: 52px minmax(0, 1fr) 32px;
+            gap: 12px;
+            padding: 16px 16px 14px;
+          }
+
+          .how-it-works-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 14px;
+            font-size: 15px;
+          }
+
+          .how-it-works-question {
+            font-size: 17px;
+            line-height: 1.2;
+          }
+
+          .how-it-works-icon {
+            width: 28px;
+            height: 28px;
+            font-size: 18px;
+          }
+
+          .how-it-works-answer {
+            padding: 0 16px 16px 68px;
+            font-size: 14px;
+            line-height: 1.5;
           }
         }
       `}</style>
@@ -863,14 +963,37 @@ const SolarisSlider = () => {
             <p className="problem-subtitle">Problems across all asset class</p>
 
             <div className="problem-list">
-              {PROBLEM_ITEMS.map((item) => (
-                <div className="problem-item" key={item.text}>
-                  <p className="problem-item-copy">{item.text}</p>
-                  <div className="problem-item-frame">
-                    <img className="problem-item-image" src={item.image} alt={item.alt} />
+              <div className="problem-box-row">
+                <article className="problem-box problem-box--blue">
+                  <p className="problem-box-copy">{PRIMARY_PROBLEM.text}</p>
+                  <div className="problem-box-frame">
+                    <img className="problem-box-image" src={PRIMARY_PROBLEM.image} alt={PRIMARY_PROBLEM.alt} />
                   </div>
-                </div>
-              ))}
+                </article>
+
+                <article className="problem-box problem-box--yellow">
+                  <p className="problem-box-copy">{SECONDARY_PROBLEM.text}</p>
+                  <div className="problem-box-frame">
+                    <img className="problem-box-image" src={SECONDARY_PROBLEM.image} alt={SECONDARY_PROBLEM.alt} />
+                  </div>
+                </article>
+              </div>
+
+              <div className="problem-box-row">
+                <article className="problem-box problem-box--green">
+                  <p className="problem-box-copy">{TERTIARY_PROBLEM.text}</p>
+                  <div className="problem-box-frame">
+                    <img className="problem-box-image" src={TERTIARY_PROBLEM.image} alt={TERTIARY_PROBLEM.alt} />
+                  </div>
+                </article>
+
+                <article className="problem-box problem-box--purple">
+                  <p className="problem-box-copy">{QUATERNARY_PROBLEM.text}</p>
+                  <div className="problem-box-frame">
+                    <img className="problem-box-image" src={QUATERNARY_PROBLEM.image} alt={QUATERNARY_PROBLEM.alt} />
+                  </div>
+                </article>
+              </div>
             </div>
           </section>
 
@@ -903,11 +1026,28 @@ const SolarisSlider = () => {
             <div className="how-it-works-inner">
               <h3 className="how-it-works-heading">How it works</h3>
               <div className="how-it-works-track">
-                {HOW_IT_WORKS_IMAGES.map((item) => (
-                  <div className="how-it-works-card" key={item.image}>
-                    <img className="how-it-works-image" src={item.image} alt={item.alt} />
-                  </div>
-                ))}
+                {HOW_IT_WORKS_STEPS.map((item, index) => {
+                  const isOpen = openHowItWorks === index;
+                  return (
+                    <article className="how-it-works-card" data-open={isOpen} key={item.title}>
+                      <button
+                        type="button"
+                        className="how-it-works-trigger"
+                        onClick={() => setOpenHowItWorks((current) => (current === index ? -1 : index))}
+                        aria-expanded={isOpen}
+                      >
+                        <span className="how-it-works-number">{index + 1}</span>
+                        <span className="how-it-works-question">{item.title}</span>
+                        <span className="how-it-works-icon" aria-hidden="true">+</span>
+                      </button>
+                      <div className="how-it-works-answer" hidden={!isOpen}>
+                        <div className="how-it-works-answer-inner">
+                          <p>{item.body}</p>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
             </div>
           </section>

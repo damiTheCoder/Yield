@@ -2,6 +2,7 @@ import { useApp } from "@/lib/app-state";
 import { formatCurrency, formatCurrencyK } from "@/lib/utils";
 import { useMemo } from "react";
 import { Bell, Heart, MessageCircle, Repeat2, MoreHorizontal, Verified } from "lucide-react";
+import Web3News from "@/components/Web3News";
 
 export default function Notifications() {
   const { assets } = useApp();
@@ -66,81 +67,80 @@ export default function Notifications() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Full Width Feed */}
-      <div className="w-full">
-        {notifications.map((notification) => (
-          <div
-            key={notification.id}
-            className="border-b border-border/40 px-4 py-3 hover:bg-surface/30 transition-colors cursor-pointer"
-          >
-            <div className="flex gap-3">
-              {/* Notification Icon */}
-              <div className="flex-shrink-0 pt-1">
-                {getNotificationIcon(notification.type, notification.priority)}
-              </div>
+      <main className="container mx-auto px-4 pb-16 pt-3 sm:pt-8">
+        <div className="lg:grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.35fr)] lg:gap-8">
+          <aside className="hidden lg:block lg:space-y-6 lg:pt-2">
+            <Web3News variant="detail" />
+          </aside>
 
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    {/* Twitter-style notification header */}
-                    <div className="flex items-center gap-2 mb-1">
-                      <img 
-                        src={notification.asset.image} 
-                        alt={notification.asset.name}
-                        className="h-8 w-8 rounded-full object-cover"
-                      />
-                      <span className="font-bold text-foreground text-sm">{notification.asset.name}</span>
-                      <span className="text-muted-foreground text-sm">·</span>
-                      <span className="text-muted-foreground text-sm">{notification.timestamp}</span>
-                      {getPriorityBadge(notification.priority)}
+          <div className="w-full">
+            {notifications.map((notification) => (
+              <div
+                key={notification.id}
+                className="border-b border-border/40 px-4 py-3 hover:bg-surface/30 transition-colors cursor-pointer"
+              >
+                <div className="flex gap-3">
+                  <div className="flex-shrink-0 pt-1">
+                    {getNotificationIcon(notification.type, notification.priority)}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <img 
+                            src={notification.asset.image} 
+                            alt={notification.asset.name}
+                            className="h-8 w-8 rounded-full object-cover"
+                          />
+                          <span className="font-bold text-foreground text-sm">{notification.asset.name}</span>
+                          <span className="text-muted-foreground text-sm">·</span>
+                          <span className="text-muted-foreground text-sm">{notification.timestamp}</span>
+                          {getPriorityBadge(notification.priority)}
+                        </div>
+                        
+                        <p className="text-muted-foreground text-sm mb-2">
+                          {notification.title}
+                        </p>
+
+                        <p className="text-foreground text-sm leading-relaxed mb-3">
+                          {notification.content}
+                        </p>
+
+                        {(notification.type === 'purchased_hunt' || notification.type === 'new_hunt' || notification.type === 'hunt_ending') && (
+                          <div className="flex gap-4 text-xs text-muted-foreground mb-2">
+                            <span>{notification.metrics.found} tokens available</span>
+                            <span>LPU {formatCurrency(notification.metrics.lpu)}</span>
+                            <span>Liquidity {formatCurrencyK(notification.metrics.liquidity)}</span>
+                          </div>
+                        )}
+
+                        {(notification.type === 'purchased_hunt' || notification.type === 'new_hunt') && (
+                          <div className="flex gap-2 mt-3">
+                            <a
+                              href={`/assets/${notification.asset.id}/hunt`}
+                              className="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-medium transition-colors bg-black text-white hover:bg-black/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black dark:bg-white dark:text-black dark:hover:bg-white/90 dark:focus-visible:outline-white"
+                            >
+                              {notification.type === 'purchased_hunt' ? 'Start Hunt' : 'View Hunt'}
+                            </a>
+                            <a
+                              href={`/assets/${notification.asset.id}`}
+                              className="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-medium transition-colors bg-black text-white hover:bg-black/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black dark:bg-white dark:text-black dark:hover:bg-white/90 dark:focus-visible:outline-white"
+                            >
+                              Asset Details
+                            </a>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    
-                    {/* Notification type */}
-                    <p className="text-muted-foreground text-sm mb-2">
-                      {notification.title}
-                    </p>
-
-                    {/* Content */}
-                    <p className="text-foreground text-sm leading-relaxed mb-3">
-                      {notification.content}
-                    </p>
-
-                    {/* Hunt Metrics */}
-                    {(notification.type === 'purchased_hunt' || notification.type === 'new_hunt' || notification.type === 'hunt_ending') && (
-                      <div className="flex gap-4 text-xs text-muted-foreground mb-2">
-                        <span>{notification.metrics.found} tokens available</span>
-                        <span>LPU {formatCurrency(notification.metrics.lpu)}</span>
-                        <span>Liquidity {formatCurrencyK(notification.metrics.liquidity)}</span>
-                      </div>
-                    )}
-
-                    {/* Action Buttons for relevant notifications */}
-                    {(notification.type === 'purchased_hunt' || notification.type === 'new_hunt') && (
-                      <div className="flex gap-2 mt-3">
-                        <a
-                          href={`/assets/${notification.asset.id}/hunt`}
-                          className="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-medium transition-colors bg-black text-white hover:bg-black/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black dark:bg-white dark:text-black dark:hover:bg-white/90 dark:focus-visible:outline-white"
-                        >
-                          {notification.type === 'purchased_hunt' ? 'Start Hunt' : 'View Hunt'}
-                        </a>
-                        <a
-                          href={`/assets/${notification.asset.id}`}
-                          className="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-medium transition-colors bg-black text-white hover:bg-black/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black dark:bg-white dark:text-black dark:hover:bg-white/90 dark:focus-visible:outline-white"
-                        >
-                          Asset Details
-                        </a>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      </main>
 
-      {/* Twitter-like Bottom Spacing */}
       <div className="h-16"></div>
     </div>
   );

@@ -1,644 +1,681 @@
-import { useMemo, useState } from "react";
-import { TrendingUp, Users, PiggyBank, ArrowDownCircle, Activity, Trophy, Wallet } from "lucide-react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { Check } from "lucide-react";
 import {
   Bar,
   BarChart,
-  Cell,
   CartesianGrid,
-  Line,
-  LineChart,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
-import { useApp } from "@/lib/app-state";
-import { formatCurrency, formatCurrencyK, cn } from "@/lib/utils";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { useApp, type Asset } from "@/lib/app-state";
+import { cn, formatCompactCurrency, formatCurrencyK } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
+import Web3News from "@/components/Web3News";
 
-type SeriesPoint = {
-  name: string;
-  sales: number;
-  liquidity: number;
-  payouts: number;
+type ValuePoint = {
+  label: string;
+  value: number;
+  color: string;
+};
+
+type RatioPoint = {
+  label: string;
+  value: number;
+  ratio: number;
+  color: string;
+};
+
+type CycleFinancials = {
+  cycle: number;
+  hasLiveData: boolean;
+  isCurrent: boolean;
+  note: string;
+  launchCost: number;
+  grossRevenue: number;
+  currentReserve: number;
+  currentLiquidity: number;
+  nextCycleSeed: number;
+  creatorRevenue: number;
+  protocolProfit: number;
+  holderRewards: number;
+  reserveFunding: number;
+  creatorAndRewards: number;
+  reserveGrowth: number;
+  currentLpu: number;
+  remainingSupply: number;
+  initialSupply: number;
 };
 
 const palette = {
-  primary: "hsl(200 90% 56%)",
-  secondary: "hsl(214 92% 62%)",
-  accent: "hsl(188 92% 50%)",
+  revenue: "#2f66f6",
+  reserve: "#0891b2",
+  seed: "#5b4bff",
+  creator: "#f97316",
+  rewards: "#e11d48",
+  profit: "#10b981",
+  slate: "#475569",
+  violet: "#7c3aed",
 };
+
+const metricTones = {
+  blue: "text-[#2f66f6]",
+  green: "text-[#059669]",
+  purple: "text-[#4f46e5]",
+  red: "text-[#e11d48]",
+  slate: "text-[#475569]",
+  orange: "text-[#ea580c]",
+  cyan: "text-[#0891b2]",
+} as const;
+
+const cardClass = "rounded-[24px] border border-transparent bg-[#f5f7fb] shadow-none";
+
+const DEFAULT_SPLIT = {
+  creator: 0.2,
+  nextCycleLiquidity: 0.3,
+  platform: 0.15,
+  currentCycleLiquidity: 0.3,
+  holderRewards: 0.05,
+} as const;
+
+function percent(value: number, total: number) {
+  if (total <= 0) return 0;
+  return (value / total) * 100;
+}
+
+function getCycleFinancials(asset: Asset): CycleFinancials[] {
+  const split = asset.cycle.split ?? asset.params.split ?? DEFAULT_SPLIT;
+  const snapshots = new Map((asset.secondaryMarket?.snapshots ?? []).map((entry) => [entry.cycle, entry]));
+  const currentCycleNumber = Math.max(1, asset.cycle.cycle);
+  const cycles: CycleFinancials[] = [];
+  let cycleStartReserve = asset.params.initialReserve;
+  let previousEndReserve = asset.params.initialReserve;
+  let previousSeedNext = 0;
+
+  for (let cycle = 1; cycle <= 5; cycle += 1) {
+    const cycleInitialSupply = Math.max(1, Math.floor(asset.params.initialSupply / 2 ** (cycle - 1)));
+
+    if (cycle === currentCycleNumber) {
+      const currentReserve = asset.cycle.reserve;
+      const currentLiquidity = asset.cycle.accrued.currentCycleLiquidity ?? 0;
+      const nextCycleSeed = asset.cycle.accrued.nextCycleLiquidity ?? 0;
+      const creatorRevenue = asset.cycle.accrued.creator ?? 0;
+      const protocolProfit = asset.cycle.accrued.platform ?? 0;
+      const holderRewards = asset.cycle.accrued.holderRewards ?? 0;
+      const grossRevenue = asset.cycle.totalSales;
+      const reserveFunding = currentLiquidity + nextCycleSeed;
+
+      cycles.push({
+        cycle,
+        hasLiveData: true,
+        isCurrent: true,
+        note: "Live current-cycle financials from this token.",
+        launchCost: cycleStartReserve,
+        grossRevenue,
+        currentReserve,
+        currentLiquidity,
+        nextCycleSeed,
+        creatorRevenue,
+        protocolProfit,
+        holderRewards,
+        reserveFunding,
+        creatorAndRewards: creatorRevenue + holderRewards,
+        reserveGrowth: currentReserve - cycleStartReserve,
+        currentLpu: asset.cycle.lpu,
+        remainingSupply: asset.cycle.supply,
+        initialSupply: asset.cycle.initialSupply,
+      });
+
+      previousEndReserve = currentReserve;
+      previousSeedNext = nextCycleSeed;
+      cycleStartReserve = cycle === 1 ? nextCycleSeed : currentReserve;
+      continue;
+    }
+
+    if (cycle < currentCycleNumber) {
+      const snapshot = snapshots.get(cycle);
+      const currentReserve = snapshot?.liquidity ?? cycleStartReserve;
+      const remainingSupply = snapshot?.unredeemedSupply ?? cycleInitialSupply;
+      const grossRevenue =
+        split.currentCycleLiquidity > 0
+          ? Math.max(0, currentReserve - cycleStartReserve) / split.currentCycleLiquidity
+          : 0;
+      const currentLiquidity = grossRevenue * split.currentCycleLiquidity;
+      const nextCycleSeed = grossRevenue * split.nextCycleLiquidity;
+      const creatorRevenue = grossRevenue * split.creator;
+      const protocolProfit = grossRevenue * split.platform;
+      const holderRewards = grossRevenue * split.holderRewards;
+
+      cycles.push({
+        cycle,
+        hasLiveData: Boolean(snapshot),
+        isCurrent: false,
+        note: snapshot
+          ? "Recorded cycle snapshot with split-based financial breakdown."
+          : "Cycle summary reconstructed from available token data.",
+        launchCost: cycleStartReserve,
+        grossRevenue,
+        currentReserve,
+        currentLiquidity,
+        nextCycleSeed,
+        creatorRevenue,
+        protocolProfit,
+        holderRewards,
+        reserveFunding: currentLiquidity + nextCycleSeed,
+        creatorAndRewards: creatorRevenue + holderRewards,
+        reserveGrowth: currentReserve - cycleStartReserve,
+        currentLpu: remainingSupply > 0 ? currentReserve / remainingSupply : 0,
+        remainingSupply,
+        initialSupply: cycleInitialSupply,
+      });
+
+      previousEndReserve = currentReserve;
+      previousSeedNext = nextCycleSeed;
+      cycleStartReserve = cycle === 1 ? nextCycleSeed : currentReserve;
+      continue;
+    }
+
+    cycles.push({
+      cycle,
+      hasLiveData: false,
+      isCurrent: false,
+      note: "No live cycle data has been recorded for this token yet.",
+      launchCost: cycle === 1 ? asset.params.initialReserve : cycle === 2 ? previousSeedNext : previousEndReserve,
+      grossRevenue: 0,
+      currentReserve: cycle === 1 ? asset.params.initialReserve : cycle === 2 ? previousSeedNext : previousEndReserve,
+      currentLiquidity: 0,
+      nextCycleSeed: 0,
+      creatorRevenue: 0,
+      protocolProfit: 0,
+      holderRewards: 0,
+      reserveFunding: 0,
+      creatorAndRewards: 0,
+      reserveGrowth: 0,
+      currentLpu: cycleInitialSupply > 0 ? (cycle === 1 ? asset.params.initialReserve : cycle === 2 ? previousSeedNext : previousEndReserve) / cycleInitialSupply : 0,
+      remainingSupply: cycleInitialSupply,
+      initialSupply: cycleInitialSupply,
+    });
+  }
+
+  return cycles;
+}
+
+function CustomTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: Array<{ name?: string; value?: number; color?: string }>;
+  label?: string;
+}) {
+  if (!active || !payload?.length) return null;
+
+  return (
+    <div className="min-w-[170px] rounded-2xl bg-white px-3 py-2 shadow-sm ring-1 ring-black/5">
+      {label ? (
+        <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#94a3b8]">{label}</div>
+      ) : null}
+      <div className="mt-1.5 space-y-1.5">
+        {payload.map((entry) => (
+          <div key={`${label}-${entry.name}`} className="flex items-center justify-between gap-4 text-xs">
+            <div className="flex items-center gap-2 text-[#475569]">
+              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
+              <span>{entry.name}</span>
+            </div>
+            <span className="font-semibold text-[#0f172a]">{formatCompactCurrency(Number(entry.value ?? 0))}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function Revenue() {
   const { assets } = useApp();
   const isMobile = useIsMobile();
   const [selectedId, setSelectedId] = useState(() => assets[0]?.id ?? "");
+  const [selectedCycle, setSelectedCycle] = useState(1);
+  const [cycleModalOpen, setCycleModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (!assets.length) {
+      setSelectedId("");
+      return;
+    }
+    if (!assets.some((asset) => asset.id === selectedId)) {
+      setSelectedId(assets[0]?.id ?? "");
+    }
+  }, [assets, selectedId]);
+
   const selectedAsset = assets.find((asset) => asset.id === selectedId) ?? assets[0] ?? null;
 
-  const globalStats = useMemo(() => {
-    return assets.reduce(
-      (acc, asset) => {
-        const { cycle } = asset;
-        const accrued = cycle.accrued ?? {};
-        acc.totalSales += cycle.totalSales;
-        acc.totalLiquidity += accrued.currentCycleLiquidity ?? 0;
-        acc.totalPayouts += accrued.holderRewards ?? 0;
-        acc.totalCreator += accrued.creator ?? 0;
-        acc.totalNextCycle += accrued.nextCycleLiquidity ?? 0;
-        acc.seed += cycle.seedNext;
-        acc.cycleCount += 1;
-        return acc;
+  const cycleOptions = useMemo(
+    () => (selectedAsset ? getCycleFinancials(selectedAsset) : []),
+    [selectedAsset],
+  );
+
+  useEffect(() => {
+    if (!selectedAsset) {
+      setSelectedCycle(1);
+      return;
+    }
+    setSelectedCycle(Math.min(Math.max(1, selectedAsset.cycle.cycle), 5));
+  }, [selectedAsset]);
+
+  const activeCycle =
+    cycleOptions.find((entry) => entry.cycle === selectedCycle) ??
+    cycleOptions[Math.min(cycleOptions.length - 1, Math.max(0, selectedAsset?.cycle.cycle ? selectedAsset.cycle.cycle - 1 : 0))] ??
+    null;
+
+  const metrics = useMemo(() => {
+    if (!selectedAsset || !activeCycle) return null;
+
+    const sharingData: ValuePoint[] = [
+      { label: "Current Liquidity", value: activeCycle.currentLiquidity, color: palette.reserve },
+      { label: "Next-cycle Seed", value: activeCycle.nextCycleSeed, color: palette.seed },
+      { label: "Creator Share", value: activeCycle.creatorRevenue, color: palette.creator },
+      { label: "Protocol Share", value: activeCycle.protocolProfit, color: palette.profit },
+      { label: "Holder Rewards", value: activeCycle.holderRewards, color: palette.rewards },
+    ];
+
+    const positionData: ValuePoint[] = [
+      { label: "Launch Cost", value: activeCycle.launchCost, color: palette.slate },
+      { label: "Gross Revenue", value: activeCycle.grossRevenue, color: palette.revenue },
+      { label: "Current Reserve", value: activeCycle.currentReserve, color: palette.reserve },
+      { label: "Creator Revenue", value: activeCycle.creatorRevenue, color: palette.creator },
+      { label: "Protocol Profit", value: activeCycle.protocolProfit, color: palette.profit },
+    ];
+
+    const flowData: ValuePoint[] = [
+      { label: "Gross Revenue", value: activeCycle.grossRevenue, color: palette.revenue },
+      { label: "Reserve Funding", value: activeCycle.reserveFunding, color: palette.violet },
+      { label: "Creator + Rewards", value: activeCycle.creatorAndRewards, color: palette.creator },
+      { label: "Protocol Profit", value: activeCycle.protocolProfit, color: palette.profit },
+      { label: "Reserve Balance", value: activeCycle.currentReserve, color: palette.reserve },
+    ];
+
+    const ratioData: RatioPoint[] = [
+      {
+        label: "Reserve Funding",
+        value: activeCycle.reserveFunding,
+        ratio: percent(activeCycle.reserveFunding, activeCycle.grossRevenue),
+        color: palette.violet,
       },
       {
-        totalSales: 0,
-        totalLiquidity: 0,
-        totalPayouts: 0,
-        totalCreator: 0,
-        totalNextCycle: 0,
-        seed: 0,
-        cycleCount: 0,
+        label: "Creator Share",
+        value: activeCycle.creatorRevenue,
+        ratio: percent(activeCycle.creatorRevenue, activeCycle.grossRevenue),
+        color: palette.creator,
       },
-    );
-  }, [assets]);
+      {
+        label: "Protocol Profit",
+        value: activeCycle.protocolProfit,
+        ratio: percent(activeCycle.protocolProfit, activeCycle.grossRevenue),
+        color: palette.profit,
+      },
+      {
+        label: "Holder Rewards",
+        value: activeCycle.holderRewards,
+        ratio: percent(activeCycle.holderRewards, activeCycle.grossRevenue),
+        color: palette.rewards,
+      },
+    ];
 
-  const performanceSeries: SeriesPoint[] = useMemo(() => {
-    return assets.map((asset) => ({
-      name: asset.ticker || asset.name,
-      sales: Number(asset.cycle.totalSales.toFixed(2)),
-      liquidity: Number(((asset.cycle.accrued.currentCycleLiquidity ?? 0)).toFixed(2)),
-      payouts: Number(((asset.cycle.accrued.holderRewards ?? 0)).toFixed(2)),
-    }));
-  }, [assets]);
+    return {
+      ...activeCycle,
+      sharingData,
+      positionData,
+      flowData,
+      ratioData,
+    };
+  }, [activeCycle, selectedAsset]);
 
-  const timelineSeries = useMemo(() => {
-    return assets.map((asset) => ({
-      name: asset.ticker || asset.name,
-      nextCycleLiquidity: Number(((asset.cycle.accrued.nextCycleLiquidity ?? 0)).toFixed(2)),
-      platform: Number(((asset.cycle.accrued.platform ?? 0)).toFixed(2)),
-      creator: Number(((asset.cycle.accrued.creator ?? 0)).toFixed(2)),
-    }));
-  }, [assets]);
-
-  const leaderboard = useMemo(() => {
-    return [...assets]
-      .map((asset) => ({
-        id: asset.id,
-        name: asset.name,
-        ticker: asset.ticker,
-        image: asset.image,
-        sales: asset.cycle.totalSales,
-        cycle: asset.cycle.cycle,
-        nextSeed: asset.cycle.accrued.nextCycleLiquidity ?? 0,
-        rewards: asset.cycle.accrued.holderRewards ?? 0,
-      }))
-      .sort((a, b) => b.sales - a.sales);
-  }, [assets]);
-
-  const topPerformer = leaderboard[0] ?? null;
-  const averageSales = assets.length > 0 ? globalStats.totalSales / assets.length : 0;
-  const payoutToSalesRatio = globalStats.totalSales > 0 ? (globalStats.totalPayouts / globalStats.totalSales) * 100 : 0;
-
-  const chartConfig = {
-    sales: { label: "Gross Sales", color: palette.primary },
-    liquidity: { label: "Current Liquidity Added", color: palette.secondary },
-    payouts: { label: "Holder Payouts", color: palette.accent },
-    nextCycleLiquidity: { label: "Next Cycle Liquidity Seed", color: "hsl(199 89% 60%)" },
-    creator: { label: "Creator Share", color: "hsl(222 89% 63%)" },
-    platform: { label: "Platform Share", color: "hsl(188 92% 50%)" },
-  } as const;
-
-  const multiStreamMinWidth = useMemo(
-    () => Math.max(performanceSeries.length * (isMobile ? 144 : 180), isMobile ? 560 : 760),
-    [isMobile, performanceSeries.length],
-  );
-
-  const selectedSplitSeries = useMemo(
-    () =>
-      selectedAsset
-        ? [
-            {
-              key: "creator",
-              label: "Creator Share",
-              value: selectedAsset.cycle.accrued.creator ?? 0,
-              color: chartConfig.creator.color,
-            },
-            {
-              key: "nextCycleLiquidity",
-              label: "Next Cycle Liquidity",
-              value: selectedAsset.cycle.accrued.nextCycleLiquidity ?? 0,
-              color: chartConfig.nextCycleLiquidity.color,
-            },
-            {
-              key: "liquidity",
-              label: "Current Liquidity",
-              value: selectedAsset.cycle.accrued.currentCycleLiquidity ?? 0,
-              color: chartConfig.liquidity.color,
-            },
-            {
-              key: "payouts",
-              label: "Holder Rewards",
-              value: selectedAsset.cycle.accrued.holderRewards ?? 0,
-              color: chartConfig.payouts.color,
-            },
-            {
-              key: "platform",
-              label: "Platform Allocation",
-              value: selectedAsset.cycle.accrued.platform ?? 0,
-              color: chartConfig.platform.color,
-            },
-          ]
-        : [],
-    [selectedAsset, chartConfig.creator.color, chartConfig.liquidity.color, chartConfig.nextCycleLiquidity.color, chartConfig.payouts.color, chartConfig.platform.color],
-  );
-
-  const selectedSplitTotal = useMemo(
-    () => selectedSplitSeries.reduce((sum, item) => sum + item.value, 0),
-    [selectedSplitSeries],
-  );
-
-  if (assets.length === 0) {
+  if (!assets.length || !selectedAsset || !metrics) {
     return (
-      <div className="min-h-screen bg-background text-foreground">
-        <main className="container mx-auto px-4 py-16">
-          <h1 className="text-3xl font-semibold">Revenue Command Center</h1>
-          <p className="mt-3 max-w-xl text-sm text-muted-foreground">
-            Launch a token to start tracking sales, liquidity, and payouts. Revenue analytics will appear here once data is available.
-          </p>
+      <div className="min-h-screen bg-white text-foreground">
+        <main className="container mx-auto px-4 py-14">
+          <Card className={cardClass}>
+            <CardContent className="flex flex-col items-start gap-3 p-6">
+              <div className="rounded-full bg-[#edf3ff] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#2f66f6]">
+                Revenue
+              </div>
+              <div>
+                <h1 className="text-2xl font-semibold tracking-tight text-[#0f172a]">Token Financials Dashboard</h1>
+                <p className="mt-2 max-w-2xl text-sm leading-7 text-[#64748b]">
+                  Launch a token first. Once CoinTag sales and reserve activity exist, this page will track the actual financial performance of each launched token.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <main className="container mx-auto space-y-10 px-4 pb-16 pt-6">
-        <header className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Revenue Command Center</h1>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">
-              Monitor how each token funnels volume into the treasury, liquidity pool, and reward backlog. Compare cycle performance at a glance and drill deeper into per-asset revenue streams.
-            </p>
-          </div>
-          <div className="flex items-center gap-3 rounded-full border border-border/60 bg-surface/60 px-4 py-2">
-            <Activity className="h-4 w-4 text-emerald-400" />
-            <div className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Live telemetry</div>
-          </div>
-        </header>
+    <div className="min-h-screen bg-white text-foreground">
+      <main className="container mx-auto px-4 pb-16 pt-5">
+        <div className="space-y-4 sm:space-y-5 lg:grid lg:grid-cols-12 lg:gap-8 lg:space-y-0">
+          <aside className="hidden lg:col-span-4 lg:block lg:space-y-6 lg:pt-2">
+            <Web3News variant="detail" />
+          </aside>
 
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <KpiCard
-            icon={TrendingUp}
-            label="Gross Token Sales"
-            primary={formatCurrency(globalStats.totalSales)}
-            caption={`${performanceSeries.length} active collections`}
-            tone="blue"
-          />
-          <KpiCard
-            icon={PiggyBank}
-            label="Liquidity Backing"
-            primary={formatCurrency(globalStats.totalLiquidity)}
-            caption="Funds routed into current reserves"
-            tone="cyan"
-          />
-          <KpiCard
-            icon={Users}
-            label="Holder Payouts"
-            primary={formatCurrency(globalStats.totalPayouts)}
-            caption="Estimated cumulative share outs"
-            tone="indigo"
-          />
-          <KpiCard
-            icon={ArrowDownCircle}
-            label="Cycle Rollover Seed"
-            primary={formatCurrency(globalStats.seed)}
-            caption="Allocated to next cycle reserves"
-            tone="teal"
-          />
-        </section>
-
-        <section className="grid gap-4 lg:grid-cols-3">
-          <Card className="border-border/60 bg-surface/60 shadow-sm lg:col-span-2">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base sm:text-lg">Portfolio Snapshot</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl border border-border/50 bg-background/60 p-4">
-                <div className="flex items-start justify-between">
-                  <p className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">Top Performer</p>
-                  <Trophy className="h-4 w-4 text-sky-400" />
-                </div>
-                <p className="mt-3 truncate text-lg font-semibold text-foreground">
-                  {topPerformer ? topPerformer.name : "No data"}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {topPerformer ? `${topPerformer.ticker || topPerformer.id.toUpperCase()} · ${formatCurrency(topPerformer.sales)}` : "Launch data pending"}
+          <div className="space-y-4 sm:space-y-5 lg:col-span-8">
+            <header className="space-y-2.5">
+              <div className="inline-flex rounded-full bg-[#edf3ff] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#2f66f6]">
+                Revenue
+              </div>
+              <div className="space-y-2">
+                <h1 className="text-[28px] font-semibold tracking-tight text-[#0f172a] sm:text-[36px]">
+                  Token Financials Dashboard
+                </h1>
+                <p className="max-w-3xl text-sm leading-7 text-[#64748b] sm:text-[15px]">
+                  This dashboard helps creators monitor the live financial performance of each launched token, including launch cost, CoinTag revenue, reserve funding, creator share, rewards, and protocol income.
                 </p>
               </div>
-              <div className="rounded-2xl border border-border/50 bg-background/60 p-4">
-                <div className="flex items-start justify-between">
-                  <p className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">Average Sales</p>
-                  <Wallet className="h-4 w-4 text-cyan-400" />
-                </div>
-                <p className="mt-3 text-lg font-semibold text-foreground">{formatCurrency(averageSales)}</p>
-                <p className="text-xs text-muted-foreground">Per collection across current cycle</p>
+            </header>
+
+            <section className={cn(cardClass, "p-4 sm:p-5")}>
+              <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#94a3b8]">
+                Launched Tokens
               </div>
-            </CardContent>
-          </Card>
-          <Card className="border-border/60 bg-surface/60 shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base sm:text-lg">Payout Efficiency</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="font-mono text-3xl font-semibold text-foreground">{payoutToSalesRatio.toFixed(1)}%</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Holder rewards as a share of gross token sales.
-              </p>
-              <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-muted/70">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500"
-                  style={{ width: `${Math.min(100, payoutToSalesRatio)}%` }}
+              <div
+                className="-mx-1 overflow-x-auto no-scrollbar px-1 pb-1"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+              >
+                <div className="flex gap-3">
+                  {assets.map((asset) => {
+                    const isActive = asset.id === selectedAsset.id;
+
+                    return (
+                      <button
+                        key={asset.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedId(asset.id);
+                          setCycleModalOpen(true);
+                        }}
+                        className={cn(
+                          "relative flex w-[168px] shrink-0 items-center gap-3 rounded-[20px] px-3 py-3 text-left transition",
+                          isActive ? "bg-white shadow-sm" : "bg-white hover:bg-white/95",
+                        )}
+                      >
+                        <div className="relative shrink-0">
+                          <img
+                            src={asset.image}
+                            alt={asset.name}
+                            className="h-11 w-11 rounded-[14px] object-cover"
+                          />
+                          {isActive ? (
+                            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#2f66f6] text-white">
+                              <Check className="h-3.5 w-3.5 stroke-[3]" />
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-semibold text-[#0f172a]">{asset.name}</div>
+                          <div className="mt-0.5 text-xs text-[#64748b]">
+                            Cycle {asset.cycle.cycle} · {asset.network}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </section>
+
+            <Dialog open={cycleModalOpen} onOpenChange={setCycleModalOpen}>
+              <DialogContent
+                className="max-w-[360px] rounded-[28px] border-0 bg-white p-5 shadow-xl sm:p-6"
+                overlayClassName="bg-black/20"
+              >
+                <DialogHeader className="space-y-2 text-left">
+                  <DialogTitle className="text-[18px] font-semibold text-[#0f172a]">
+                    {selectedAsset.name}
+                  </DialogTitle>
+                  <p className="text-[12px] leading-6 text-[#64748b]">
+                    Select a cycle to view the token financials for that cycle.
+                  </p>
+                </DialogHeader>
+
+                <div className="grid grid-cols-1 gap-2.5">
+                  {cycleOptions.map((entry) => {
+                    const isActiveCycle = entry.cycle === selectedCycle;
+                    return (
+                      <button
+                        key={entry.cycle}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCycle(entry.cycle);
+                          setCycleModalOpen(false);
+                        }}
+                        className={cn(
+                          "flex items-center justify-between rounded-[18px] px-4 py-3 text-left transition",
+                          isActiveCycle ? "bg-[#eef4ff]" : "bg-[#f5f7fb] hover:bg-[#eef2f8]",
+                        )}
+                      >
+                        <div>
+                          <div className="text-[14px] font-semibold text-[#0f172a]">{`Cycle ${entry.cycle}`}</div>
+                          <div className="mt-0.5 text-[11px] text-[#64748b]">
+                            {entry.hasLiveData ? (entry.isCurrent ? "Live data available" : "Recorded cycle data") : "No live cycle data"}
+                          </div>
+                        </div>
+                        {isActiveCycle ? (
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#2f66f6] text-white">
+                            <Check className="h-3.5 w-3.5 stroke-[3]" />
+                          </span>
+                        ) : null}
+                      </button>
+                    );
+                  })}
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <section className="-mx-1 overflow-x-auto no-scrollbar px-1 pb-1">
+              <div className="flex min-w-max gap-3 sm:gap-4">
+                <MetricCard
+                  label="Gross CoinTag Revenue"
+                  value={formatCompactCurrency(metrics.grossRevenue)}
+                  caption={`Actual revenue recorded in cycle ${metrics.cycle}`}
+                  tone="blue"
+                />
+                <MetricCard
+                  label="Launch Cost"
+                  value={formatCompactCurrency(metrics.launchCost)}
+                  caption={`Reserve committed at the start of cycle ${metrics.cycle}`}
+                  tone="slate"
+                />
+                <MetricCard
+                  label="Current Reserve"
+                  value={formatCompactCurrency(metrics.currentReserve)}
+                  caption={`Reserve balance captured for cycle ${metrics.cycle}`}
+                  tone="cyan"
+                />
+                <MetricCard
+                  label="Reserve Funding"
+                  value={formatCompactCurrency(metrics.reserveFunding)}
+                  caption="Liquidity backing plus next-cycle seed"
+                  tone="purple"
+                />
+                <MetricCard
+                  label="Creator Revenue"
+                  value={formatCompactCurrency(metrics.creatorRevenue)}
+                  caption="Creator share generated in this cycle"
+                  tone="orange"
+                />
+                <MetricCard
+                  label="Protocol Profit"
+                  value={formatCompactCurrency(metrics.protocolProfit)}
+                  caption="Protocol-side revenue in this cycle"
+                  tone="green"
+                />
+                <MetricCard
+                  label="Holder Rewards"
+                  value={formatCompactCurrency(metrics.holderRewards)}
+                  caption="Rewards accrued for holders in this cycle"
+                  tone="red"
+                />
+                <MetricCard
+                  label="Reserve Growth"
+                  value={formatCompactCurrency(metrics.reserveGrowth)}
+                  caption="Reserve change from cycle launch cost"
+                  tone="cyan"
                 />
               </div>
-            </CardContent>
-          </Card>
-        </section>
+            </section>
 
-        <section className="grid gap-6">
-          <Card className="border-border/60 bg-surface/60 shadow-sm">
-            <CardHeader className="flex flex-col space-y-2">
-              <CardTitle className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                Multi-Stream Revenue
-                <span className="text-xs font-medium uppercase tracking-[0.3em] text-muted-foreground">
-                  Per collection
-                </span>
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Compare sales, liquidity injections, and holder payouts for each token you launched.
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-3 px-0 pb-5">
-              <div className="px-4 sm:px-6">
-                <div className="flex flex-wrap items-center gap-3 text-xs">
-                  <LegendPill label="Gross Sales" color={chartConfig.sales.color} />
-                  <LegendPill label="Current Liquidity" color={chartConfig.liquidity.color} />
-                  <LegendPill label="Holder Payouts" color={chartConfig.payouts.color} />
-                </div>
-              </div>
-              <ScrollArea className="w-full">
-                <div className="px-4 pb-2 sm:px-6">
-                  <div className={cn("h-[300px] sm:h-[340px]", isMobile ? "min-w-[560px]" : "")} style={{ width: multiStreamMinWidth }}>
-                    <ChartContainer config={chartConfig} className="h-full w-full">
-                      <BarChart
-                        data={performanceSeries}
-                        margin={{ top: 12, right: isMobile ? 12 : 20, left: isMobile ? 8 : 20, bottom: isMobile ? 52 : 56 }}
-                        barCategoryGap={isMobile ? "22%" : "30%"}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis
-                          dataKey="name"
-                          tick={{
-                            fill: "hsl(var(--muted-foreground))",
-                            fontSize: isMobile ? 10 : 11,
-                            angle: -24,
-                            textAnchor: "end",
-                          }}
-                          tickFormatter={(value: string) => (value.length > (isMobile ? 10 : 16) ? `${value.slice(0, isMobile ? 9 : 15)}…` : value)}
-                          tickLine={false}
-                          axisLine={false}
-                          height={58}
-                        />
-                        <YAxis
-                          tick={{ fill: "hsl(var(--muted-foreground))", fontSize: isMobile ? 10 : 11 }}
-                          tickFormatter={(value) => formatCurrencyK(value)}
-                          width={isMobile ? 52 : 60}
-                          axisLine={false}
-                          tickLine={false}
-                        />
-                        <ChartTooltip
-                          cursor={{ fill: "hsl(var(--muted)/20)" }}
-                          content={
-                            <ChartTooltipContent
-                              labelFormatter={(label) => `Asset ${label}`}
-                              formatter={(value, name) => [formatCurrency(Number(value)), chartConfig[name as keyof typeof chartConfig]?.label ?? name]}
-                            />
-                          }
-                        />
-                        <Bar dataKey="sales" fill={chartConfig.sales.color} radius={[8, 8, 4, 4]} maxBarSize={isMobile ? 14 : 20} />
-                        <Bar dataKey="liquidity" fill={chartConfig.liquidity.color} radius={[8, 8, 4, 4]} maxBarSize={isMobile ? 14 : 20} />
-                        <Bar dataKey="payouts" fill={chartConfig.payouts.color} radius={[8, 8, 4, 4]} maxBarSize={isMobile ? 14 : 20} />
-                      </BarChart>
-                    </ChartContainer>
+            <section className="grid gap-4 xl:grid-cols-2">
+              <Panel title="Cycle Revenue Sharing" subtitle="Token split for the selected cycle">
+                <ValueBarChart data={metrics.sharingData} isMobile={isMobile} />
+              </Panel>
+
+              <Panel title="Cycle Financial Position" subtitle="Real financial position for the selected cycle">
+                <ValueBarChart data={metrics.positionData} isMobile={isMobile} />
+              </Panel>
+            </section>
+
+            <section className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,1fr)]">
+              <Panel title="CoinTag Sales Effect" subtitle="How sales are affecting the selected cycle">
+                <ValueBarChart data={metrics.flowData} isMobile={isMobile} />
+              </Panel>
+
+              <Panel title="Cycle Ratios & Status">
+                <div className="space-y-4">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <MiniInfo label="Cycle" value={`${metrics.cycle}`} />
+                    <MiniInfo label="Current LPU" value={formatCompactCurrency(metrics.currentLpu)} />
+                    <MiniInfo label="Remaining Supply" value={`${metrics.remainingSupply}/${metrics.initialSupply}`} />
+                    <MiniInfo label="Next-cycle Seed" value={formatCompactCurrency(metrics.nextCycleSeed)} />
                   </div>
-                </div>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </section>
 
-        <section className="space-y-6">
-          <Card className="border-border/60 bg-surface/60 shadow-sm">
-            <CardHeader>
-              <CardTitle>Cycle Momentum</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Next-cycle liquidity, creator share, and platform allocations plotted per collection.
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-3 px-0 pb-5">
-              <div className="px-4 sm:px-6">
-                <div className="flex flex-wrap items-center gap-3 text-xs">
-                  <LegendPill label="Next Cycle Liquidity" color={chartConfig.nextCycleLiquidity.color} />
-                  <LegendPill label="Creator Share" color={chartConfig.creator.color} />
-                  <LegendPill label="Platform Share" color={chartConfig.platform.color} />
-                </div>
-              </div>
-              <div className="px-4 sm:px-6">
-                <div className="h-[280px] w-full sm:h-[320px]">
-                  <ChartContainer config={chartConfig} className="h-full w-full">
-                    <LineChart data={timelineSeries} margin={{ top: 14, right: isMobile ? 12 : 24, left: isMobile ? 6 : 12, bottom: 8 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis
-                      dataKey="name"
-                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: isMobile ? 10 : 12 }}
-                      interval={isMobile ? "preserveStartEnd" : 0}
-                      minTickGap={isMobile ? 28 : 16}
-                      tickFormatter={(value: string) => (value.length > (isMobile ? 9 : 14) ? `${value.slice(0, isMobile ? 8 : 13)}…` : value)}
-                      tickLine={false}
-                      axisLine={false}
-                    />
-                    <YAxis
-                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: isMobile ? 10 : 11 }}
-                      tickFormatter={(value) => formatCurrencyK(value)}
-                      width={isMobile ? 54 : 64}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <ChartTooltip
-                      cursor={{ stroke: "hsl(var(--muted-foreground))", strokeDasharray: "4 4" }}
-                      content={
-                        <ChartTooltipContent
-                          labelFormatter={(label) => `Collection: ${label}`}
-                          formatter={(value, name) => [formatCurrency(Number(value)), chartConfig[name as keyof typeof chartConfig]?.label ?? name]}
-                        />
-                      }
-                    />
-                    <Line dataKey="nextCycleLiquidity" type="monotone" stroke={chartConfig.nextCycleLiquidity.color} strokeWidth={2.2} dot={!isMobile ? { r: 2.5 } : false} activeDot={{ r: 4 }} name="nextCycleLiquidity" />
-                    <Line dataKey="creator" type="monotone" stroke={chartConfig.creator.color} strokeWidth={2.2} dot={!isMobile ? { r: 2.5 } : false} activeDot={{ r: 4 }} name="creator" />
-                    <Line dataKey="platform" type="monotone" stroke={chartConfig.platform.color} strokeWidth={2.2} dot={!isMobile ? { r: 2.5 } : false} activeDot={{ r: 4 }} name="platform" />
-                  </LineChart>
-                  </ChartContainer>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/60 bg-surface/60 shadow-sm">
-            <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <CardTitle>Token Revenue Leaderboard</CardTitle>
-                <p className="text-xs text-muted-foreground">Top performing launches ranked by cycle sales.</p>
-              </div>
-              <span className="text-[10px] font-semibold uppercase tracking-[0.35em] text-muted-foreground">
-                Sorted by volume
-              </span>
-            </CardHeader>
-            <CardContent className="p-0">
-              <ScrollArea className="max-h-[420px]">
-                <ul className="divide-y divide-border/60">
-                  {leaderboard.map((entry, index) => (
-                    <li
-                      key={entry.id}
-                      className={cn(
-                        "px-4 py-4 transition-colors hover:bg-muted/40",
-                        index < 3 ? "bg-muted/20" : "",
-                      )}
-                    >
-                      <div className="flex items-start gap-3">
-                        <span className="w-7 pt-1 text-right text-sm font-semibold text-muted-foreground/80">#{index + 1}</span>
-                        <img src={entry.image} alt={entry.name} className="h-10 w-10 rounded-xl object-cover" />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                            <div className="truncate text-sm font-semibold text-foreground">
-                              {entry.name}
-                              <span className="ml-2 text-xs font-medium text-muted-foreground">
-                                {entry.ticker || entry.id.toUpperCase()}
-                              </span>
-                            </div>
-                            <div className="font-mono text-sm text-sky-400">{formatCurrency(entry.sales)}</div>
-                          </div>
-                          <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                            <span>Cycle {entry.cycle}</span>
-                            <span>Next seed {formatCurrency(entry.nextSeed)}</span>
-                            <span>Rewards {formatCurrency(entry.rewards)}</span>
-                          </div>
-                          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted/70">
-                            <div
-                              className="h-full rounded-full bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500"
-                              style={{ width: `${Math.min(100, (entry.sales / (topPerformer?.sales || 1)) * 100)}%` }}
-                            />
+                  <div className="space-y-3">
+                    {metrics.ratioData.map((item) => (
+                      <div key={item.label} className="space-y-1.5">
+                        <div className="flex items-center justify-between gap-4 text-xs">
+                          <div className="font-medium text-[#334155]">{item.label}</div>
+                          <div className="text-right">
+                            <span className="font-semibold text-[#0f172a]">{formatCompactCurrency(item.value)}</span>
+                            <span className="ml-2 text-[#64748b]">{item.ratio.toFixed(1)}%</span>
                           </div>
                         </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </section>
-
-        <section className="space-y-6">
-          <Card className="border-border/60 bg-surface/70 shadow-sm">
-            <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <CardTitle>Token Financial Desk</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Tap a collection to review its live revenue splits, liquidity support, and holder rewards.
-                </p>
-              </div>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-6">
-              <div className="-mx-3 flex gap-3 overflow-x-auto px-3 no-scrollbar">
-                {assets.map((asset) => {
-                  const isActive = asset.id === (selectedAsset?.id ?? selectedId);
-                  return (
-                    <button
-                      key={asset.id}
-                      type="button"
-                      onClick={() => setSelectedId(asset.id)}
-                      className={cn(
-                        "flex w-56 shrink-0 flex-col items-start gap-2 rounded-2xl border px-4 py-4 text-left transition sm:w-64",
-                        isActive
-                          ? "border-emerald-400 bg-emerald-400/10"
-                          : "border-border/40 bg-background/60 hover:border-emerald-400/60",
-                      )}
-                    >
-                      <img src={asset.image} alt={asset.name} className="h-10 w-10 rounded-xl object-cover" />
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-semibold text-foreground">{asset.name}</div>
-                        <div className="text-xs text-muted-foreground">Cycle {asset.cycle.cycle}</div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {selectedAsset ? (
-                <div className="space-y-5">
-                  <div className="flex flex-col gap-3 rounded-3xl border border-border/40 bg-background/70 p-5">
-                    <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex items-center gap-3">
-                        <img src={selectedAsset.image} alt={selectedAsset.name} className="h-12 w-12 rounded-xl object-cover" />
-                        <div>
-                          <h2 className="text-lg font-semibold">{selectedAsset.name}</h2>
-                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                            {selectedAsset.ticker || selectedAsset.id} • Cycle {selectedAsset.cycle.cycle}
-                          </p>
+                        <div className="h-2.5 overflow-hidden rounded-full bg-white">
+                          <div
+                            className="h-full rounded-full"
+                            style={{ width: `${Math.min(100, item.ratio)}%`, backgroundColor: item.color }}
+                          />
                         </div>
                       </div>
-                      <div className="rounded-full border border-border/40 bg-surface/70 px-3 py-1 text-xs font-semibold text-muted-foreground">
-                        {formatCurrency(selectedAsset.cycle.totalSales)} gross sales
-                      </div>
-                    </header>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <DetailMetric label="Creator Share" value={selectedAsset.cycle.accrued.creator ?? 0} />
-                      <DetailMetric label="Current Liquidity" value={selectedAsset.cycle.accrued.currentCycleLiquidity ?? 0} />
-                      <DetailMetric label="Holder Rewards" value={selectedAsset.cycle.accrued.holderRewards ?? 0} />
-                      <DetailMetric label="Next Cycle Liquidity" value={selectedAsset.cycle.accrued.nextCycleLiquidity ?? 0} />
-                      <DetailMetric label="Platform Allocation" value={selectedAsset.cycle.accrued.platform ?? 0} />
-                      <DetailMetric label="Seed to Next Cycle" value={selectedAsset.cycle.seedNext} />
-                    </div>
-                  </div>
-
-                  <div className="rounded-3xl border border-border/40 bg-background/60 p-4">
-                    <h3 className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">Financial Split</h3>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Visual breakdown of how this token's revenue is distributed.
-                    </p>
-                    <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
-                      <div className="h-[260px]">
-                        <ChartContainer config={chartConfig} className="h-full w-full">
-                          <BarChart
-                            data={selectedSplitSeries}
-                            layout="vertical"
-                            margin={{ top: 8, right: 14, left: 8, bottom: 8 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
-                            <XAxis
-                              type="number"
-                              tickFormatter={(value) => formatCurrencyK(value)}
-                              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-                              axisLine={false}
-                              tickLine={false}
-                            />
-                            <YAxis
-                              dataKey="label"
-                              type="category"
-                              width={isMobile ? 108 : 136}
-                              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: isMobile ? 10 : 11 }}
-                              tickFormatter={(value: string) => (value.length > (isMobile ? 13 : 18) ? `${value.slice(0, isMobile ? 12 : 17)}…` : value)}
-                              axisLine={false}
-                              tickLine={false}
-                            />
-                            <ChartTooltip
-                              cursor={{ fill: "hsl(var(--muted)/20)" }}
-                              content={
-                                <ChartTooltipContent
-                                  formatter={(value, name) => [formatCurrency(Number(value)), chartConfig[name as keyof typeof chartConfig]?.label ?? name]}
-                                />
-                              }
-                            />
-                            <Bar dataKey="value" radius={[0, 8, 8, 0]}>
-                              {selectedSplitSeries.map((entry) => (
-                                <Cell key={entry.key} fill={entry.color} />
-                              ))}
-                            </Bar>
-                          </BarChart>
-                        </ChartContainer>
-                      </div>
-                      <div className="grid gap-2 rounded-2xl border border-border/40 bg-background/50 p-3">
-                        {selectedSplitSeries.map((entry) => {
-                          const pct = selectedSplitTotal > 0 ? (entry.value / selectedSplitTotal) * 100 : 0;
-                          return (
-                            <div key={`split-${entry.key}`} className="space-y-1">
-                              <div className="flex items-center justify-between gap-3 text-xs">
-                                <div className="flex items-center gap-2">
-                                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                                  <span className="text-muted-foreground">{entry.label}</span>
-                                </div>
-                                <span className="font-mono text-foreground">{pct.toFixed(1)}%</span>
-                              </div>
-                              <div className="h-1.5 overflow-hidden rounded-full bg-muted/70">
-                                <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: entry.color }} />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
-              ) : (
-                <div className="rounded-3xl border border-border/40 bg-background/70 p-6 text-sm text-muted-foreground">
-                  Select a token to see its financial breakdown.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </section>
+              </Panel>
+            </section>
+          </div>
+        </div>
       </main>
     </div>
   );
 }
 
-type KpiCardProps = {
-  icon: React.ComponentType<{ className?: string }>;
+function MetricCard({
+  label,
+  value,
+  caption,
+  tone,
+}: {
   label: string;
-  primary: string;
+  value: string;
   caption: string;
-  tone?: "blue" | "cyan" | "indigo" | "teal";
-};
-
-function KpiCard({ icon: Icon, label, primary, caption, tone = "blue" }: KpiCardProps) {
-  const toneMap = {
-    blue: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    cyan: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
-    indigo: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
-    teal: "bg-teal-500/10 text-teal-400 border-teal-500/20",
-  } as const;
-
+  tone: keyof typeof metricTones;
+}) {
   return (
-    <div className="rounded-3xl border border-border/60 bg-gradient-to-br from-background to-surface/70 p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div className={cn("rounded-2xl border p-2", toneMap[tone])}>
-          <Icon className="h-5 w-5" />
+    <Card className={cn(cardClass, "w-[220px] shrink-0 rounded-[22px] sm:w-[250px]")}>
+      <CardContent className="p-3.5 sm:p-4.5">
+        <div className={cn("text-[11px] font-semibold uppercase tracking-[0.08em] sm:text-[12px]", metricTones[tone])}>
+          {label}
         </div>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">Live</span>
-      </div>
-      <div className="mt-6 space-y-2">
-        <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">{label}</p>
-        <p className="text-2xl font-semibold text-foreground">{primary}</p>
-        <p className="text-xs text-muted-foreground">{caption}</p>
-      </div>
+        <div className="mt-3 text-[22px] font-semibold leading-none tracking-tight text-[#0f172a] sm:mt-4 sm:text-[26px]">
+          {value}
+        </div>
+        <p className="mt-2.5 text-[11px] leading-5 text-[#64748b] sm:mt-3 sm:text-[12px] sm:leading-6">{caption}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function Panel({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+}) {
+  return (
+    <Card className={cardClass}>
+      <CardHeader className="space-y-1 p-5 pb-2 sm:p-6 sm:pb-3">
+        <CardTitle className="text-[17px] font-semibold tracking-tight text-[#0f172a] sm:text-[20px]">
+          {title}
+        </CardTitle>
+        {subtitle ? <p className="text-[12px] leading-6 text-[#64748b]">{subtitle}</p> : null}
+      </CardHeader>
+      <CardContent className="p-5 pt-2 sm:p-6 sm:pt-2">{children}</CardContent>
+    </Card>
+  );
+}
+
+function ValueBarChart({ data, isMobile }: { data: ValuePoint[]; isMobile: boolean }) {
+  return (
+    <div className="h-[240px] w-full sm:h-[270px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={data}
+          margin={{ top: 8, right: isMobile ? 4 : 12, left: isMobile ? 2 : 10, bottom: 0 }}
+          barCategoryGap={isMobile ? "18%" : "20%"}
+        >
+          <CartesianGrid stroke="#dbe3f0" strokeDasharray="6 6" vertical={false} />
+          <XAxis
+            dataKey="label"
+            tick={{ fill: "#7c8ba1", fontSize: isMobile ? 10 : 11 }}
+            tickLine={false}
+            axisLine={false}
+            interval={0}
+            angle={isMobile ? -18 : 0}
+            textAnchor={isMobile ? "end" : "middle"}
+            height={isMobile ? 48 : 34}
+          />
+          <YAxis
+            tick={{ fill: "#7c8ba1", fontSize: isMobile ? 10 : 11 }}
+            tickFormatter={(value) => formatCurrencyK(Number(value))}
+            tickLine={false}
+            axisLine={false}
+            width={isMobile ? 48 : 60}
+          />
+          <Tooltip content={<CustomTooltip />} />
+          <Bar dataKey="value" radius={[10, 10, 4, 4]} maxBarSize={isMobile ? 20 : 26}>
+            {data.map((item) => (
+              <Cell key={item.label} fill={item.color} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }
 
-function DetailMetric({ label, value }: { label: string; value: number }) {
+function MiniInfo({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-border/40 bg-surface/70 p-3">
-      <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{label}</div>
-      <div className="mt-1 font-mono text-sm text-foreground">{formatCurrency(value)}</div>
+    <div className="rounded-[18px] bg-white p-4">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#94a3b8]">{label}</div>
+      <div className="mt-2 text-[16px] font-semibold text-[#0f172a]">{value}</div>
     </div>
-  );
-}
-
-function LegendPill({ label, color }: { label: string; color: string }) {
-  return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/70 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
-      {label}
-    </span>
   );
 }
