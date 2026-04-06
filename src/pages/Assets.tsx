@@ -509,10 +509,13 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          {stats.map((stat) => (
+          {stats.map((stat, index) => (
             <div
               key={`${asset.id}-${stat.label}`}
-              className="rounded-[18px] bg-[#E2E7F0] px-2.5 py-2.5"
+              className={cn(
+                "rounded-[18px] bg-transparent px-1 py-1.5",
+                index % 2 === 1 && "text-center",
+              )}
             >
               <span className="block text-[9px] uppercase tracking-[0.14em] text-[#8B97AB]">{stat.label}</span>
               <span className="mt-0.5 block font-mono text-[0.92rem] font-semibold text-[#101828]">{stat.value}</span>

@@ -1,3 +1,4 @@
+import { Instagram, Linkedin, Send, Twitter, Youtube } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -45,11 +46,43 @@ const HOW_IT_WORKS_STEPS = [
   },
 ] as const;
 
+const FOOTER_SECTIONS = [
+  {
+    title: "Platform",
+    links: [
+      { label: "Assets", to: "/assets" },
+      { label: "Portfolio", to: "/portfolio" },
+      { label: "Revenue", to: "/revenue" },
+      { label: "Wallet", to: "/wallet" },
+    ],
+  },
+  {
+    title: "Creators",
+    links: [
+      { label: "LaunchPad", to: "/assets" },
+      { label: "How It Works", to: "/coin-tags" },
+      { label: "Token Financials", to: "/revenue" },
+      { label: "Notifications", to: "/notifications" },
+    ],
+  },
+  {
+    title: "Resources",
+    links: [
+      { label: "Blog", to: "/blog" },
+      { label: "Marketplace", to: "/assets" },
+      { label: "Connect Wallet", to: "/portfolio" },
+      { label: "Get Started", to: "/assets" },
+    ],
+  },
+] as const;
+
 const SolarisSlider = () => {
   const navigate = useNavigate();
   const [isNavScrolled, setIsNavScrolled] = useState(false);
   const [isNavPastHero, setIsNavPastHero] = useState(false);
   const [openHowItWorks, setOpenHowItWorks] = useState(0);
+  const currentYear = new Date().getFullYear();
+  const landingRef = useRef<HTMLDivElement | null>(null);
   const heroSectionRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -84,8 +117,75 @@ const SolarisSlider = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const landingRoot = landingRef.current;
+    if (!landingRoot) return;
+
+    const animatedElements = Array.from(landingRoot.querySelectorAll<HTMLElement>(".scroll-drop"));
+    if (animatedElements.length === 0) return;
+
+    const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (reducedMotionQuery.matches) {
+      animatedElements.forEach((element) => {
+        element.classList.remove("scroll-drop-ready");
+        element.classList.add("is-visible");
+      });
+      return;
+    }
+
+    let rafId = 0;
+
+    animatedElements.forEach((element) => element.classList.add("scroll-drop-ready"));
+
+    const updateVisibility = () => {
+      const isMobile = window.innerWidth <= 768;
+      const viewportHeight = window.innerHeight;
+      const revealStart = viewportHeight * (isMobile ? 0.94 : 0.82);
+      const revealEnd = isMobile ? -24 : viewportHeight * 0.08;
+      const hideTop = isMobile ? -220 : -96;
+      const hideBottom = viewportHeight + (isMobile ? 220 : 96);
+
+      animatedElements.forEach((element) => {
+        const rect = element.getBoundingClientRect();
+        const shouldShow = rect.top <= revealStart && rect.bottom >= revealEnd;
+        const shouldHide = rect.bottom < hideTop || rect.top > hideBottom;
+
+        if (shouldShow) {
+          element.classList.add("is-visible");
+          return;
+        }
+
+        if (shouldHide) {
+          element.classList.remove("is-visible");
+        }
+      });
+    };
+
+    const scheduleUpdate = () => {
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = 0;
+        updateVisibility();
+      });
+    };
+
+    updateVisibility();
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate);
+
+    return () => {
+      if (rafId) {
+        window.cancelAnimationFrame(rafId);
+      }
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
+    };
+  }, []);
+
   return (
-    <div className="solaris-landing">
+    <div ref={landingRef} className="solaris-landing">
       <style>{`
         .solaris-landing {
           position: relative;
@@ -94,6 +194,64 @@ const SolarisSlider = () => {
           color: #060b16;
           background: #ffffff;
           font-family: "Glacial Indifference", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .scroll-drop {
+          opacity: 1;
+          transform: none;
+          filter: none;
+        }
+
+        .scroll-drop.scroll-drop-ready {
+          opacity: 0;
+          transform: translate3d(0, -44px, 0) scale(0.985);
+          filter: blur(12px);
+          transition:
+            opacity 0.68s cubic-bezier(0.22, 1, 0.36, 1),
+            transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+            filter 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+          will-change: opacity, transform, filter;
+        }
+
+        .scroll-drop.scroll-drop-ready.is-visible {
+          opacity: 1;
+          transform: translate3d(0, 0, 0) scale(1);
+          filter: blur(0);
+        }
+
+        .scroll-drop[data-drop-delay="1"] {
+          transition-delay: 0.08s;
+        }
+
+        .scroll-drop[data-drop-delay="2"] {
+          transition-delay: 0.16s;
+        }
+
+        .scroll-drop[data-drop-delay="3"] {
+          transition-delay: 0.24s;
+        }
+
+        .scroll-drop[data-drop-delay="4"] {
+          transition-delay: 0.32s;
+        }
+
+        .scroll-drop[data-drop-delay="5"] {
+          transition-delay: 0.4s;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .scroll-drop {
+            opacity: 1;
+            transform: none;
+            filter: none;
+            transition: none;
+          }
+
+          .scroll-drop.scroll-drop-ready {
+            opacity: 1;
+            transform: none;
+            filter: none;
+          }
         }
 
         .landing-shell {
@@ -128,43 +286,43 @@ const SolarisSlider = () => {
           right: 0;
           z-index: 50;
           padding: 14px 22px;
-          isolation: isolate;
-          overflow: hidden;
-          transition: box-shadow 0.24s ease;
-        }
-
-        .landing-nav::before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          background: transparent;
-          backdrop-filter: none;
-          -webkit-backdrop-filter: none;
-          transition: background 0.24s ease, backdrop-filter 0.24s ease;
           pointer-events: none;
-          transform: translateZ(0);
-          will-change: backdrop-filter, transform;
-        }
-
-        .landing-nav.landing-nav-scrolled {
-          box-shadow: 0 10px 28px rgba(6, 11, 22, 0.08);
-        }
-
-        .landing-nav.landing-nav-scrolled::before {
-          background: rgba(248, 252, 255, 0.78);
-          backdrop-filter: saturate(180%) blur(20px);
-          -webkit-backdrop-filter: saturate(180%) blur(20px);
+          background: url("/ks1.png") center top / cover no-repeat;
         }
 
         .landing-nav-inner {
-          position: relative;
-          z-index: 1;
           max-width: 1220px;
           margin: 0 auto;
+          pointer-events: auto;
+        }
+
+        .landing-nav-bar {
           display: grid;
           grid-template-columns: 1fr auto 1fr;
           align-items: center;
           gap: 16px;
+          min-height: 64px;
+          padding: 0;
+          border-radius: 0;
+          background: transparent;
+          border: 0;
+          box-shadow: none;
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
+          transition:
+            background 0.24s ease,
+            backdrop-filter 0.24s ease,
+            -webkit-backdrop-filter 0.24s ease,
+            box-shadow 0.24s ease,
+            border-color 0.24s ease;
+        }
+
+        .landing-nav.landing-nav-scrolled .landing-nav-bar {
+          background: transparent;
+          border-color: transparent;
+          box-shadow: none;
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
         }
 
         .nav-brand {
@@ -244,7 +402,7 @@ const SolarisSlider = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 40px 20px 120px;
+          padding: 58px 20px 120px;
         }
 
         .landing-hero-inner {
@@ -485,31 +643,10 @@ const SolarisSlider = () => {
         .lft-section-inner {
           max-width: 1220px;
           margin: 0 auto;
-          text-align: left;
-        }
-
-        .lft-section-title {
-          margin: 0;
-          color: #2f59e8;
-          font-size: clamp(28px, 4.6vw, 56px);
-          line-height: 1;
-          letter-spacing: -0.04em;
-          font-weight: 400;
-        }
-
-        .lft-section-copy {
-          margin: 14px 0 0;
-          max-width: 760px;
-          color: rgba(6, 11, 22, 0.76);
-          font-size: clamp(16px, 1.4vw, 22px);
-          line-height: 1.5;
-          font-weight: 400;
-          margin-left: 0;
-          margin-right: auto;
         }
 
         .lft-image-frame {
-          width: min(100%, 1140px);
+          width: min(100%, 980px);
           margin: 28px auto 0;
           padding: 0;
           border-radius: 18px;
@@ -560,15 +697,15 @@ const SolarisSlider = () => {
         }
 
         .how-it-works-heading {
-          width: fit-content;
+          width: auto;
           margin: 0 0 28px;
-          padding: 12px 18px;
-          border: 1px solid #f2d45e;
-          border-radius: 999px;
-          background: #fff7cf;
-          color: #d2a40c;
-          font-size: clamp(22px, 2.4vw, 36px);
-          line-height: 1;
+          padding: 0;
+          border: 0;
+          border-radius: 0;
+          background: transparent;
+          color: #060b16;
+          font-size: clamp(24px, 2.6vw, 40px);
+          line-height: 1.05;
           letter-spacing: -0.03em;
           font-weight: 500;
         }
@@ -576,26 +713,27 @@ const SolarisSlider = () => {
         .how-it-works-track {
           display: flex;
           flex-direction: column;
-          gap: 14px;
+          gap: 0;
           align-items: stretch;
-          padding: 6px 4px 10px;
+          padding: 0;
+          border-top: 1px solid rgba(6, 11, 22, 0.18);
         }
 
         .how-it-works-card {
           width: 100%;
-          border-radius: 26px;
-          background: #ffffff;
-          border: 1px solid rgba(6, 11, 22, 0.08);
-          box-shadow: 0 16px 38px rgba(6, 11, 22, 0.08);
+          border-radius: 0;
+          background: transparent;
+          border-bottom: 1px solid rgba(6, 11, 22, 0.18);
+          box-shadow: none;
         }
 
         .how-it-works-trigger {
           width: 100%;
           display: grid;
-          grid-template-columns: 70px minmax(0, 1fr) 40px;
+          grid-template-columns: 58px minmax(0, 1fr) 36px;
           align-items: center;
-          gap: 16px;
-          padding: 22px 24px;
+          gap: 18px;
+          padding: 26px 0;
           border: 0;
           background: transparent;
           text-align: left;
@@ -607,47 +745,42 @@ const SolarisSlider = () => {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          width: 52px;
-          height: 52px;
-          border-radius: 18px;
-          background: #fff7cf;
-          color: #d2a40c;
-          font-size: 18px;
+          width: 44px;
+          height: 44px;
+          border-radius: 999px;
+          background: #f4f6fb;
+          color: #6b7280;
+          font-size: 16px;
           line-height: 1;
-          font-weight: 500;
-          letter-spacing: -0.03em;
+          font-weight: 400;
+          letter-spacing: -0.02em;
         }
 
         .how-it-works-question {
-          font-size: clamp(18px, 2vw, 28px);
-          line-height: 1.15;
+          font-size: clamp(20px, 2vw, 28px);
+          line-height: 1.2;
           letter-spacing: -0.03em;
-          font-weight: 500;
+          font-weight: 400;
         }
 
         .how-it-works-icon {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 34px;
-          height: 34px;
-          border-radius: 999px;
-          background: #edf4ff;
-          color: #2f59e8;
-          font-size: 22px;
-          line-height: 1;
-          font-weight: 400;
+          display: inline-block;
+          color: #060b16;
+          font-size: 42px;
+          line-height: 0.8;
+          font-weight: 300;
+          text-align: center;
           transition: transform 0.24s ease;
         }
 
         .how-it-works-card[data-open="true"] .how-it-works-icon {
-          transform: rotate(45deg);
+          transform: rotate(135deg);
         }
 
         .how-it-works-answer {
-          padding: 0 24px 24px 110px;
+          padding: 0 0 28px 76px;
           color: rgba(6, 11, 22, 0.72);
-          font-size: clamp(15px, 1.25vw, 20px);
+          font-size: clamp(15px, 1.25vw, 18px);
           line-height: 1.55;
           letter-spacing: -0.01em;
         }
@@ -665,8 +798,124 @@ const SolarisSlider = () => {
           max-width: 860px;
         }
 
+        .landing-footer {
+          margin-top: 28px;
+          background: #171717;
+          padding: 0 24px;
+        }
+
+        .landing-footer-inner {
+          max-width: 1360px;
+          margin: 0 auto;
+          padding: 48px 8px 52px;
+          display: grid;
+          grid-template-columns: minmax(0, 1.2fr) repeat(3, minmax(160px, 1fr));
+          align-items: flex-start;
+          gap: 36px 56px;
+        }
+
+        .landing-footer-brand {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+
+        .landing-footer-mark {
+          display: inline-flex;
+          align-items: center;
+          gap: 12px;
+          color: #ffffff;
+          font-size: clamp(30px, 3vw, 36px);
+          line-height: 1;
+          letter-spacing: -0.03em;
+          font-weight: 500;
+        }
+
+        .landing-footer-mark img {
+          width: 42px;
+          height: 42px;
+          border-radius: 999px;
+          display: block;
+        }
+
+        .landing-footer-copy {
+          max-width: 360px;
+          margin: 0;
+          color: rgba(255, 255, 255, 0.58);
+          font-size: 15px;
+          line-height: 1.6;
+        }
+
+        .landing-footer-socials {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          align-items: center;
+        }
+
+        .landing-footer-social {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 42px;
+          height: 42px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.06);
+          color: rgba(255, 255, 255, 0.72);
+          transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .landing-footer-social:hover {
+          background: rgba(255, 255, 255, 0.12);
+          border-color: rgba(255, 255, 255, 0.16);
+          color: #ffffff;
+        }
+
+        .landing-footer-columns {
+          display: contents;
+        }
+
+        .landing-footer-column {
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+        }
+
+        .landing-footer-column-title {
+          margin: 0;
+          color: #ffffff;
+          font-size: clamp(22px, 2vw, 28px);
+          line-height: 1.05;
+          letter-spacing: -0.03em;
+          font-weight: 500;
+        }
+
+        .landing-footer-links {
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+          align-items: flex-start;
+        }
+
+        .landing-footer-link {
+          border: 0;
+          padding: 0;
+          background: transparent;
+          color: rgba(255, 255, 255, 0.62);
+          font-size: 15px;
+          line-height: 1.4;
+          letter-spacing: -0.01em;
+          cursor: pointer;
+          transition: color 0.2s ease;
+        }
+
+        .landing-footer-link:hover {
+          color: #ffffff;
+        }
+
         @media (max-width: 1100px) {
-          .landing-nav-inner {
+          .landing-nav-bar {
             grid-template-columns: 1fr auto;
             gap: 10px;
           }
@@ -678,24 +927,50 @@ const SolarisSlider = () => {
         }
 
         @media (max-width: 768px) {
+          .scroll-drop,
+          .scroll-drop.is-visible,
+          .scroll-drop.scroll-drop-ready,
+          .scroll-drop.scroll-drop-ready.is-visible {
+            opacity: 1;
+            transform: none;
+            filter: none;
+            transition: none;
+          }
+
           .landing-nav {
-            padding: 10px 12px;
+            padding: 10px 12px 0;
+            background: linear-gradient(180deg, rgba(186, 225, 250, 0.96) 0%, rgba(170, 214, 246, 0.72) 62%, rgba(170, 214, 246, 0) 100%);
+            transition:
+              background 0.24s ease,
+              backdrop-filter 0.24s ease,
+              -webkit-backdrop-filter 0.24s ease,
+              box-shadow 0.24s ease;
+          }
+
+          .landing-nav-bar {
+            min-height: 54px;
+            padding: 0;
+            margin-bottom: 8px;
+            border-radius: 0;
+            background: transparent;
+            border: 0;
+            box-shadow: none;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
           }
 
           .landing-nav.landing-nav-scrolled {
-            box-shadow: 0 10px 28px rgba(6, 11, 22, 0.1);
+            background: linear-gradient(180deg, rgba(198, 231, 252, 0.88) 0%, rgba(183, 222, 250, 0.68) 66%, rgba(183, 222, 250, 0.12) 100%);
+            box-shadow: 0 10px 24px rgba(6, 11, 22, 0.08);
+            backdrop-filter: saturate(180%) blur(18px);
+            -webkit-backdrop-filter: saturate(180%) blur(18px);
           }
 
-          .landing-nav.landing-nav-scrolled::before {
-            background: rgba(248, 252, 255, 0.74);
-            backdrop-filter: saturate(180%) blur(20px);
-            -webkit-backdrop-filter: saturate(180%) blur(20px);
-          }
-
-          .landing-nav.landing-nav-past-hero::before {
-            background: #ffffff;
-            backdrop-filter: none;
-            -webkit-backdrop-filter: none;
+          .landing-nav.landing-nav-past-hero {
+            background: rgba(255, 255, 255, 0.82);
+            box-shadow: 0 10px 24px rgba(6, 11, 22, 0.1);
+            backdrop-filter: saturate(180%) blur(22px);
+            -webkit-backdrop-filter: saturate(180%) blur(22px);
           }
 
           .nav-brand {
@@ -762,8 +1037,9 @@ const SolarisSlider = () => {
           .problem-section {
             width: calc(100% - 16px);
             max-width: none;
-            margin: 0 0 0 auto;
+            margin: 0 auto;
             padding: 8px 16px 52px;
+            text-align: left;
           }
 
           .problem-title {
@@ -777,16 +1053,18 @@ const SolarisSlider = () => {
           .problem-list {
             margin-top: 14px;
             gap: 20px;
+            align-items: center;
           }
 
           .problem-box-row {
             width: 100%;
             grid-template-columns: 1fr;
             gap: 20px;
+            justify-items: center;
           }
 
           .problem-box {
-            width: 100%;
+            width: min(100%, 640px);
             min-height: 290px;
             padding: 20px 18px 112px;
             border-radius: 24px;
@@ -814,18 +1092,8 @@ const SolarisSlider = () => {
             padding: 48px 16px 56px;
           }
 
-          .lft-section-title {
-            font-size: clamp(24px, 7vw, 34px);
-          }
-
-          .lft-section-copy {
-            margin-top: 12px;
-            font-size: 15px;
-            line-height: 1.55;
-          }
-
           .lft-image-frame {
-            width: min(86vw, 320px);
+            width: min(94vw, 380px);
             margin-top: 20px;
             padding: 0;
             border-radius: 13px;
@@ -859,55 +1127,101 @@ const SolarisSlider = () => {
 
           .how-it-works-heading {
             margin-bottom: 18px;
-            padding: 10px 14px;
-            font-size: clamp(18px, 5.8vw, 26px);
+            padding: 0;
+            font-size: clamp(22px, 6vw, 30px);
           }
 
           .how-it-works-track {
-            gap: 12px;
+            gap: 0;
             padding: 4px 2px 8px;
           }
 
           .how-it-works-card {
-            border-radius: 20px;
+            border-radius: 0;
           }
 
           .how-it-works-trigger {
             grid-template-columns: 52px minmax(0, 1fr) 32px;
             gap: 12px;
-            padding: 16px 16px 14px;
+            padding: 18px 0 16px;
           }
 
           .how-it-works-number {
-            width: 40px;
-            height: 40px;
-            border-radius: 14px;
+            width: 36px;
+            height: 36px;
+            border-radius: 999px;
             font-size: 15px;
           }
 
           .how-it-works-question {
-            font-size: 17px;
-            line-height: 1.2;
+            font-size: 16px;
+            line-height: 1.25;
           }
 
           .how-it-works-icon {
-            width: 28px;
-            height: 28px;
-            font-size: 18px;
+            width: auto;
+            height: auto;
+            font-size: 34px;
           }
 
           .how-it-works-answer {
-            padding: 0 16px 16px 68px;
+            padding: 0 0 18px 48px;
             font-size: 14px;
             line-height: 1.5;
+          }
+
+          .landing-footer {
+            padding: 0 16px 28px;
+          }
+
+          .landing-footer-inner {
+            grid-template-columns: 1fr;
+            gap: 28px;
+            padding: 32px 0 34px;
+          }
+
+          .landing-footer-copy {
+            max-width: none;
+            font-size: 13px;
+          }
+
+          .landing-footer-mark {
+            font-size: 28px;
+          }
+
+          .landing-footer-mark img {
+            width: 34px;
+            height: 34px;
+          }
+
+          .landing-footer-social {
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+          }
+
+          .landing-footer-column {
+            gap: 14px;
+          }
+
+          .landing-footer-column-title {
+            font-size: 22px;
+          }
+
+          .landing-footer-links {
+            gap: 12px;
+          }
+
+          .landing-footer-link {
+            font-size: 13px;
           }
         }
       `}</style>
 
       <div className="landing-shell">
-        <div className="landing-top-band">
-          <nav className={`landing-nav${isNavScrolled ? " landing-nav-scrolled" : ""}${isNavPastHero ? " landing-nav-past-hero" : ""}`}>
-            <div className="landing-nav-inner">
+        <nav className={`landing-nav${isNavScrolled ? " landing-nav-scrolled" : ""}${isNavPastHero ? " landing-nav-past-hero" : ""}`}>
+          <div className="landing-nav-inner">
+            <div className="landing-nav-bar">
               <button className="nav-brand" onClick={() => navigate("/")}>
                 <span className="nav-logo">
                   <img src="/h4.png" alt="Solaris logo" />
@@ -927,8 +1241,10 @@ const SolarisSlider = () => {
                 <span aria-hidden="true">›</span>
               </button>
             </div>
-          </nav>
+          </div>
+        </nav>
 
+        <div className="landing-top-band">
           <section ref={heroSectionRef} className="landing-hero">
             <div className="landing-hero-inner">
               <h1 className="landing-hero-title">Solaris</h1>
@@ -949,29 +1265,22 @@ const SolarisSlider = () => {
         </div>
 
         <main className="landing-empty">
-          <section className="landing-section">
-            <h3 className="landing-section-title">Zero to Value.</h3>
-            <p className="landing-section-copy">
-              Digital assets shouldn&apos;t be a gamble. Most tokens today are built on hype and they end in extraction leaving
-              the end users liquidated. We built something different. A token that actually has a guaranteed floor that
-              requires no complex engagement such as trading, farming or drops.
-            </p>
-          </section>
-
           <section className="problem-section">
-            <h3 className="problem-title">The problem</h3>
-            <p className="problem-subtitle">Problems across all asset class</p>
+            <div className="scroll-drop">
+              <h3 className="problem-title">The problem</h3>
+              <p className="problem-subtitle">Problems across all asset class</p>
+            </div>
 
             <div className="problem-list">
               <div className="problem-box-row">
-                <article className="problem-box problem-box--blue">
+                <article className="problem-box problem-box--blue scroll-drop" data-drop-delay="1">
                   <p className="problem-box-copy">{PRIMARY_PROBLEM.text}</p>
                   <div className="problem-box-frame">
                     <img className="problem-box-image" src={PRIMARY_PROBLEM.image} alt={PRIMARY_PROBLEM.alt} />
                   </div>
                 </article>
 
-                <article className="problem-box problem-box--yellow">
+                <article className="problem-box problem-box--yellow scroll-drop" data-drop-delay="2">
                   <p className="problem-box-copy">{SECONDARY_PROBLEM.text}</p>
                   <div className="problem-box-frame">
                     <img className="problem-box-image" src={SECONDARY_PROBLEM.image} alt={SECONDARY_PROBLEM.alt} />
@@ -980,14 +1289,14 @@ const SolarisSlider = () => {
               </div>
 
               <div className="problem-box-row">
-                <article className="problem-box problem-box--green">
+                <article className="problem-box problem-box--green scroll-drop" data-drop-delay="3">
                   <p className="problem-box-copy">{TERTIARY_PROBLEM.text}</p>
                   <div className="problem-box-frame">
                     <img className="problem-box-image" src={TERTIARY_PROBLEM.image} alt={TERTIARY_PROBLEM.alt} />
                   </div>
                 </article>
 
-                <article className="problem-box problem-box--purple">
+                <article className="problem-box problem-box--purple scroll-drop" data-drop-delay="4">
                   <p className="problem-box-copy">{QUATERNARY_PROBLEM.text}</p>
                   <div className="problem-box-frame">
                     <img className="problem-box-image" src={QUATERNARY_PROBLEM.image} alt={QUATERNARY_PROBLEM.alt} />
@@ -997,22 +1306,24 @@ const SolarisSlider = () => {
             </div>
           </section>
 
-          <section className="lft-section" id="lft-section">
+          <section className="landing-section scroll-drop">
+            <h3 className="landing-section-title">Zero to Value.</h3>
+            <p className="landing-section-copy">
+              Digital assets shouldn&apos;t be a gamble. Most tokens today are built on hype and they end in extraction leaving
+              the end users liquidated. We built something different. A token that actually has a guaranteed floor that
+              requires no complex engagement such as trading, farming or drops.
+            </p>
+          </section>
+
+          <section className="lft-section scroll-drop" id="lft-section" data-drop-delay="1">
             <div className="lft-section-inner">
-              <h3 className="lft-section-title">Introducing LFTs.</h3>
-              <p className="lft-section-copy">
-                Liquidity Funded Tokens. Value-backed from day one. Guaranteed redemption that never hits zero.
-              </p>
               <div className="lft-image-frame">
-                <picture className="lft-image-picture">
-                  <source media="(max-width: 768px)" srcSet="/v3.png" />
-                  <img className="lft-image" src="/v2.png" alt="LFT interface preview" />
-                </picture>
+                <img className="lft-image" src="/v2.png" alt="LFT interface preview" />
               </div>
             </div>
           </section>
 
-          <section className="paradigm-section">
+          <section className="paradigm-section scroll-drop" data-drop-delay="2">
             <div className="paradigm-section-inner">
               <p className="paradigm-copy">
                 Liquidity Funded Tokens (LFTs) introduce a new paradigm in digital assets: tokens backed by real liquidity
@@ -1024,12 +1335,17 @@ const SolarisSlider = () => {
 
           <section className="how-it-works-section">
             <div className="how-it-works-inner">
-              <h3 className="how-it-works-heading">How it works</h3>
+              <h3 className="how-it-works-heading scroll-drop">How it works</h3>
               <div className="how-it-works-track">
                 {HOW_IT_WORKS_STEPS.map((item, index) => {
                   const isOpen = openHowItWorks === index;
                   return (
-                    <article className="how-it-works-card" data-open={isOpen} key={item.title}>
+                    <article
+                      className="how-it-works-card scroll-drop"
+                      data-open={isOpen}
+                      data-drop-delay={String(Math.min(index + 1, 5))}
+                      key={item.title}
+                    >
                       <button
                         type="button"
                         className="how-it-works-trigger"
@@ -1051,6 +1367,57 @@ const SolarisSlider = () => {
               </div>
             </div>
           </section>
+
+          <footer className="landing-footer">
+            <div className="landing-footer-inner">
+              <div className="landing-footer-brand scroll-drop">
+                <div className="landing-footer-mark">
+                  <img src="/h4.png" alt="Solaris logo" />
+                  <span>Solaris</span>
+                </div>
+                <p className="landing-footer-copy">
+                  Liquidity-backed token cycles built for real value, measurable demand, and cleaner creator economics.
+                </p>
+                <p className="landing-footer-copy">© {currentYear} Solaris. All rights reserved.</p>
+                <div className="landing-footer-socials">
+                  <button className="landing-footer-social" aria-label="Instagram">
+                    <Instagram size={18} />
+                  </button>
+                  <button className="landing-footer-social" aria-label="Twitter">
+                    <Twitter size={18} />
+                  </button>
+                  <button className="landing-footer-social" aria-label="LinkedIn">
+                    <Linkedin size={18} />
+                  </button>
+                  <button className="landing-footer-social" aria-label="Telegram">
+                    <Send size={18} />
+                  </button>
+                  <button className="landing-footer-social" aria-label="YouTube">
+                    <Youtube size={18} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="landing-footer-columns">
+                {FOOTER_SECTIONS.map((section, index) => (
+                  <div className="landing-footer-column scroll-drop" data-drop-delay={String(Math.min(index + 1, 4))} key={section.title}>
+                    <h4 className="landing-footer-column-title">{section.title}</h4>
+                    <div className="landing-footer-links">
+                      {section.links.map((link) => (
+                        <button
+                          key={`${section.title}-${link.label}`}
+                          className="landing-footer-link"
+                          onClick={() => navigate(link.to)}
+                        >
+                          {link.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </footer>
         </main>
       </div>
     </div>

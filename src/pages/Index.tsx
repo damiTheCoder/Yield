@@ -108,7 +108,7 @@ const Index = () => {
   };
 
   useEffect(() => {
-    const handleScroll = () => setNavDropped(window.scrollY > 12);
+    const handleScroll = () => setNavDropped(window.scrollY > 0);
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
@@ -160,12 +160,13 @@ const Index = () => {
                 : "shadow-[0_12px_40px_rgba(15,24,74,0.08)]"
               : "bg-transparent",
             navDropped && "header-glass-blur",
-            navDropped && (isDarkMode ? "header-glass-landing-dark" : "header-glass-landing-light"),
+            navDropped && "landing-nav-mobile-gradient",
+            navDropped && (isDarkMode ? "landing-nav-scrolled-dark" : "landing-nav-scrolled-light"),
           )}
         >
           <div
             className={cn(
-              "relative flex items-center justify-between gap-4 py-3 sm:py-3.5",
+              "relative z-10 flex items-center justify-between gap-4 py-3 sm:py-3.5",
               navDropped ? "w-full max-w-none px-4 sm:px-6" : "mx-auto max-w-5xl px-4 sm:px-6",
             )}
           >
