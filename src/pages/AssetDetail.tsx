@@ -274,6 +274,13 @@ export default function AssetDetail() {
     { key: "platform", label: "Platform", value: launchDistribution.platform },
     { key: "investors", label: "Investors", value: launchDistribution.investors },
   ];
+  const revenueSplitEntries = [
+    { key: "current-liquidity", label: "Current reserve", value: asset.cycle.split.currentCycleLiquidity, accent: "text-blue-400" },
+    { key: "next-liquidity", label: "Next cycle seed", value: asset.cycle.split.nextCycleLiquidity, accent: "text-cyan-400" },
+    { key: "creator", label: "Creator", value: asset.cycle.split.creator, accent: "text-amber-400" },
+    { key: "platform", label: "Platform", value: asset.cycle.split.platform, accent: "text-violet-400" },
+    { key: "holder-rewards", label: "Holder rewards", value: asset.cycle.split.holderRewards, accent: "text-rose-400" },
+  ];
   const backingReserve = asset.params.initialReserve;
   const totalSupply = asset.cycle.initialSupply ?? cycleMaxSupply;
   const nextCycleSupply = Math.max(1, Math.floor(cycleMaxSupply / 2));
@@ -295,7 +302,7 @@ export default function AssetDetail() {
   };
 
   const cycleStatsContent = (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
       <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
         <div className="mb-2 flex items-center gap-2">
           <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-400"></div>
@@ -322,9 +329,21 @@ export default function AssetDetail() {
       </div>
 
       <div className="rounded-xl border border-border/40 bg-background/70 p-4">
-        <div className="mb-2 text-[10px] uppercase tracking-wide text-muted-foreground">Distribution</div>
+        <div className="mb-2 text-[10px] uppercase tracking-wide text-muted-foreground">Launch Allocation</div>
         <div className="mt-2 space-y-1 text-sm font-medium text-foreground">
           {distributionEntries.map(({ key, label, value, accent }) => (
+            <div key={key} className="flex justify-between text-xs text-muted-foreground sm:text-sm">
+              <span className={accent}>{label}</span>
+              <span className={accent}>{(value * 100).toFixed(0)}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-border/40 bg-background/70 p-4">
+        <div className="mb-2 text-[10px] uppercase tracking-wide text-muted-foreground">Revenue Split</div>
+        <div className="mt-2 space-y-1 text-sm font-medium text-foreground">
+          {revenueSplitEntries.map(({ key, label, value, accent }) => (
             <div key={key} className="flex justify-between text-xs text-muted-foreground sm:text-sm">
               <span className={accent}>{label}</span>
               <span className={accent}>{(value * 100).toFixed(0)}%</span>
@@ -885,7 +904,6 @@ export default function AssetDetail() {
                 </div>
               </div>
             </section>
-
             <TransactionHistorySection className="hidden lg:block" />
           </div>
         </div>

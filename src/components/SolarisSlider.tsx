@@ -135,17 +135,29 @@ const SolarisSlider = () => {
       return;
     }
 
+    const mobileQuery = window.matchMedia("(max-width: 768px)");
     let rafId = 0;
+    let observer: IntersectionObserver | null = null;
 
     animatedElements.forEach((element) => element.classList.add("scroll-drop-ready"));
 
-    const updateVisibility = () => {
-      const isMobile = window.innerWidth <= 768;
+    const clearDesktopListeners = () => {
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
+    };
+
+    const disconnectObserver = () => {
+      if (!observer) return;
+      observer.disconnect();
+      observer = null;
+    };
+
+    const updateDesktopVisibility = () => {
       const viewportHeight = window.innerHeight;
-      const revealStart = viewportHeight * (isMobile ? 0.94 : 0.82);
-      const revealEnd = isMobile ? -24 : viewportHeight * 0.08;
-      const hideTop = isMobile ? -220 : -96;
-      const hideBottom = viewportHeight + (isMobile ? 220 : 96);
+      const revealStart = viewportHeight * 0.82;
+      const revealEnd = viewportHeight * 0.08;
+      const hideTop = -96;
+      const hideBottom = viewportHeight + 96;
 
       animatedElements.forEach((element) => {
         const rect = element.getBoundingClientRect();
@@ -167,20 +179,71 @@ const SolarisSlider = () => {
       if (rafId) return;
       rafId = window.requestAnimationFrame(() => {
         rafId = 0;
-        updateVisibility();
+        updateDesktopVisibility();
       });
     };
 
-    updateVisibility();
-    window.addEventListener("scroll", scheduleUpdate, { passive: true });
-    window.addEventListener("resize", scheduleUpdate);
+    const enableMobileAnimation = () => {
+      clearDesktopListeners();
+      disconnectObserver();
+
+      // Reveal anything already close to the viewport immediately on mobile.
+      const initialRevealLine = window.innerHeight * 0.96;
+      animatedElements.forEach((element) => {
+        const rect = element.getBoundingClientRect();
+        if (rect.top <= initialRevealLine) {
+          element.classList.add("is-visible");
+        }
+      });
+
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            const target = entry.target as HTMLElement;
+            target.classList.add("is-visible");
+            observer?.unobserve(target);
+          });
+        },
+        {
+          threshold: 0.06,
+          rootMargin: "0px 0px -10% 0px",
+        },
+      );
+
+      animatedElements.forEach((element) => {
+        if (!element.classList.contains("is-visible")) {
+          observer?.observe(element);
+        }
+      });
+    };
+
+    const enableDesktopAnimation = () => {
+      disconnectObserver();
+      updateDesktopVisibility();
+      window.addEventListener("scroll", scheduleUpdate, { passive: true });
+      window.addEventListener("resize", scheduleUpdate);
+    };
+
+    const syncAnimationMode = () => {
+      if (mobileQuery.matches) {
+        enableMobileAnimation();
+        return;
+      }
+
+      enableDesktopAnimation();
+    };
+
+    syncAnimationMode();
+    mobileQuery.addEventListener("change", syncAnimationMode);
 
     return () => {
       if (rafId) {
         window.cancelAnimationFrame(rafId);
       }
-      window.removeEventListener("scroll", scheduleUpdate);
-      window.removeEventListener("resize", scheduleUpdate);
+      clearDesktopListeners();
+      disconnectObserver();
+      mobileQuery.removeEventListener("change", syncAnimationMode);
     };
   }, []);
 
@@ -927,10 +990,17 @@ const SolarisSlider = () => {
         }
 
         @media (max-width: 768px) {
-          .scroll-drop,
-          .scroll-drop.is-visible,
-          .scroll-drop.scroll-drop-ready,
-          .scroll-drop.scroll-drop-ready.is-visible {
+          .scroll-drop.scroll-drop-ready {
+            transform: translate3d(0, -20px, 0) scale(0.995);
+            filter: blur(6px);
+            transition:
+              opacity 0.44s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.56s cubic-bezier(0.22, 1, 0.36, 1),
+              filter 0.56s cubic-bezier(0.22, 1, 0.36, 1);
+          }
+
+          .problem-box.scroll-drop-ready,
+          .problem-box.scroll-drop-ready.is-visible {
             opacity: 1;
             transform: none;
             filter: none;
@@ -1272,7 +1342,7 @@ const SolarisSlider = () => {
             </div>
 
             <div className="problem-list">
-              <div className="problem-box-row">
+              <div className="problem-box-row scroll-drop" data-drop-delay="1">
                 <article className="problem-box problem-box--blue scroll-drop" data-drop-delay="1">
                   <p className="problem-box-copy">{PRIMARY_PROBLEM.text}</p>
                   <div className="problem-box-frame">
@@ -1288,7 +1358,7 @@ const SolarisSlider = () => {
                 </article>
               </div>
 
-              <div className="problem-box-row">
+              <div className="problem-box-row scroll-drop" data-drop-delay="2">
                 <article className="problem-box problem-box--green scroll-drop" data-drop-delay="3">
                   <p className="problem-box-copy">{TERTIARY_PROBLEM.text}</p>
                   <div className="problem-box-frame">

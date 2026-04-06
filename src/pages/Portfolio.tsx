@@ -29,9 +29,6 @@ export default function Portfolio() {
     redeemAssetLFTs,
   } = useApp();
 
-  console.log('🔄 Portfolio Page - Loaded with userAssets:', JSON.stringify(userAssets, null, 2));
-  console.log('🔄 Portfolio Page - Total assets available:', assets.length);
-
   const [assetRedeemCounts, setAssetRedeemCounts] = useState<Record<string, number>>({});
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
 
@@ -39,32 +36,66 @@ export default function Portfolio() {
   const accruedRewards = cycle?.accrued?.holderRewards ?? 0;
   const realizedRewards = user.realizedRewards ?? 0;
   const totalLftValue = useMemo(() => {
-    console.log('🏦 Portfolio Debug - Calculating totalLftValue with userAssets:', JSON.stringify(userAssets, null, 2));
     const total = assets.reduce((sum, asset) => {
       const owned = toNumeric(userAssets[asset.id]?.lfts);
       const lpu = getAssetUnitPrice(asset);
-      const assetValue = owned * lpu;
-      console.log(`📊 Portfolio Debug - Asset ${asset.name} (${asset.id}): ${owned} LFTs × ${lpu} LPU = ${assetValue}`);
-      return sum + assetValue;
+      return sum + owned * lpu;
     }, 0);
-    console.log(`💰 Portfolio Debug - Total LFT Value: ${total}`);
     return isNaN(total) ? 0 : total;
   }, [assets, userAssets]);
 
   const ownedAssetLfts = useMemo(() => {
-    const owned = assets.filter((asset) => {
+    return assets.filter((asset) => {
       const lfts = toNumeric(userAssets[asset.id]?.lfts);
-      const hasLfts = lfts > 0;
-      console.log(`🔍 Portfolio Debug - Checking ${asset.name}: ${lfts} LFTs, owned: ${hasLfts}`);
-      return hasLfts;
+      return lfts > 0;
     });
-    console.log(`📦 Portfolio Debug - Total owned assets:`, owned.map(a => a.name));
-    return owned;
   }, [assets, userAssets]);
   const selectedAsset = useMemo(
     () => (selectedAssetId ? assets.find((asset) => asset.id === selectedAssetId) ?? null : null),
     [assets, selectedAssetId],
   );
+  const redeemableNow = useMemo(
+    () =>
+      ownedAssetLfts.reduce((sum, asset) => {
+        if (asset.secondaryMarket?.active) return sum;
+        const owned = toNumeric(userAssets[asset.id]?.lfts);
+        return sum + owned * getAssetUnitPrice(asset);
+      }, 0),
+    [ownedAssetLfts, userAssets],
+  );
+  const marketOnlyValue = useMemo(
+    () =>
+      ownedAssetLfts.reduce((sum, asset) => {
+        if (!asset.secondaryMarket?.active) return sum;
+        const owned = toNumeric(userAssets[asset.id]?.lfts);
+        return sum + owned * getAssetUnitPrice(asset);
+      }, 0),
+    [ownedAssetLfts, userAssets],
+  );
+  const readyToRedeemCollections = useMemo(
+    () => ownedAssetLfts.filter((asset) => !asset.secondaryMarket?.active).length,
+    [ownedAssetLfts],
+  );
+  const portfolioInsights = [
+    {
+      label: "Redeemable Now",
+      value: formatCurrency(redeemableNow),
+      helper: `${readyToRedeemCollections} live collection${readyToRedeemCollections === 1 ? "" : "s"}`,
+      accent: "text-emerald-500",
+    },
+    {
+      label: "Rewards Pending",
+      value: formatCurrency(accruedRewards),
+      helper: accruedRewards > 0 ? "Ready to claim" : "No active holder payout",
+      accent: "text-blue-500",
+    },
+    {
+      label: "Market-Only Value",
+      value: formatCurrency(marketOnlyValue),
+      helper: marketOnlyValue > 0 ? "Tracked at WALV pricing" : "No market-only holdings",
+      accent: "text-violet-500",
+    },
+  ];
 
   const renderOwnedAssetCard = (asset: (typeof assets)[number], variant: "grid" | "modal" = "grid") => {
     const rawBalances = userAssets[asset.id];
@@ -76,6 +107,8 @@ export default function Portfolio() {
     const unitPrice = getAssetUnitPrice(asset);
     const redeemCount = assetRedeemCounts[asset.id] ?? 1;
     const assetValue = balances.lfts * unitPrice;
+    const statusLabel = marketOnlyPhase ? "Market only" : "Redeemable now";
+    const statusValue = marketOnlyPhase ? "WALV pricing active" : formatCurrency(assetValue);
 
     const wrapperClasses =
       variant === "grid"
@@ -113,6 +146,10 @@ export default function Portfolio() {
           <div className="flex justify-between">
             <span className="text-muted-foreground">Reserve</span>
             <span className="font-mono text-xs text-foreground">{formatCurrency(asset.cycle.reserve)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">{statusLabel}</span>
+            <span className="font-mono text-xs text-foreground">{statusValue}</span>
           </div>
         </div>
 
@@ -206,6 +243,16 @@ export default function Portfolio() {
               </CardContent>
             </Card>
 
+            <section className="grid gap-3 sm:grid-cols-3">
+              {portfolioInsights.map((insight) => (
+                <article key={insight.label} className="rounded-2xl border border-border/60 bg-surface/50 px-4 py-4">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{insight.label}</p>
+                  <p className={cn("mt-2 text-2xl font-semibold", insight.accent)}>{insight.value}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{insight.helper}</p>
+                </article>
+              ))}
+            </section>
+
             <div className="grid gap-6 lg:grid-cols-2">
               <Card className="rounded-3xl border-0 bg-transparent p-0 backdrop-blur text-foreground sm:border sm:border-border/60 sm:bg-surface/60 sm:px-6 sm:py-6">
                 <CardHeader className="px-0 pt-0 sm:px-0 sm:pt-0">
@@ -275,8 +322,10 @@ export default function Portfolio() {
                               </div>
                             </div>
                             <div className="text-right">
-                              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Total value</p>
-                              <p className="font-mono text-xs font-semibold text-emerald-500">
+                              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                                {asset.secondaryMarket?.active ? "Market value" : "Redeemable value"}
+                              </p>
+                              <p className={cn("font-mono text-xs font-semibold", asset.secondaryMarket?.active ? "text-violet-500" : "text-emerald-500")}>
                                 {formatCurrency(assetValue)}
                                 <span className="ml-1 text-[10px] text-muted-foreground">/{balances.lfts} LFTs</span>
                               </p>

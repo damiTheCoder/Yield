@@ -119,13 +119,15 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
 
   const staticPages = useMemo<SearchResult[]>(
     () => [
-      { type: "page", label: "Landing", path: "/", description: "Return to the hero section" },
-      { type: "page", label: "Assets", path: "/assets", description: "Browse all listed LFTs" },
-      { type: "page", label: "LaunchPad", path: "/coin-tags", description: "Configure a new campaign" },
-      { type: "page", label: "Portfolio", path: "/portfolio", description: "View balances and redeem" },
-      { type: "page", label: "Wallet", path: "/wallet", description: "See CoinTag codes by asset" },
-      { type: "page", label: "Revenue", path: "/revenue", description: "Track live revenue splits" },
-      { type: "page", label: "Notifications", path: "/notifications", description: "Hunt alerts and activity" },
+      { type: "page", label: "Landing", path: "/", description: "Return to the Solaris landing page" },
+      { type: "page", label: "Assets", path: "/assets", description: "Browse live hunts and listed LFTs" },
+      { type: "page", label: "All Tokens", path: "/assets/all", description: "See every listed collection in one place" },
+      { type: "page", label: "LaunchPad", path: "/coin-tags", description: "Configure a launch and review the split" },
+      { type: "page", label: "Portfolio", path: "/portfolio", description: "Monitor redeemable value and rewards" },
+      { type: "page", label: "Wallet", path: "/wallet", description: "View CoinTag codes and hunt readiness" },
+      { type: "page", label: "Revenue", path: "/revenue", description: "Track creator-side token financials by cycle" },
+      { type: "page", label: "Notifications", path: "/notifications", description: "See hunt, rewards, and market lifecycle alerts" },
+      { type: "page", label: "Blog", path: "/blog", description: "Read Solaris posts and Decrypt headlines" },
     ],
     [],
   );
@@ -208,11 +210,19 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
           <div className="flex flex-col">
             <span className="text-sm font-semibold text-foreground">{asset.name}</span>
             <span className="text-xs text-muted-foreground">
-              {asset.ticker || asset.id.toUpperCase()} · LPU {formatCurrency(asset.cycle.lpu)}
+              {asset.ticker || asset.id.toUpperCase()} · Cycle {asset.cycle.cycle} · LPU {formatCurrency(asset.secondaryMarket?.active ? asset.secondaryMarket.walv : asset.cycle.lpu)}
             </span>
           </div>
         </div>
-        <div className="text-right">
+        <div className="text-right space-y-1">
+          <div className={cn(
+            "inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+            asset.secondaryMarket?.active
+              ? "bg-violet-500/10 text-violet-300"
+              : "bg-emerald-500/10 text-emerald-300",
+          )}>
+            {asset.secondaryMarket?.active ? "Market" : "Hunt Live"}
+          </div>
           <div className="text-xs font-semibold text-foreground">{formatCurrencyK(asset.cycle.reserve)}</div>
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Liquidity</div>
         </div>

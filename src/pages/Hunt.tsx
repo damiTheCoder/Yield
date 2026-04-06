@@ -164,6 +164,8 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
 
   const walletValue = foundTokens * pricePerUnit;
   const progressRatio = maxTokens > 0 ? foundTokens / maxTokens : 0;
+  const successfulClaims = matched.size;
+  const personalTokensFound = foundTokens;
 
   const handleReveal = useCallback((coordinate: string) => {
     setRevealed((prevRevealed) => {
@@ -327,7 +329,13 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
               <div className="rounded-xl border border-border/40 bg-muted/30 px-4 py-3 text-left shadow-sm sm:min-w-[200px] dark:bg-neutral-900/70">
                 <span className="text-[10px] uppercase tracking-wide text-muted-foreground sm:text-xs">Tokens found</span>
                 <div className="text-xl font-semibold text-emerald-400 sm:text-3xl">
-                  {foundTokens.toLocaleString()}/{maxTokens.toLocaleString()}
+                  {successfulClaims.toLocaleString()}
+                </div>
+              </div>
+              <div className="rounded-xl border border-border/40 bg-muted/30 px-4 py-3 text-left shadow-sm sm:min-w-[200px] dark:bg-neutral-900/70">
+                <span className="text-[10px] uppercase tracking-wide text-muted-foreground sm:text-xs">Personal tokens found</span>
+                <div className="text-xl font-semibold text-emerald-400 sm:text-3xl">
+                  {personalTokensFound.toLocaleString()}/{maxTokens.toLocaleString()}
                 </div>
               </div>
             </div>
@@ -342,7 +350,13 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
             <div className="space-y-0.5">
               <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Tokens found</span>
               <div className="text-xl font-semibold text-emerald-400">
-                {foundTokens.toLocaleString()}/{maxTokens.toLocaleString()}
+                {successfulClaims.toLocaleString()}
+              </div>
+            </div>
+            <div className="space-y-0.5">
+              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Personal tokens found</span>
+              <div className="text-xl font-semibold text-emerald-400">
+                {personalTokensFound.toLocaleString()}/{maxTokens.toLocaleString()}
               </div>
             </div>
           </div>
@@ -466,15 +480,17 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
                         handleSubmit();
                       }
                     }}
-                    placeholder="E.g. G12"
+                    placeholder={marketOnly ? "Hunt phase ended" : "E.g. G12"}
+                    disabled={marketOnly}
                     className="flex-1 min-w-0 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground"
                   />
                   <Button
                     onClick={handleSubmit}
                     variant="ghost"
+                    disabled={marketOnly}
                     className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 border-0 hover:opacity-95"
                   >
-                    Submit
+                    {marketOnly ? "Closed" : "Submit"}
                   </Button>
                 </div>
               </div>
@@ -487,26 +503,28 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
                 <div className="flex flex-col gap-2">
                   <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Enter coordinate</div>
                   <div className="flex gap-2">
-                    <input
-                      value={inputValue}
-                      onChange={(event) => setInputValue(event.target.value)}
+                  <input
+                    value={inputValue}
+                    onChange={(event) => setInputValue(event.target.value)}
                       onKeyDown={(event) => {
                         if (event.key === "Enter") {
                           event.preventDefault();
                           handleSubmit();
                         }
                       }}
-                      placeholder="E.g. G12"
-                      className="flex-1 min-w-0 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground"
-                    />
-                    <Button
-                      onClick={handleSubmit}
-                      variant="ghost"
-                      className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 border-0 hover:opacity-95"
-                    >
-                      Submit
-                    </Button>
-                  </div>
+                    placeholder={marketOnly ? "Hunt phase ended" : "E.g. G12"}
+                    disabled={marketOnly}
+                    className="flex-1 min-w-0 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground"
+                  />
+                  <Button
+                    onClick={handleSubmit}
+                    variant="ghost"
+                    disabled={marketOnly}
+                    className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 border-0 hover:opacity-95"
+                  >
+                    {marketOnly ? "Closed" : "Submit"}
+                  </Button>
+                </div>
                   {status && <p className={`text-xs ${statusType === "success" ? "text-emerald-400" : "text-destructive"}`}>{status}</p>}
                 </div>
               </div>

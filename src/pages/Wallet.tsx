@@ -65,6 +65,31 @@ export default function Wallet() {
       { coinTags: 0, codes: 0 },
     );
   }, [walletRows]);
+  const readyToUseRows = useMemo(
+    () => walletRows.filter(({ asset, codes }) => !asset.secondaryMarket?.active && codes.length > 0),
+    [walletRows],
+  );
+  const marketOnlyRows = useMemo(
+    () => walletRows.filter(({ asset }) => asset.secondaryMarket?.active),
+    [walletRows],
+  );
+  const utilityCards = [
+    {
+      label: "Ready for hunt",
+      value: readyToUseRows.length,
+      helper: readyToUseRows.length > 0 ? "Collections with active CoinTag codes" : "No active hunt codes yet",
+    },
+    {
+      label: "Market-only collections",
+      value: marketOnlyRows.length,
+      helper: marketOnlyRows.length > 0 ? "Track these in portfolio or token view" : "All wallet rows are still hunt-active",
+    },
+    {
+      label: "Codes ready",
+      value: totals.codes,
+      helper: "One synced code is consumed per claim attempt",
+    },
+  ];
 
   const copyCode = async (code: string) => {
     try {
@@ -116,6 +141,16 @@ export default function Wallet() {
               ))}
             </section>
 
+            <section className="grid gap-3 md:grid-cols-3">
+              {utilityCards.map((card) => (
+                <article key={card.label} className="rounded-2xl bg-surface/60 px-4 py-4">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{card.label}</p>
+                  <p className="mt-2 text-2xl font-semibold text-foreground">{formatCompactNumber(card.value)}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{card.helper}</p>
+                </article>
+              ))}
+            </section>
+
             <Card className="rounded-none border-0 bg-transparent shadow-none">
               <CardContent className="space-y-5 p-0">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -135,6 +170,15 @@ export default function Wallet() {
                     placeholder="Search asset by name or ticker"
                     className="h-10 border-0 bg-transparent p-0 text-sm focus-visible:ring-0"
                   />
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <Button className="rounded-full bg-blue-500 text-white hover:bg-blue-600" onClick={() => navigate("/assets")}>
+                    Browse Active Hunts
+                  </Button>
+                  <Button variant="outline" className="rounded-full" onClick={() => navigate("/portfolio")}>
+                    Open Portfolio
+                  </Button>
                 </div>
 
                 {walletRows.length === 0 ? (
