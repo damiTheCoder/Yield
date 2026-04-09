@@ -297,7 +297,7 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
+      <div className="sticky top-[52px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:backdrop-blur sm:top-14">
         <div className="container mx-auto px-2 sm:px-4 pt-3 pb-4 sm:pt-4 sm:pb-6 space-y-3 font-mono">
           {/* Header Section */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -468,10 +468,10 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
 
             {/* Input Section (desktop/tablet) */}
             <div className="hidden space-y-3 sm:block sm:space-y-4">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">Enter coordinate</div>
-                <div className="flex gap-2">
+              <div className="mx-auto w-full max-w-3xl px-3 sm:px-4">
+                <div className="relative rounded-[1.55rem] border border-slate-300/80 bg-background/60 shadow-sm backdrop-blur-md dark:border-white/10">
                   <input
+                    aria-label="Enter coordinate"
                     value={inputValue}
                     onChange={(event) => setInputValue(event.target.value)}
                     onKeyDown={(event) => {
@@ -480,15 +480,15 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
                         handleSubmit();
                       }
                     }}
-                    placeholder={marketOnly ? "Hunt phase ended" : "E.g. G12"}
+                    placeholder={marketOnly ? "Hunt phase ended" : "Enter coordinate E.g A15"}
                     disabled={marketOnly}
-                    className="flex-1 min-w-0 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground"
+                    className="h-12 w-full rounded-[1.55rem] border-0 bg-transparent pl-4 pr-28 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 focus:outline-none"
                   />
                   <Button
                     onClick={handleSubmit}
-                    variant="ghost"
+                    variant="default"
                     disabled={marketOnly}
-                    className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 border-0 hover:opacity-95"
+                    className="absolute right-2 top-1/2 h-8 -translate-y-1/2 rounded-full px-4 text-xs font-semibold"
                   >
                     {marketOnly ? "Closed" : "Submit"}
                   </Button>
@@ -498,33 +498,33 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
             </div>
 
             {/* Input Section (mobile floating bar) */}
-            <div className="sm:hidden fixed inset-x-0 bottom-0 z-40 border-t border-border/40 bg-background/98 px-4 py-3 pb-5 backdrop-blur-sm">
-              <div className="mx-auto w-full max-w-xl">
+            <div className="sm:hidden fixed inset-x-0 bottom-0 z-40 px-4 py-3 pb-5">
+              <div className="mx-auto w-full max-w-xl px-2">
                 <div className="flex flex-col gap-2">
-                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Enter coordinate</div>
-                  <div className="flex gap-2">
-                  <input
-                    value={inputValue}
-                    onChange={(event) => setInputValue(event.target.value)}
+                  <div className="relative mx-auto w-full rounded-[1.55rem] border border-slate-300/80 bg-background/60 shadow-sm backdrop-blur-md dark:border-white/10">
+                    <input
+                      aria-label="Enter coordinate"
+                      value={inputValue}
+                      onChange={(event) => setInputValue(event.target.value)}
                       onKeyDown={(event) => {
                         if (event.key === "Enter") {
                           event.preventDefault();
                           handleSubmit();
                         }
                       }}
-                    placeholder={marketOnly ? "Hunt phase ended" : "E.g. G12"}
-                    disabled={marketOnly}
-                    className="flex-1 min-w-0 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground"
-                  />
-                  <Button
-                    onClick={handleSubmit}
-                    variant="ghost"
-                    disabled={marketOnly}
-                    className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-500 border-0 hover:opacity-95"
-                  >
-                    {marketOnly ? "Closed" : "Submit"}
-                  </Button>
-                </div>
+                      placeholder={marketOnly ? "Hunt phase ended" : "Enter coordinate E.g A15"}
+                      disabled={marketOnly}
+                      className="h-12 w-full rounded-[1.55rem] border-0 bg-transparent pl-4 pr-24 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 focus:outline-none"
+                    />
+                    <Button
+                      onClick={handleSubmit}
+                      variant="default"
+                      disabled={marketOnly}
+                      className="absolute right-2 top-1/2 h-8 -translate-y-1/2 rounded-full px-3.5 text-xs font-semibold"
+                    >
+                      {marketOnly ? "Closed" : "Submit"}
+                    </Button>
+                  </div>
                   {status && <p className={`text-xs ${statusType === "success" ? "text-emerald-400" : "text-destructive"}`}>{status}</p>}
                 </div>
               </div>

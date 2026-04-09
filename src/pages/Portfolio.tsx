@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import Web3News from "@/components/Web3News";
 
-const PORTFOLIO_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/z4.jpeg"];
+const PORTFOLIO_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/r1.jpeg"];
 const ICON_STACK_MESSAGE = "we just felt this will make the UX design look good 😂";
 
 const toNumeric = (value: unknown) => {
@@ -54,49 +54,6 @@ export default function Portfolio() {
     () => (selectedAssetId ? assets.find((asset) => asset.id === selectedAssetId) ?? null : null),
     [assets, selectedAssetId],
   );
-  const redeemableNow = useMemo(
-    () =>
-      ownedAssetLfts.reduce((sum, asset) => {
-        if (asset.secondaryMarket?.active) return sum;
-        const owned = toNumeric(userAssets[asset.id]?.lfts);
-        return sum + owned * getAssetUnitPrice(asset);
-      }, 0),
-    [ownedAssetLfts, userAssets],
-  );
-  const marketOnlyValue = useMemo(
-    () =>
-      ownedAssetLfts.reduce((sum, asset) => {
-        if (!asset.secondaryMarket?.active) return sum;
-        const owned = toNumeric(userAssets[asset.id]?.lfts);
-        return sum + owned * getAssetUnitPrice(asset);
-      }, 0),
-    [ownedAssetLfts, userAssets],
-  );
-  const readyToRedeemCollections = useMemo(
-    () => ownedAssetLfts.filter((asset) => !asset.secondaryMarket?.active).length,
-    [ownedAssetLfts],
-  );
-  const portfolioInsights = [
-    {
-      label: "Redeemable Now",
-      value: formatCurrency(redeemableNow),
-      helper: `${readyToRedeemCollections} live collection${readyToRedeemCollections === 1 ? "" : "s"}`,
-      accent: "text-emerald-500",
-    },
-    {
-      label: "Rewards Pending",
-      value: formatCurrency(accruedRewards),
-      helper: accruedRewards > 0 ? "Ready to claim" : "No active holder payout",
-      accent: "text-blue-500",
-    },
-    {
-      label: "Market-Only Value",
-      value: formatCurrency(marketOnlyValue),
-      helper: marketOnlyValue > 0 ? "Tracked at WALV pricing" : "No market-only holdings",
-      accent: "text-violet-500",
-    },
-  ];
-
   const renderOwnedAssetCard = (asset: (typeof assets)[number], variant: "grid" | "modal" = "grid") => {
     const rawBalances = userAssets[asset.id];
     const balances = {
@@ -226,7 +183,7 @@ export default function Portfolio() {
                           <span
                             key={icon}
                             className={cn(
-                              "h-8 w-8 overflow-hidden rounded-full border-[2px] border-black bg-white",
+                              "h-8 w-8 overflow-hidden rounded-full bg-white",
                               index === 0 ? "ml-0" : "-ml-2.5",
                             )}
                           >
@@ -242,17 +199,6 @@ export default function Portfolio() {
                 </div>
               </CardContent>
             </Card>
-
-            <section className="grid gap-3 sm:grid-cols-3">
-              {portfolioInsights.map((insight) => (
-                <article key={insight.label} className="rounded-2xl border border-border/60 bg-surface/50 px-4 py-4">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{insight.label}</p>
-                  <p className={cn("mt-2 text-2xl font-semibold", insight.accent)}>{insight.value}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{insight.helper}</p>
-                </article>
-              ))}
-            </section>
-
             <div className="grid gap-6 lg:grid-cols-2">
               <Card className="rounded-3xl border-0 bg-transparent p-0 backdrop-blur text-foreground sm:border sm:border-border/60 sm:bg-surface/60 sm:px-6 sm:py-6">
                 <CardHeader className="px-0 pt-0 sm:px-0 sm:pt-0">

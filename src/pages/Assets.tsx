@@ -15,8 +15,8 @@ import type { TouchEvent } from "react";
 
 const MAX_TRENDING = 10;
 const MONTH_OPTIONS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
-const ASSET_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/z4.jpeg"];
-const MOBILE_ASSET_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/z4.jpeg", "/r3.jpeg"];
+const ASSET_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/r1.jpeg"];
+const MOBILE_ASSET_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/r1.jpeg"];
 const ICON_STACK_MESSAGE = "we just felt this will make the UX design look good 😂";
 type Network = "all" | "bitcoin" | "ethereum" | "solana" | "base" | "monad";
 const NETWORKS = [
@@ -545,7 +545,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     </div>
   );
 
-  const tableShellClasses = "overflow-hidden rounded-2xl bg-transparent md:bg-[#FAFAFA] dark:bg-transparent dark:md:bg-[#151515] mb-6";
+  const tableShellClasses = "-mx-4 overflow-hidden rounded-2xl bg-transparent md:mx-0 md:bg-[#FAFAFA] dark:bg-transparent dark:md:bg-[#151515] mb-6 sm:-mx-6";
   const tableStickyColumnClasses = "bg-white md:bg-[#F3F3F3] dark:bg-white dark:md:bg-[#111111]";
 
   const renderListedList = (items: Asset[]) => (
@@ -825,7 +825,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                           <span
                             key={icon}
                             className={cn(
-                              "overflow-hidden rounded-full border-[2px] border-black bg-white",
+                              "overflow-hidden rounded-full bg-white",
                               "h-8 w-8",
                               index === 0 ? "ml-0" : "-ml-2.5",
                             )}

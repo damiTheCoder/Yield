@@ -10,7 +10,7 @@ interface Web3NewsProps {
 }
 
 const shimmerItems = Array.from({ length: 3 }, (_, index) => index);
-const headerIcons = ["/z1.png", "/z2.png", "/z3.png", "/z4.jpeg"];
+const headerIcons = ["/z1.png", "/z2.png", "/z3.png", "/r1.jpeg"];
 const iconStackMessage = "we just felt this will make the UX design look good 😂";
 
 function formatRelativeTime(date?: Date) {
@@ -125,7 +125,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
               <span
                 key={icon}
                 className={cn(
-                  "overflow-hidden rounded-full border-[2px] border-black bg-white",
+                  "overflow-hidden rounded-full bg-white",
                   iconSizeClass,
                   index === 0 ? "ml-0" : "-ml-2.5",
                 )}

@@ -380,7 +380,7 @@ export default function Revenue() {
               </div>
             </header>
 
-            <section className={cn(cardClass, "p-4 sm:p-5")}>
+            <section className="rounded-[24px] border-0 bg-transparent p-4 shadow-none sm:p-5">
               <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#94a3b8]">
                 Launched Tokens
               </div>

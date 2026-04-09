@@ -9,7 +9,7 @@ import { useApp } from "@/lib/app-state";
 import { cn, formatCurrency, formatCurrencyK } from "@/lib/utils";
 import { DEFAULT_LAUNCHPAD_DISTRIBUTION } from "@/domain/tokenomics";
 import { Dot, Image as ImageIcon, LineChart as LineChartIcon, X } from "lucide-react";
-import { Area, Bar, BarChart as RechartsBarChart, CartesianGrid, Cell, Line, LineChart as RechartsLineChart, XAxis, YAxis } from "recharts";
+import { Area, Bar, BarChart as RechartsBarChart, Cell, Line, LineChart as RechartsLineChart, XAxis, YAxis } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Web3News from "@/components/Web3News";
 
@@ -586,7 +586,7 @@ export default function AssetDetail() {
           </div>
 
           <div className="space-y-8 md:space-y-10">
-            <section className="space-y-4">
+            <section className="space-y-2 md:space-y-3">
               {!isImageMode && (
                 <div className="space-y-3">
                   <div className="flex items-start justify-between gap-3">
@@ -629,8 +629,8 @@ export default function AssetDetail() {
                 <div
                   className={`absolute inset-0 transition-opacity duration-500 ${isImageMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
                 >
-                  <ChartContainer config={chartConfig} className="flex h-full w-full items-center">
-                    <RechartsLineChart data={chartData} margin={{ left: 0, right: 0, top: 20, bottom: 20 }}>
+                  <ChartContainer config={chartConfig} className="h-full w-full">
+                    <RechartsLineChart data={chartData} margin={{ left: 0, right: 0, top: 8, bottom: 20 }}>
                       <defs>
                         <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="0%" stopColor="#4ade80" stopOpacity={0.22} />
@@ -643,7 +643,6 @@ export default function AssetDetail() {
                           <stop offset="100%" stopColor="#16a34a" />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid vertical={false} stroke="rgba(148, 163, 184, 0.16)" strokeDasharray="4 8" />
                       <XAxis dataKey="label" hide />
                       <YAxis
                         orientation="right"
