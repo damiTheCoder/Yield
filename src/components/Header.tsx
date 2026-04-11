@@ -193,42 +193,34 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
     ];
   }, [walletDialogOpen]);
 
-  const renderAssetCommandItem = (asset: Asset, context: "trending" | "all") => (
-    <CommandItem
-      key={`${context}-${asset.id}`}
-      value={`${asset.name} ${asset.ticker ?? asset.id}`}
-      onSelect={() => handleNavigate(`/assets/${asset.id}`)}
-      className="data-[selected=true]:bg-surface/90"
-    >
-      <div className="flex w-full items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+  const renderAssetCommandItem = (asset: Asset, context: "trending" | "all") => {
+    const lpu = asset.secondaryMarket?.active ? asset.secondaryMarket.walv : asset.cycle.lpu;
+    const coinTagPrice = Math.max(4.2, asset.cycle.lpu * 0.4);
+    const symbol = asset.ticker || asset.id.toUpperCase();
+
+    return (
+      <CommandItem
+        key={`${context}-${asset.id}`}
+        value={`${asset.name} ${symbol}`}
+        onSelect={() => handleNavigate(`/assets/${asset.id}`)}
+        className="data-[selected=true]:bg-surface/90"
+      >
+        <div className="flex w-full items-center gap-3">
           <img
             src={asset.image}
             alt={asset.name}
-            className="h-9 w-9 rounded-full border border-border/50 object-cover"
+            className="h-9 w-9 shrink-0 rounded-full border border-border/50 object-cover"
           />
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold text-foreground">{asset.name}</span>
-            <span className="text-xs text-muted-foreground">
-              {asset.ticker || asset.id.toUpperCase()} · Cycle {asset.cycle.cycle} · LPU {formatCurrency(asset.secondaryMarket?.active ? asset.secondaryMarket.walv : asset.cycle.lpu)}
+          <div className="flex min-w-0 flex-1 flex-col">
+            <span className="truncate text-sm font-semibold text-foreground">{asset.name}</span>
+            <span className="line-clamp-2 text-xs text-muted-foreground">
+              {symbol} · Cycle {asset.cycle.cycle} · LPU {formatCurrency(lpu)} · Reserve {formatCurrencyK(asset.cycle.reserve)} · CoinTag {formatCurrency(coinTagPrice)} · Backing {formatCurrencyK(asset.params.initialReserve)}
             </span>
           </div>
         </div>
-        <div className="text-right space-y-1">
-          <div className={cn(
-            "inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-            asset.secondaryMarket?.active
-              ? "bg-violet-500/10 text-violet-300"
-              : "bg-emerald-500/10 text-emerald-300",
-          )}>
-            {asset.secondaryMarket?.active ? "Market" : "Hunt Live"}
-          </div>
-          <div className="text-xs font-semibold text-foreground">{formatCurrencyK(asset.cycle.reserve)}</div>
-          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Liquidity</div>
-        </div>
-      </div>
-    </CommandItem>
-  );
+      </CommandItem>
+    );
+  };
 
   const searchTabs: Array<{ id: "all" | "assets" | "pages"; label: string }> = [
     { id: "all", label: "All" },
@@ -328,8 +320,8 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
               type="button"
               onClick={() => setSearchFilter(tab.id)}
               className={`rounded-full px-3 py-1 text-xs transition-colors ${searchFilter === tab.id
-                ? "bg-gradient-logo text-black font-medium"
-                : "bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground"
+                ? "bg-[#2F66F6] text-white"
+                : "bg-[#EAF2FF] text-[#2F66F6] hover:bg-[#DCEBFF]"
                 }`}
             >
               {tab.label}

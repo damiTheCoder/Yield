@@ -48,7 +48,7 @@ const NETWORKS = [
     id: "solana" as const,
     name: "Solana",
     icon: "◎",
-    image: "/solana.png",
+    image: "/solana.jpeg",
     pillClass: "bg-[#E9FFF8] text-[#17916E] hover:bg-[#DDFBF2] dark:bg-[#152D28] dark:text-[#8DE0C4] dark:hover:bg-[#1B3932]",
     selectedPillClass: "bg-[#D8F9EE] text-[#0E775A] ring-1 ring-inset ring-[#93E5CA] dark:bg-[#1F433B] dark:text-[#B3F3DE] dark:ring-[#4BAA8A]",
   },
@@ -457,9 +457,6 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     const changeClass = changeColorClass(change);
     const coinTagPrice = Math.max(4.2, asset.cycle.lpu * 0.4);
     const assetLive = isAssetLive(asset);
-    const safeNetwork = typeof asset.network === "string" && asset.network.trim() ? asset.network.trim() : "ethereum";
-    const networkLabel = safeNetwork.charAt(0).toUpperCase() + safeNetwork.slice(1);
-    const cardTicker = asset.ticker?.toUpperCase() ?? asset.id.toUpperCase();
     const stats = [
       { label: "Liquidity", value: formatCurrencyK(asset.cycle.reserve) },
       { label: "LPU", value: formatCurrency(asset.cycle.lpu) },
@@ -495,16 +492,9 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 
         <div className="flex flex-1 flex-col px-0.5 pb-0.5 pt-2.5">
           <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-[#98A2B3]">
-                <span className="truncate">{networkLabel}</span>
-                <span className="h-1 w-1 rounded-full bg-[#D0D5DD]" />
-                <span>Cycle {asset.cycle.cycle}</span>
-                <span className="h-1 w-1 rounded-full bg-[#D0D5DD]" />
-                <span className="truncate">{cardTicker}</span>
-              </div>
-              <div className="mt-1 flex items-start gap-1.5">
-                <span className="line-clamp-2 text-[0.96rem] font-semibold leading-tight text-[#111827] sm:text-[1rem]">
+            <div className="min-w-0 flex-1">
+              <div className="flex min-w-0 items-center gap-1.5">
+                <span className="min-w-0 truncate text-[0.96rem] font-semibold leading-tight text-[#111827] sm:text-[1rem]">
                   {asset.name}
                 </span>
                 <img src="/checklist.png" alt="verified" className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-80" />

@@ -6,7 +6,7 @@ const PROBLEM_ITEMS = [
   {
     image: "/k3.jpeg",
     alt: "Meme coins",
-    text: "Meme Coins: No intrinsic value → pump & dump → zero",
+    text: "Meme Coins: No intrinsic value → driven by hype and speculation → rapid price pumps → early holders cash out → late buyers get dumped on → price crashes → often trends toward zero.",
   },
   {
     image: "/k5.jpeg",
