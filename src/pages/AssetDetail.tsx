@@ -579,7 +579,7 @@ export default function AssetDetail() {
   return (
     <div className="min-h-screen">
       <main className="container mx-auto px-4 pt-0 pb-24 sm:pt-4 sm:pb-8">
-        <div className="space-y-10 lg:grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.35fr)_minmax(0,1fr)] lg:gap-8 lg:space-y-0">
+        <div className="flex flex-col gap-6 pt-3 lg:grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.35fr)_minmax(0,1fr)] lg:gap-8 lg:pt-0">
           <div className="hidden lg:block lg:space-y-6 lg:pt-2">
             <Web3News variant="detail" />
             <AnalyticsSection />

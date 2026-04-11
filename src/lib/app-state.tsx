@@ -1094,6 +1094,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
             params: paramConfig,
             cycle: cycleAfterRaise,
             image,
+            network: "ethereum",
             ticker: ticker.trim(),
             summary,
             secondaryMarket: createSecondaryMarketState(),

@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { cn, formatCurrency, formatCurrencyK, formatCompactCurrency } from "@/lib/utils";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CalendarDays, Check, ChevronLeft, ChevronRight, LayoutGrid, Rows3, Search, Star } from "lucide-react";
+import { ArrowRight, CalendarDays, Check, ChevronLeft, ChevronRight, LayoutGrid, Rows3, Star } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -457,6 +457,9 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     const changeClass = changeColorClass(change);
     const coinTagPrice = Math.max(4.2, asset.cycle.lpu * 0.4);
     const assetLive = isAssetLive(asset);
+    const safeNetwork = typeof asset.network === "string" && asset.network.trim() ? asset.network.trim() : "ethereum";
+    const networkLabel = safeNetwork.charAt(0).toUpperCase() + safeNetwork.slice(1);
+    const cardTicker = asset.ticker?.toUpperCase() ?? asset.id.toUpperCase();
     const stats = [
       { label: "Liquidity", value: formatCurrencyK(asset.cycle.reserve) },
       { label: "LPU", value: formatCurrency(asset.cycle.lpu) },
@@ -477,54 +480,61 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
           }
         }}
         className={cn(
-          "group flex w-full flex-col gap-3 rounded-[24px] bg-[#F3F5F9] p-3.5 text-left transition hover:-translate-y-0.5 sm:p-4",
+          "group flex h-full w-full flex-col rounded-[22px] border border-[#EEF2F6] bg-white p-2.5 text-left shadow-[0_14px_30px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_18px_38px_rgba(15,23,42,0.08)] sm:p-3",
         )}
       >
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 items-start gap-3">
-            <div className="h-10 w-10 overflow-hidden rounded-[18px] border border-black/5 shadow-sm sm:h-11 sm:w-11">
-              <img src={asset.image} alt={asset.name} className="h-full w-full object-cover" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-start gap-1.5">
-                <span className="line-clamp-2 text-[0.98rem] font-semibold leading-tight text-[#111827] sm:text-[1.06rem]">
-                  {asset.name}
-                </span>
-                <img src="/checklist.png" alt="verified" className="h-3 w-3 opacity-80 sm:h-4 sm:w-4" />
-              </div>
-              <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                <span className={cn("text-[13px] font-semibold", changeClass)}>{formatChange(change)}</span>
-                {assetLive ? (
-                  <span className="rounded-full bg-[#E7F8EE] px-2 py-0.5 text-[10px] font-semibold text-emerald-600">
-                    Live
-                  </span>
-                ) : null}
-                <span className="text-[11px] text-[#7C879A]">Cycle {asset.cycle.cycle}</span>
-              </div>
-            </div>
-          </div>
-          <div className="rounded-full border border-[#E3E8F2] bg-[#F8FAFC] px-2.5 py-1 text-[10px] font-medium text-[#687588]">
-            {asset.ticker?.toUpperCase() ?? asset.id.toUpperCase()}
+        <div className="overflow-hidden rounded-[18px] bg-[#F4F7FB]">
+          <div className="aspect-[1.7] w-full sm:aspect-[1.08]">
+            <img
+              src={asset.image}
+              alt={asset.name}
+              className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+            />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          {stats.map((stat, index) => (
-            <div
-              key={`${asset.id}-${stat.label}`}
-              className={cn(
-                "rounded-[18px] bg-transparent px-1 py-1.5",
-                index % 2 === 1 && "text-center",
-              )}
-            >
-              <span className="block text-[9px] uppercase tracking-[0.14em] text-[#8B97AB]">{stat.label}</span>
-              <span className="mt-0.5 block font-mono text-[0.92rem] font-semibold text-[#101828]">{stat.value}</span>
+        <div className="flex flex-1 flex-col px-0.5 pb-0.5 pt-2.5">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-[#98A2B3]">
+                <span className="truncate">{networkLabel}</span>
+                <span className="h-1 w-1 rounded-full bg-[#D0D5DD]" />
+                <span>Cycle {asset.cycle.cycle}</span>
+                <span className="h-1 w-1 rounded-full bg-[#D0D5DD]" />
+                <span className="truncate">{cardTicker}</span>
+              </div>
+              <div className="mt-1 flex items-start gap-1.5">
+                <span className="line-clamp-2 text-[0.96rem] font-semibold leading-tight text-[#111827] sm:text-[1rem]">
+                  {asset.name}
+                </span>
+                <img src="/checklist.png" alt="verified" className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-80" />
+              </div>
             </div>
-          ))}
-        </div>
-        <div className="flex items-center justify-between text-[12px] text-[#6B7280]">
-          <span>{asset.network}</span>
-          <span>{formatCurrencyK(asset.cycle.reserve)} reserve</span>
+            <span className={cn("shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold", changeBadgeClass(change))}>
+              <span className={changeClass}>{formatChange(change)}</span>
+            </span>
+          </div>
+
+          {assetLive ? (
+            <div className="mt-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-600">
+              Live
+            </div>
+          ) : null}
+
+          <div className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-2.5 border-t border-[#EEF2F6] pt-2.5">
+            {stats.map((stat, index) => (
+              <div
+                key={`${asset.id}-${stat.label}`}
+                className={cn(
+                  "min-w-0",
+                  index % 2 === 1 && "text-right",
+                )}
+              >
+                <span className="block text-[10px] uppercase tracking-[0.14em] text-[#98A2B3]">{stat.label}</span>
+                <span className="mt-0.5 block truncate font-mono text-[0.88rem] font-semibold text-[#101828] sm:text-[0.92rem]">{stat.value}</span>
+              </div>
+            ))}
+          </div>
         </div>
         {bottomContent}
       </div>
@@ -622,7 +632,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   );
 
   const renderListedGrid = (items: Asset[]) => (
-    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3 lg:gap-4">
+    <div className="grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
       {items.map((asset) => {
         const change = getAssetChange(asset);
         return renderGridCard(asset, change, () => navigate(`/assets/${asset.id}`));
