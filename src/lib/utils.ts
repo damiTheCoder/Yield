@@ -29,6 +29,20 @@ export function formatCurrencyK(value: number, decimals: number = 2, symbol: str
   return `${symbol}${value.toFixed(decimals)}`;
 }
 
+export function formatUnitCurrency(value: number, symbol: string = "$") {
+  if (typeof value !== "number" || !Number.isFinite(value)) return `${symbol}0.00`;
+  const abs = Math.abs(value);
+  const decimals = abs > 0 && abs < 0.01 ? 6 : abs < 1 ? 4 : 2;
+
+  return (
+    symbol +
+    value.toLocaleString(undefined, {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    })
+  );
+}
+
 export function formatCompactCurrency(value: number, symbol: string = "$") {
   const abs = Math.abs(value);
   if (abs >= 1e9) {

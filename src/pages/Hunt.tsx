@@ -4,6 +4,7 @@ import { useApp, HUNT_TOKEN_SUPPLY, HUNT_TOKEN_BUNDLE } from "@/lib/app-state";
 import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const LETTERS = "ABCDEFGHIJKLMNOPQRST".split("");
 const ROWS = Array.from({ length: 20 }, (_, i) => i + 1);
@@ -124,7 +125,14 @@ type HuntExperienceProps = {
 };
 
 function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit, image, marketOnly }: HuntExperienceProps) {
-  const { getHuntProgress, updateHuntProgress, claimHuntToken, spendAssetCoinTag } = useApp();
+  const navigate = useNavigate();
+  const {
+    getHuntProgress,
+    updateHuntProgress,
+    claimHuntToken,
+    getAssetCoinTagCodes,
+    activateAssetHuntCode,
+  } = useApp();
 
   // Load saved progress or initialize
   const [revealed, setRevealed] = useState<Set<string>>(() => {
@@ -140,6 +148,13 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
     return new Set(saved.failed || []);
   }); // Coordinates with no tokens (red boxes)
   const [inputValue, setInputValue] = useState("");
+  const [activationKey, setActivationKey] = useState("");
+  const [activationMessage, setActivationMessage] = useState("");
+  const [activationMessageType, setActivationMessageType] = useState<"idle" | "success" | "error">("idle");
+  const [isHuntActive, setIsHuntActive] = useState(() => {
+    const saved = getHuntProgress(assetId);
+    return Boolean(saved.activated);
+  });
   const [foundTokens, setFoundTokens] = useState(() => {
     const saved = getHuntProgress(assetId);
     return Math.min(saved.foundTokens, TOTAL_HUNT_TOKENS);
@@ -149,6 +164,7 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
 
   const huntData = useMemo(() => generateHuntData(assetId), [assetId]);
   const maxTokens = huntData.totalTokens || TOTAL_HUNT_TOKENS;
+  const activeKeys = getAssetCoinTagCodes(assetId);
 
   // Reset when switching to a different asset
   useEffect(() => {
@@ -156,8 +172,12 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
     setRevealed(new Set(saved.revealed));
     setMatched(new Set(saved.matched));
     setFailed(new Set(saved.failed || [])); // Restore failed attempts from saved progress
+    setIsHuntActive(Boolean(saved.activated));
     setFoundTokens(Math.min(saved.foundTokens, huntData.totalTokens || TOTAL_HUNT_TOKENS));
     setInputValue("");
+    setActivationKey("");
+    setActivationMessage("");
+    setActivationMessageType("idle");
     setStatus("");
     setStatusType("idle");
   }, [assetId, getHuntProgress, huntData.totalTokens]);
@@ -167,7 +187,62 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
   const successfulClaims = matched.size;
   const personalTokensFound = foundTokens;
 
+  const persistProgress = useCallback(
+    (progress: {
+      revealed?: Set<string>;
+      matched?: Set<string>;
+      failed?: Set<string>;
+      foundTokens?: number;
+      activated?: boolean;
+      activationCode?: string;
+    }) => {
+      updateHuntProgress(assetId, {
+        revealed: Array.from(progress.revealed ?? revealed),
+        matched: Array.from(progress.matched ?? matched),
+        failed: Array.from(progress.failed ?? failed),
+        foundTokens: progress.foundTokens ?? foundTokens,
+        activated: progress.activated ?? isHuntActive,
+        activationCode: progress.activationCode ?? getHuntProgress(assetId).activationCode,
+      });
+    },
+    [assetId, failed, foundTokens, getHuntProgress, isHuntActive, matched, revealed, updateHuntProgress],
+  );
+
+  const handleActivateHunt = useCallback(() => {
+    if (marketOnly) {
+      setActivationMessageType("error");
+      setActivationMessage("Hunt phase has ended for this asset.");
+      return;
+    }
+
+    const result = activateAssetHuntCode(assetId, activationKey);
+    if (!result.ok) {
+      setActivationMessageType("error");
+      setActivationMessage(result.message);
+      return;
+    }
+
+    setIsHuntActive(true);
+    setActivationKey("");
+    setActivationMessageType("success");
+    setActivationMessage("Hunt unlocked. Open as many boxes as you want.");
+    setStatusType("success");
+    setStatus("Hunt unlocked. Open boxes, then submit revealed coordinates.");
+    persistProgress({ activated: true, activationCode: result.code });
+  }, [activateAssetHuntCode, activationKey, assetId, marketOnly, persistProgress]);
+
   const handleReveal = useCallback((coordinate: string) => {
+    if (marketOnly) {
+      setStatusType("error");
+      setStatus("Hunt phase has ended for this asset. Trading is now market-only.");
+      return;
+    }
+    if (!isHuntActive) {
+      setStatusType("error");
+      setStatus("Enter a CoinTag key to start the hunt.");
+      return;
+    }
+
     setRevealed((prevRevealed) => {
       if (matched.has(coordinate)) return prevRevealed;
       if (prevRevealed.has(coordinate)) return prevRevealed; // Already revealed
@@ -177,22 +252,22 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
 
       // Save progress after state update
       setTimeout(() => {
-        updateHuntProgress(assetId, {
-          revealed: Array.from(nextRevealed),
-          matched: Array.from(matched),
-          failed: Array.from(failed),
-          foundTokens,
-        });
+        persistProgress({ revealed: nextRevealed });
       }, 0);
 
       return nextRevealed;
     });
-  }, [assetId, matched, failed, foundTokens, updateHuntProgress]);
+  }, [isHuntActive, marketOnly, matched, persistProgress]);
 
   const handleSubmit = useCallback(() => {
     if (marketOnly) {
       setStatusType("error");
       setStatus("Hunt phase has ended for this asset. Trading is now market-only.");
+      return;
+    }
+    if (!isHuntActive) {
+      setStatusType("error");
+      setStatus("Enter a CoinTag key to start the hunt.");
       return;
     }
     const coord = inputValue.trim().toUpperCase();
@@ -212,17 +287,16 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
       setStatus("You already claimed that coordinate.");
       return;
     }
+    if (failed.has(coord)) {
+      setStatusType("error");
+      setStatus(`No token at ${coord}. Keep searching!`);
+      setInputValue("");
+      return;
+    }
 
     if (foundTokens >= maxTokens) {
       setStatusType("error");
       setStatus("You've already claimed the maximum tokens for this hunt.");
-      return;
-    }
-
-    const spent = spendAssetCoinTag(assetId, 1);
-    if (!spent) {
-      setStatusType("error");
-      setStatus("You need at least 1 CoinTag to submit a hunt attempt.");
       return;
     }
 
@@ -235,12 +309,7 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
 
         // Save progress immediately with failed state
         setTimeout(() => {
-          updateHuntProgress(assetId, {
-            revealed: Array.from(revealed),
-            matched: Array.from(matched),
-            failed: Array.from(nextFailed),
-            foundTokens,
-          });
+          persistProgress({ failed: nextFailed });
         }, 0);
 
         return nextFailed;
@@ -286,17 +355,80 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
 
     // Save progress after state updates
     setTimeout(() => {
-      updateHuntProgress(assetId, {
-        revealed: Array.from(revealed),
-        matched: Array.from(nextMatched),
-        failed: Array.from(failed),
-        foundTokens: nextFoundTokens,
-      });
+      persistProgress({ matched: nextMatched, foundTokens: nextFoundTokens });
     }, 0);
-  }, [marketOnly, inputValue, huntData, revealed, matched, failed, foundTokens, maxTokens, claimHuntToken, assetId, pricePerUnit, updateHuntProgress, spendAssetCoinTag]);
+  }, [marketOnly, isHuntActive, inputValue, huntData, revealed, matched, failed, foundTokens, maxTokens, claimHuntToken, assetId, pricePerUnit, persistProgress]);
 
   return (
     <div className="min-h-screen bg-background">
+      <Dialog
+        open={!marketOnly && !isHuntActive}
+        onOpenChange={(open) => {
+          if (!open) {
+            navigate(`/assets/${assetId}`);
+          }
+        }}
+      >
+        <DialogContent className="w-[calc(100%-2rem)] max-w-sm rounded-2xl border border-border/60 p-5">
+          <DialogHeader className="space-y-2 text-left">
+            <DialogTitle>Enter CoinTag key</DialogTitle>
+            <DialogDescription>
+              Copy your key from Wallet, paste it here, then the hunt stays unlocked.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <input
+              aria-label="CoinTag key"
+              value={activationKey}
+              onChange={(event) => {
+                setActivationKey(event.target.value.toUpperCase());
+                setActivationMessage("");
+                setActivationMessageType("idle");
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  handleActivateHunt();
+                  event.currentTarget.blur();
+                }
+              }}
+              autoCapitalize="characters"
+              autoCorrect="off"
+              spellCheck={false}
+              enterKeyHint="done"
+              placeholder="CT-ALPH-KEY"
+              className="h-11 w-full rounded-xl border border-border/70 bg-background px-3 text-base text-foreground outline-none placeholder:text-muted-foreground/70 focus:border-blue-500"
+            />
+            {activationMessage ? (
+              <p
+                className={`text-xs ${
+                  activationMessageType === "success" ? "text-emerald-400" : "text-destructive"
+                }`}
+              >
+                {activationMessage}
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                {activeKeys.length > 0
+                  ? `${activeKeys.length} active key${activeKeys.length === 1 ? "" : "s"} available for this asset.`
+                  : "No active key found. Buy a CoinTag or open Wallet to copy an existing key."}
+              </p>
+            )}
+            <Button onClick={handleActivateHunt} className="h-10 w-full rounded-xl">
+              Start game
+            </Button>
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" className="h-10 rounded-xl" onClick={() => navigate("/wallet")}>
+                Open Wallet
+              </Button>
+              <Button variant="outline" className="h-10 rounded-xl" onClick={() => navigate(`/assets/${assetId}`)}>
+                Buy CoinTag
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="sticky top-[52px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:backdrop-blur sm:top-14">
         <div className="container mx-auto px-2 sm:px-4 pt-3 pb-4 sm:pt-4 sm:pb-6 space-y-3 font-mono">
           {/* Header Section */}
@@ -363,7 +495,7 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
         </div>
       </div>
 
-      <main className="container mx-auto px-2 sm:px-4 pb-32 pt-4 sm:pt-6 space-y-4 sm:space-y-8">
+      <main className="container mx-auto px-2 sm:px-4 pb-52 pt-4 sm:pb-32 sm:pt-6 space-y-4 sm:space-y-8">
         {/* Main Content - Stack on mobile, side-by-side on desktop */}
         <section className="flex flex-col lg:flex-row gap-4 sm:gap-6">
           {/* Sidebar */}
@@ -478,16 +610,21 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
                       if (event.key === "Enter") {
                         event.preventDefault();
                         handleSubmit();
+                        event.currentTarget.blur();
                       }
                     }}
                     placeholder={marketOnly ? "Hunt phase ended" : "Enter coordinate E.g A15"}
-                    disabled={marketOnly}
-                    className="h-12 w-full rounded-[1.55rem] border-0 bg-transparent pl-4 pr-28 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 focus:outline-none"
+                    disabled={marketOnly || !isHuntActive}
+                    autoCapitalize="characters"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    enterKeyHint="done"
+                    className="h-12 w-full rounded-[1.55rem] border-0 bg-transparent pl-4 pr-28 text-base text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 focus:outline-none sm:text-sm"
                   />
                   <Button
                     onClick={handleSubmit}
                     variant="default"
-                    disabled={marketOnly}
+                    disabled={marketOnly || !isHuntActive}
                     className="absolute right-2 top-1/2 h-8 -translate-y-1/2 rounded-full px-4 text-xs font-semibold"
                   >
                     {marketOnly ? "Closed" : "Submit"}
@@ -498,8 +635,8 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
             </div>
 
             {/* Input Section (mobile floating bar) */}
-            <div className="sm:hidden fixed inset-x-0 bottom-0 z-40 px-4 py-3 pb-5">
-              <div className="mx-auto w-full max-w-xl px-2">
+            <div className="sm:hidden fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-50 px-4 py-2">
+              <div className="pointer-events-auto mx-auto w-full max-w-xl px-2">
                 <div className="flex flex-col gap-2">
                   <div className="relative mx-auto w-full rounded-[1.55rem] border border-slate-300/80 bg-background/60 shadow-sm backdrop-blur-md dark:border-white/10">
                     <input
@@ -510,16 +647,21 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
                         if (event.key === "Enter") {
                           event.preventDefault();
                           handleSubmit();
+                          event.currentTarget.blur();
                         }
                       }}
                       placeholder={marketOnly ? "Hunt phase ended" : "Enter coordinate E.g A15"}
-                      disabled={marketOnly}
-                      className="h-12 w-full rounded-[1.55rem] border-0 bg-transparent pl-4 pr-24 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 focus:outline-none"
+                      disabled={marketOnly || !isHuntActive}
+                      autoCapitalize="characters"
+                      autoCorrect="off"
+                      spellCheck={false}
+                      enterKeyHint="done"
+                      className="h-12 w-full rounded-[1.55rem] border-0 bg-transparent pl-4 pr-24 text-base text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 focus:outline-none"
                     />
                     <Button
                       onClick={handleSubmit}
                       variant="default"
-                      disabled={marketOnly}
+                      disabled={marketOnly || !isHuntActive}
                       className="absolute right-2 top-1/2 h-8 -translate-y-1/2 rounded-full px-3.5 text-xs font-semibold"
                     >
                       {marketOnly ? "Closed" : "Submit"}
@@ -550,6 +692,8 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
                             ? "border-emerald-400/70 bg-emerald-500/25 text-emerald-50 cursor-not-allowed"
                             : isFailed
                               ? "border-red-400/70 bg-red-500/20 text-red-100 cursor-pointer"
+                            : !isHuntActive || marketOnly
+                              ? "border-neutral-300 dark:border-border/60 bg-background/60 text-muted-foreground/50 cursor-pointer"
                               : isRevealed
                                 ? "border-border bg-muted text-foreground cursor-pointer"
                                 : "border-neutral-300 dark:border-border/60 bg-background text-muted-foreground hover:border-border hover:text-foreground active:scale-95 cursor-pointer"

@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Activity, Bell, Gift, KeyRound, LineChart } from "lucide-react";
 import { useApp } from "@/lib/app-state";
-import { formatCurrency, formatCurrencyK } from "@/lib/utils";
+import { formatCurrency, formatCurrencyK, formatUnitCurrency } from "@/lib/utils";
 import Web3News from "@/components/Web3News";
 
 type NotificationPriority = "high" | "medium" | "normal";
@@ -49,8 +49,13 @@ export default function Notifications() {
       const codes = getAssetCoinTagCodes(asset.id);
       const marketOnly = Boolean(asset.secondaryMarket?.active);
       const remainingUnits = marketOnly ? 0 : Math.max(0, assetAvailable[asset.id] ?? asset.cycle.initialSupply);
-      const unitPrice = marketOnly ? asset.secondaryMarket?.walv ?? asset.cycle.lpu : asset.cycle.lpu;
       const liquidity = marketOnly ? asset.secondaryMarket?.liquidityPool ?? asset.cycle.reserve : asset.cycle.reserve;
+      const liveSupply = marketOnly ? asset.secondaryMarket?.supplyPool ?? asset.cycle.supply : asset.cycle.supply;
+      const unitPrice = marketOnly
+        ? asset.secondaryMarket?.walv ?? (liveSupply > 0 ? liquidity / liveSupply : 0)
+        : liveSupply > 0
+          ? asset.cycle.reserve / liveSupply
+          : 0;
       const redeemableValue = ownedLfts * unitPrice;
       const baseAsset = {
         id: asset.id,
@@ -63,13 +68,13 @@ export default function Notifications() {
           id: `${asset.id}-coins-ready`,
           type: "coins_ready",
           title: "CoinTags Ready",
-          content: `${ownedCoinTags} CoinTag${ownedCoinTags === 1 ? "" : "s"} are ready for ${asset.name} cycle ${asset.cycle.cycle}. Submit one code per coordinate claim while the hunt stays open.`,
+          content: `${ownedCoinTags} CoinTag${ownedCoinTags === 1 ? "" : "s"} are ready for ${asset.name} cycle ${asset.cycle.cycle}. Enter one key to unlock the hunt, then open as many boxes as you want.`,
           timestamp: `${index + 1}h`,
           priority: "high",
           asset: baseAsset,
           metrics: [
             `${codes.length} synced code${codes.length === 1 ? "" : "s"}`,
-            `LPU ${formatCurrency(unitPrice)}`,
+            `LPU ${formatUnitCurrency(unitPrice)}`,
             `Liquidity ${formatCurrencyK(liquidity)}`,
           ],
           primaryAction: { label: "Start Hunt", path: `/assets/${asset.id}/hunt` },
@@ -90,7 +95,7 @@ export default function Notifications() {
           metrics: [
             `${ownedLfts} LFT${ownedLfts === 1 ? "" : "s"} held`,
             `Reserve ${formatCurrencyK(asset.cycle.reserve)}`,
-            `Floor ${formatCurrency(unitPrice)}`,
+            `Floor ${formatUnitCurrency(unitPrice)}`,
           ],
           primaryAction: { label: "Open Portfolio", path: "/portfolio" },
           secondaryAction: { label: "Asset Details", path: `/assets/${asset.id}` },
@@ -128,7 +133,7 @@ export default function Notifications() {
           priority: "high",
           asset: baseAsset,
           metrics: [
-            `WALV ${formatCurrency(unitPrice)}`,
+            `WALV ${formatUnitCurrency(unitPrice)}`,
             `Pool ${formatCurrencyK(liquidity)}`,
             `${ownedLfts} LFT${ownedLfts === 1 ? "" : "s"} tracked`,
           ],
@@ -149,7 +154,7 @@ export default function Notifications() {
           asset: baseAsset,
           metrics: [
             `${remainingUnits.toLocaleString()} units left`,
-            `LPU ${formatCurrency(unitPrice)}`,
+            `LPU ${formatUnitCurrency(unitPrice)}`,
             `Reserve ${formatCurrencyK(asset.cycle.reserve)}`,
           ],
           primaryAction: { label: "Open Hunt", path: `/assets/${asset.id}/hunt` },

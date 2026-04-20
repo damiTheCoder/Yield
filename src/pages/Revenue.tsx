@@ -11,7 +11,7 @@ import {
   YAxis,
 } from "recharts";
 import { useApp, type Asset } from "@/lib/app-state";
-import { cn, formatCompactCurrency, formatCurrencyK } from "@/lib/utils";
+import { cn, formatCompactCurrency, formatCurrencyK, formatUnitCurrency } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -550,7 +550,7 @@ export default function Revenue() {
                 <div className="space-y-4">
                   <div className="grid gap-3 sm:grid-cols-2">
                     <MiniInfo label="Cycle" value={`${metrics.cycle}`} />
-                    <MiniInfo label="Current LPU" value={formatCompactCurrency(metrics.currentLpu)} />
+                    <MiniInfo label="Current LPU" value={formatUnitCurrency(metrics.currentLpu)} />
                     <MiniInfo label="Remaining Supply" value={`${metrics.remainingSupply}/${metrics.initialSupply}`} />
                     <MiniInfo label="Next-cycle Seed" value={formatCompactCurrency(metrics.nextCycleSeed)} />
                   </div>

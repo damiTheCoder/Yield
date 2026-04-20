@@ -13,6 +13,8 @@ export interface HuntProgress {
   matched: string[]; // coordinates that have been claimed
   failed: string[]; // coordinates that failed (no token)
   foundTokens: number; // total tokens claimed in this hunt
+  activated?: boolean; // true after a CoinTag key unlocks the hunt session
+  activationCode?: string; // consumed key that unlocked the hunt session
 }
 
 export interface StoredState {

@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useApp } from "@/lib/app-state";
-import { cn, formatCurrency, formatCurrencyK } from "@/lib/utils";
+import { cn, formatCurrency, formatCurrencyK, formatUnitCurrency } from "@/lib/utils";
 import { DEFAULT_LAUNCHPAD_DISTRIBUTION } from "@/domain/tokenomics";
 import { Dot, Image as ImageIcon, LineChart as LineChartIcon, X } from "lucide-react";
 import { Area, Bar, BarChart as RechartsBarChart, Cell, Line, LineChart as RechartsLineChart, XAxis, YAxis } from "recharts";
@@ -60,7 +60,7 @@ function detectWebView(): boolean {
 export default function AssetDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { assets, user, userAssets, assetAvailable, buyAssetCoinTags, getAssetTokenInfo } = useApp();
+  const { assets, user, userAssets, assetAvailable, buyAssetCoinTags, getAssetTokenInfo, getHuntProgress } = useApp();
 
   const asset = useMemo(() => assets.find((a) => a.id === id), [assets, id]);
   const tokenInfo = useMemo(() => (asset ? getAssetTokenInfo(asset.id) : null), [asset, getAssetTokenInfo]);
@@ -82,8 +82,15 @@ export default function AssetDetail() {
   const toggleThumbClass =
     "!h-[18px] !w-[18px] !bg-background !shadow-none data-[state=checked]:translate-x-[1.5rem] data-[state=unchecked]:translate-x-0";
 
-  const currentLiquidity = asset?.cycle.reserve ?? 0;
-  const lpu = asset?.cycle.lpu ?? 0;
+  const liveReserve = Math.max(0, Number.isFinite(asset?.cycle.reserve ?? 0) ? asset?.cycle.reserve ?? 0 : 0);
+  const liveSupply = Math.max(
+    0,
+    Number.isFinite(asset?.cycle.supply ?? 0)
+      ? asset?.cycle.supply ?? 0
+      : asset?.cycle.initialSupply ?? asset?.params.initialSupply ?? 0,
+  );
+  const lpu = tokenInfo?.walv && tokenInfo.walv > 0 ? tokenInfo.walv : liveSupply > 0 ? liveReserve / liveSupply : 0;
+  const currentLiquidity = tokenInfo?.phase === "market" ? Math.max(0, tokenInfo.totalValue) : liveReserve;
   const huntFee = Math.max(4.2, lpu * 0.4);
 
   const chartData = useMemo(() => {
@@ -145,7 +152,7 @@ export default function AssetDetail() {
     const totalCycles = Math.max(asset.cycle.cycle, 1);
     const targetRevenue = Math.max(0, Number((asset.cycle.totalSales || 0).toFixed(2)));
     const targetPayout = Math.max(0, Number((asset.cycle.accrued?.holderRewards || 0).toFixed(2)));
-    const targetLftPerUnit = Number((asset.cycle.lpu || 0).toFixed(2));
+    const targetLftPerUnit = Number((lpu || 0).toFixed(6));
     const safeHuntFee = Math.max(huntFee, 1);
     const estimatedUsers = targetRevenue > 0 ? Math.max(1, Math.round(targetRevenue / safeHuntFee)) : 0;
 
@@ -184,7 +191,7 @@ export default function AssetDetail() {
         volume: revenueTrend[index] ?? targetRevenue,
       };
     });
-  }, [asset, huntFee]);
+  }, [asset, huntFee, lpu]);
 
   useEffect(() => {
     if (analyticsData.length > 0) {
@@ -215,14 +222,18 @@ export default function AssetDetail() {
   const chartConfig = { value: { label: "Liquidity", color: "hsl(var(--accent-yellow))" } } as const;
 
   useEffect(() => {
-    if (ua.coinTags > 0) {
+    const huntUnlocked = asset ? Boolean(getHuntProgress(asset.id).activated) : false;
+    if (huntUnlocked) {
       setShowHuntPrompt(true);
-      setPurchaseMessage("CoinTag already purchased.");
+      setPurchaseMessage("Hunt unlocked.");
+    } else if (ua.coinTags > 0) {
+      setShowHuntPrompt(true);
+      setPurchaseMessage("CoinTag purchased. Copy its key from Wallet, then start Hunt.");
     } else {
       setShowHuntPrompt(false);
       setPurchaseMessage(null);
     }
-  }, [ua.coinTags]);
+  }, [asset, getHuntProgress, ua.coinTags]);
 
   useEffect(() => {
     setIsWebview(detectWebView());
@@ -281,7 +292,7 @@ export default function AssetDetail() {
     { key: "platform", label: "Platform", value: asset.cycle.split.platform, accent: "text-violet-400" },
     { key: "holder-rewards", label: "Holder rewards", value: asset.cycle.split.holderRewards, accent: "text-rose-400" },
   ];
-  const backingReserve = asset.params.initialReserve;
+  const backingReserve = liveReserve;
   const totalSupply = asset.cycle.initialSupply ?? cycleMaxSupply;
   const nextCycleSupply = Math.max(1, Math.floor(cycleMaxSupply / 2));
   const discovered = Math.max(0, totalSupply - findable);
@@ -290,7 +301,8 @@ export default function AssetDetail() {
     ? asset.summary
     : "Liquidity-backed artifacts with verifiable reserves and real-time CoinTag discovery. Hunt, redeem, and monitor live performance across every cycle.";
 
-  const formatPrimaryValue = (value: number) => {
+  const formatPrimaryValue = (value: number, precise = false) => {
+    if (precise) return formatUnitCurrency(value);
     return value >= 1000 ? formatCurrencyK(value) : formatCurrency(value);
   };
 
@@ -792,7 +804,7 @@ export default function AssetDetail() {
                 </div>
                 <div className="flex flex-col items-center space-y-1 text-center">
                   <div className="text-[10px] text-muted-foreground">price per unit</div>
-                  <div className="font-mono text-xl font-semibold">{formatPrimaryValue(lpu)}</div>
+                  <div className="font-mono text-xl font-semibold">{formatPrimaryValue(lpu, true)}</div>
                   <div className="text-[10px] text-muted-foreground">Redeemable floor</div>
                 </div>
               </div>
@@ -839,7 +851,7 @@ export default function AssetDetail() {
                     <div className="text-sm font-semibold text-foreground">{tokenInfo.symbol}</div>
                     <div>Status: {tokenInfo.unlocked ? "Trading Enabled" : "Locked until discovery"}</div>
                     <div>Supply: <span className="font-mono text-sm text-foreground">{tokenInfo.supply.toLocaleString()}</span></div>
-                    <div>Token Price: <span className="font-mono text-sm text-foreground">{tokenInfo.price > 0 ? formatCurrency(tokenInfo.price) : "—"}</span></div>
+                    <div>Token Price: <span className="font-mono text-sm text-foreground">{tokenInfo.price > 0 ? formatUnitCurrency(tokenInfo.price) : "—"}</span></div>
                   </div>
                   {tokenInfo.unlocked ? (
                     <Button className="w-full" onClick={() => navigate(`/assets/${asset.id}/token`)}>
@@ -875,7 +887,7 @@ export default function AssetDetail() {
                 </div>
                 <div className="rounded-2xl border-none bg-transparent p-0 text-center md:border md:border-border/40 md:bg-surface/40 md:p-4 flex flex-col items-center space-y-1">
                   <div className="text-[11px] text-muted-foreground sm:text-xs">price per unit</div>
-                  <div className="font-mono text-2xl font-semibold">{formatPrimaryValue(lpu)}</div>
+                  <div className="font-mono text-2xl font-semibold">{formatPrimaryValue(lpu, true)}</div>
                   <div className="text-xs text-muted-foreground">Redeemable floor</div>
                 </div>
               </div>

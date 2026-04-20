@@ -27,6 +27,40 @@ interface RawDecryptNewsResponse {
 const NEWS_ENDPOINT =
   "https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fdecrypt.co%2Ffeed";
 
+const fallbackBlogNews: Web3NewsItem[] = [
+  {
+    id: "solar-blog-tokenized-yield-liquidity",
+    title: "Reimagining Liquidity: How Tokenized Yield Is Bridging Traditional Finance and Web3",
+    url: "/blog/tokenized-yield-liquidity",
+    imageUrl: "/d5.png",
+    source: "Solaris",
+    publishedAt: new Date("2024-08-02T00:00:00.000Z"),
+  },
+  {
+    id: "solar-blog-creative-liquidity-web3",
+    title: "The Creative Use of Liquidity in the Web3 Space",
+    url: "/blog/creative-liquidity-web3",
+    imageUrl: "/d3.png",
+    source: "Solaris",
+    publishedAt: new Date("2024-07-09T00:00:00.000Z"),
+  },
+  {
+    id: "solar-blog-liquidity-funded-tokens",
+    title: "Liquidity Funded Tokens (LFTs): Turning Hype Into Durable Value",
+    url: "/blog/liquidity-funded-tokens",
+    imageUrl: "/d1.png",
+    source: "Solaris",
+    publishedAt: new Date("2024-05-21T00:00:00.000Z"),
+  },
+];
+
+function getFallbackBlogNews() {
+  return fallbackBlogNews.map((item) => ({
+    ...item,
+    publishedAt: new Date(item.publishedAt),
+  }));
+}
+
 let cachedNews: Web3NewsItem[] | null = null;
 let cacheTimestamp = 0;
 let inflightRequest: Promise<Web3NewsItem[]> | null = null;
@@ -52,11 +86,11 @@ async function fetchWeb3News(forceRefresh = false): Promise<Web3NewsItem[]> {
   inflightRequest = fetch(NEWS_ENDPOINT)
     .then(async (response) => {
       if (!response.ok) {
-        return cacheNews([]);
+        return cacheNews(getFallbackBlogNews());
       }
       const payload = (await response.json()) as RawDecryptNewsResponse;
       if (payload?.status !== "ok" || !Array.isArray(payload.items)) {
-        return cacheNews([]);
+        return cacheNews(getFallbackBlogNews());
       }
 
       const normalized = payload.items
@@ -76,10 +110,10 @@ async function fetchWeb3News(forceRefresh = false): Promise<Web3NewsItem[]> {
         })
         .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
 
-      return cacheNews(normalized);
+      return cacheNews(normalized.length > 0 ? normalized : getFallbackBlogNews());
     })
     .catch(() => {
-      return cacheNews([]);
+      return cacheNews(getFallbackBlogNews());
     })
     .finally(() => {
       inflightRequest = null;

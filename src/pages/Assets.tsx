@@ -2,7 +2,7 @@ import { useApp } from "@/lib/app-state";
 import type { Asset } from "@/lib/app-state";
 import { useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { cn, formatCurrency, formatCurrencyK, formatCompactCurrency } from "@/lib/utils";
+import { cn, formatCurrency, formatCurrencyK, formatCompactCurrency, formatUnitCurrency } from "@/lib/utils";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CalendarDays, Check, ChevronLeft, ChevronRight, LayoutGrid, Rows3, Star } from "lucide-react";
@@ -18,7 +18,7 @@ const MONTH_OPTIONS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "
 const ASSET_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/r1.jpeg"];
 const MOBILE_ASSET_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/r1.jpeg"];
 const ICON_STACK_MESSAGE = "we just felt this will make the UX design look good 😂";
-type Network = "all" | "bitcoin" | "ethereum" | "solana" | "base" | "monad";
+type Network = "all" | "polygon" | "ethereum" | "solana" | "base" | "optimism";
 const NETWORKS = [
   {
     id: "all" as const,
@@ -29,12 +29,12 @@ const NETWORKS = [
     selectedPillClass: "bg-[#DFEAFE] text-[#26468E] dark:bg-[#243555] dark:text-[#D5E4FF]",
   },
   {
-    id: "bitcoin" as const,
-    name: "Bitcoin",
-    icon: "₿",
-    image: "/Bitcoin.jpeg",
-    pillClass: "bg-[#FFF1E1] text-[#B56814] hover:bg-[#FFE7CF] dark:bg-[#332315] dark:text-[#F4BE7B] dark:hover:bg-[#422E1B]",
-    selectedPillClass: "bg-[#FFE4C3] text-[#9B5604] ring-1 ring-inset ring-[#F4BE7B] dark:bg-[#4A311A] dark:text-[#FFD7A2] dark:ring-[#9A6A2A]",
+    id: "polygon" as const,
+    name: "Polygon",
+    icon: "P",
+    image: "/Polygon.jpeg",
+    pillClass: "bg-[#F1EBFF] text-[#7049C9] hover:bg-[#E9DEFF] dark:bg-[#251E39] dark:text-[#CDBBFF] dark:hover:bg-[#30284A]",
+    selectedPillClass: "bg-[#E4D8FF] text-[#5B36B5] ring-1 ring-inset ring-[#BEA5FF] dark:bg-[#3B2F60] dark:text-[#E7DDFF] dark:ring-[#8D73D6]",
   },
   {
     id: "ethereum" as const,
@@ -49,8 +49,8 @@ const NETWORKS = [
     name: "Solana",
     icon: "◎",
     image: "/solana.jpeg",
-    pillClass: "bg-[#E9FFF8] text-[#17916E] hover:bg-[#DDFBF2] dark:bg-[#152D28] dark:text-[#8DE0C4] dark:hover:bg-[#1B3932]",
-    selectedPillClass: "bg-[#D8F9EE] text-[#0E775A] ring-1 ring-inset ring-[#93E5CA] dark:bg-[#1F433B] dark:text-[#B3F3DE] dark:ring-[#4BAA8A]",
+    pillClass: "bg-[#CFFBE8] text-[#063B2B] hover:bg-[#B8F7DD] dark:bg-[#CFFBE8] dark:text-[#063B2B] dark:hover:bg-[#B8F7DD]",
+    selectedPillClass: "bg-[#B8F7DD] text-[#063B2B] ring-1 ring-inset ring-[#5DE8B2] dark:bg-[#B8F7DD] dark:text-[#063B2B] dark:ring-[#5DE8B2]",
   },
   {
     id: "base" as const,
@@ -61,12 +61,12 @@ const NETWORKS = [
     selectedPillClass: "bg-[#DBE8FF] text-[#1F47BC] ring-1 ring-inset ring-[#A4BEFF] dark:bg-[#223662] dark:text-[#D4E0FF] dark:ring-[#6F93F1]",
   },
   {
-    id: "monad" as const,
-    name: "Monad",
-    icon: "M",
-    image: "/Monad.jpeg",
-    pillClass: "bg-[#F5ECFF] text-[#6E3DBF] hover:bg-[#EDDEFF] dark:bg-[#2A1D39] dark:text-[#D3B5FF] dark:hover:bg-[#36264A]",
-    selectedPillClass: "bg-[#EBDDFF] text-[#5A2FA5] ring-1 ring-inset ring-[#C8A8F6] dark:bg-[#412B5C] dark:text-[#ECD9FF] dark:ring-[#8F69C8]",
+    id: "optimism" as const,
+    name: "Optimism",
+    icon: "O",
+    image: "/Optimism.jpeg",
+    pillClass: "bg-[#FFECEC] text-[#C84444] hover:bg-[#FFE0E0] dark:bg-[#3A1F22] dark:text-[#FFB8B8] dark:hover:bg-[#4A282C]",
+    selectedPillClass: "bg-[#FFDADA] text-[#AD2F2F] ring-1 ring-inset ring-[#F6A6A6] dark:bg-[#5A2A30] dark:text-[#FFD6D6] dark:ring-[#D67070]",
   },
 ];
 
@@ -389,7 +389,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     if (selectedNetwork !== "all") {
       filtered = filtered.filter((asset) => {
         const hash = asset.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        const networks: Network[] = ["bitcoin", "ethereum", "solana", "base", "monad"];
+        const networks: Network[] = ["polygon", "ethereum", "solana", "base", "optimism"];
         const assignedNetwork = networks[hash % networks.length];
         return assignedNetwork === selectedNetwork;
       });
@@ -455,11 +455,14 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     bottomContent?: React.ReactNode,
   ) => {
     const changeClass = changeColorClass(change);
-    const coinTagPrice = Math.max(4.2, asset.cycle.lpu * 0.4);
     const assetLive = isAssetLive(asset);
+    const safeReserve = Math.max(0, Number.isFinite(asset.cycle.reserve) ? asset.cycle.reserve : 0);
+    const safeSupply = Math.max(0, Number.isFinite(asset.cycle.supply) ? asset.cycle.supply : asset.cycle.initialSupply || 0);
+    const liveLpu = safeSupply > 0 ? safeReserve / safeSupply : 0;
+    const coinTagPrice = Math.max(4.2, liveLpu * 0.4);
     const stats = [
-      { label: "Liquidity", value: formatCurrencyK(asset.cycle.reserve) },
-      { label: "LPU", value: formatCurrency(asset.cycle.lpu) },
+      { label: "Liquidity", value: formatCurrencyK(safeReserve) },
+      { label: "LPU", value: formatUnitCurrency(liveLpu) },
       { label: "CoinTag", value: formatCurrency(coinTagPrice) },
       { label: "Backing", value: formatCurrencyK(asset.params.initialReserve) },
     ];
@@ -477,54 +480,50 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
           }
         }}
         className={cn(
-          "group flex h-full w-full flex-col rounded-[22px] border border-[#EEF2F6] bg-white p-2.5 text-left shadow-[0_14px_30px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_18px_38px_rgba(15,23,42,0.08)] sm:p-3",
+          "group flex h-full w-full flex-col rounded-lg border border-[#EEF2F6] bg-white p-3 text-left shadow-[0_10px_24px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(15,23,42,0.08)] dark:border-[#2A2A2A] dark:bg-[#171717] dark:shadow-none dark:hover:bg-[#202020]",
         )}
       >
-        <div className="overflow-hidden rounded-[18px] bg-[#F4F7FB]">
-          <div className="aspect-[1.7] w-full sm:aspect-[1.08]">
-            <img
-              src={asset.image}
-              alt={asset.name}
-              className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-            />
+        <div className="flex min-w-0 items-start gap-3">
+          <img
+            src={asset.image}
+            alt={asset.name}
+            className="h-11 w-11 shrink-0 rounded-lg border border-[#EEF2F6] object-cover shadow-sm transition duration-300 group-hover:scale-[1.03] sm:h-12 sm:w-12"
+          />
+          <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="flex min-w-0 items-center gap-1.5">
+                  <span className="min-w-0 truncate text-[0.96rem] font-semibold leading-tight text-[#111827] dark:text-[#F2F4F7] sm:text-[1rem]">
+                    {asset.name}
+                  </span>
+                  <img src="/checklist.png" alt="verified" className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-80" />
+                </div>
+                {assetLive ? (
+                  <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-600">
+                    Live
+                  </div>
+                ) : null}
+              </div>
+              <span className={cn("shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold", changeBadgeClass(change))}>
+                <span className={changeClass}>{formatChange(change)}</span>
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-1 flex-col px-0.5 pb-0.5 pt-2.5">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0 flex-1">
-              <div className="flex min-w-0 items-center gap-1.5">
-                <span className="min-w-0 truncate text-[0.96rem] font-semibold leading-tight text-[#111827] sm:text-[1rem]">
-                  {asset.name}
-                </span>
-                <img src="/checklist.png" alt="verified" className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-80" />
-              </div>
+        <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2.5 border-t border-[#EEF2F6] pt-3 dark:border-[#2A2A2A]">
+          {stats.map((stat, index) => (
+            <div
+              key={`${asset.id}-${stat.label}`}
+              className={cn(
+                "min-w-0",
+                index % 2 === 1 && "text-right",
+              )}
+            >
+              <span className="block text-[10px] uppercase tracking-[0.14em] text-[#98A2B3]">{stat.label}</span>
+              <span className="mt-0.5 block truncate font-mono text-[0.88rem] font-semibold text-[#101828] dark:text-[#F2F4F7] sm:text-[0.92rem]">{stat.value}</span>
             </div>
-            <span className={cn("shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold", changeBadgeClass(change))}>
-              <span className={changeClass}>{formatChange(change)}</span>
-            </span>
-          </div>
-
-          {assetLive ? (
-            <div className="mt-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-600">
-              Live
-            </div>
-          ) : null}
-
-          <div className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-2.5 border-t border-[#EEF2F6] pt-2.5">
-            {stats.map((stat, index) => (
-              <div
-                key={`${asset.id}-${stat.label}`}
-                className={cn(
-                  "min-w-0",
-                  index % 2 === 1 && "text-right",
-                )}
-              >
-                <span className="block text-[10px] uppercase tracking-[0.14em] text-[#98A2B3]">{stat.label}</span>
-                <span className="mt-0.5 block truncate font-mono text-[0.88rem] font-semibold text-[#101828] sm:text-[0.92rem]">{stat.value}</span>
-              </div>
-            ))}
-          </div>
+          ))}
         </div>
         {bottomContent}
       </div>
@@ -546,7 +545,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   );
 
   const tableShellClasses = "-mx-4 overflow-hidden rounded-2xl bg-transparent md:mx-0 md:bg-[#FAFAFA] dark:bg-transparent dark:md:bg-[#151515] mb-6 sm:-mx-6";
-  const tableStickyColumnClasses = "bg-white md:bg-[#F3F3F3] dark:bg-white dark:md:bg-[#111111]";
+  const tableStickyColumnClasses = "bg-white md:bg-[#F3F3F3] dark:bg-[#0F0F0F] dark:md:bg-[#151515]";
 
   const renderListedList = (items: Asset[]) => (
     <div className={tableShellClasses}>
@@ -568,7 +567,10 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
           </TableHeader>
           <TableBody>
             {items.map((asset) => {
-              const coinTagPrice = Math.max(4.2, asset.cycle.lpu * 0.4);
+              const safeReserve = Math.max(0, Number.isFinite(asset.cycle.reserve) ? asset.cycle.reserve : 0);
+              const safeSupply = Math.max(0, Number.isFinite(asset.cycle.supply) ? asset.cycle.supply : asset.cycle.initialSupply || 0);
+              const liveLpu = safeSupply > 0 ? safeReserve / safeSupply : 0;
+              const coinTagPrice = Math.max(4.2, liveLpu * 0.4);
               const change = getAssetChange(asset);
               const changeText = formatChange(change);
               const changeClass = changeColorClass(change);
@@ -576,7 +578,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
               return (
                 <TableRow
                   key={asset.id}
-                  className="cursor-pointer text-sm transition-colors hover:bg-surface/30 border-b border-[#D9DDE6] md:border-0 group"
+                  className="cursor-pointer text-sm transition-colors hover:bg-surface/30 border-b border-[#D9DDE6] dark:border-[#2A2A2A] md:border-0 group"
                   onClick={() => navigate(`/assets/${asset.id}`)}
                 >
                   {isDesktop && (
@@ -591,7 +593,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       />
                     </TableCell>
                   )}
-                  <TableCell className={cn("sticky left-0 z-10 min-w-[200px] border-b border-[#D9DDE6] pl-4 pr-4 sm:pl-6 md:border-b-0", tableStickyColumnClasses)}>
+                  <TableCell className={cn("sticky left-0 z-10 min-w-[200px] border-b border-[#D9DDE6] pl-4 pr-4 dark:border-[#2A2A2A] sm:pl-6 md:border-b-0", tableStickyColumnClasses)}>
                     <div className="flex items-center gap-3 text-[15px] md:text-sm">
                       <img src={asset.image} alt={asset.name} className="h-10 w-10 rounded-full object-cover md:h-9 md:w-9" />
                       <div className="flex flex-col min-w-0">
@@ -606,10 +608,10 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="min-w-[140px] border-b border-[#D9DDE6] px-4 text-right font-mono text-[15px] md:border-b-0 md:text-sm">{formatCurrencyK(asset.cycle.reserve)}</TableCell>
-                  <TableCell className="min-w-[140px] border-b border-[#D9DDE6] px-8 text-right font-mono text-[15px] md:border-b-0 md:text-sm">{formatCurrency(asset.cycle.lpu)}</TableCell>
-                  <TableCell className="min-w-[140px] border-b border-[#D9DDE6] px-4 text-right font-mono text-[15px] md:border-b-0 md:text-sm">{formatCurrency(coinTagPrice)}</TableCell>
-                  <TableCell className="min-w-[160px] border-b border-[#D9DDE6] pl-4 pr-6 text-right font-mono text-[15px] md:border-b-0 md:text-sm">
+                  <TableCell className="min-w-[140px] border-b border-[#D9DDE6] px-4 text-right font-mono text-[15px] dark:border-[#2A2A2A] md:border-b-0 md:text-sm">{formatCurrencyK(safeReserve)}</TableCell>
+                  <TableCell className="min-w-[140px] border-b border-[#D9DDE6] px-8 text-right font-mono text-[15px] dark:border-[#2A2A2A] md:border-b-0 md:text-sm">{formatUnitCurrency(liveLpu)}</TableCell>
+                  <TableCell className="min-w-[140px] border-b border-[#D9DDE6] px-4 text-right font-mono text-[15px] dark:border-[#2A2A2A] md:border-b-0 md:text-sm">{formatCurrency(coinTagPrice)}</TableCell>
+                  <TableCell className="min-w-[160px] border-b border-[#D9DDE6] pl-4 pr-6 text-right font-mono text-[15px] dark:border-[#2A2A2A] md:border-b-0 md:text-sm">
                     {formatCurrencyK(asset.params.initialReserve)}
                   </TableCell>
                 </TableRow>
@@ -678,13 +680,13 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     return (
       <section
         className={cn(
-          "relative overflow-hidden rounded-[24px] bg-white px-2 py-1 sm:px-3 sm:py-2",
+          "relative overflow-hidden rounded-[24px] bg-transparent px-2 py-1 sm:px-3 sm:py-2",
           className ?? "mb-6",
         )}
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1 space-y-2">
-            <span className="block text-[13px] font-medium text-[#5E6B84] sm:text-[15px]">
+            <span className="block text-[13px] font-medium text-[#5E6B84] dark:text-[#98A2B3] sm:text-[15px]">
               {activeTitle}
             </span>
             <div className="flex flex-wrap items-center gap-2">
@@ -703,7 +705,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    className="inline-flex h-9 items-center gap-1 rounded-full border border-[#D5DCE8] bg-white px-2 pr-1.5 text-[13px] font-medium text-[#44516B] transition-colors hover:border-[#B8C4DA] sm:h-10 sm:px-2.5 sm:pr-2 sm:text-sm"
+                    className="inline-flex h-9 items-center gap-1 rounded-full border border-[#D5DCE8] bg-white px-2 pr-1.5 text-[13px] font-medium text-[#44516B] transition-colors hover:border-[#B8C4DA] dark:border-[#2A2A2A] dark:bg-[#151515] dark:text-[#D0D5DD] dark:hover:border-[#3A3A3A] sm:h-10 sm:px-2.5 sm:pr-2 sm:text-sm"
                     aria-label="Choose overview month"
                   >
                     <CalendarDays className="h-3.5 w-3.5 text-[#7B8AA5]" />
@@ -711,22 +713,22 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                     <ChevronRight className="h-3.5 w-3.5 rotate-90 text-[#7B8AA5]" />
                   </button>
                 </PopoverTrigger>
-                <PopoverContent align="start" className="w-[240px] rounded-2xl border border-[#D5DCE8] bg-white p-3 shadow-xl">
+                <PopoverContent align="start" className="w-[240px] rounded-2xl border border-[#D5DCE8] bg-white p-3 shadow-xl dark:border-[#2A2A2A] dark:bg-[#171717]">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <button
                         type="button"
                         onClick={() => setOverviewPickerYear((year) => year - 1)}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#D5DCE8] text-[#667085] transition-colors hover:border-[#B8C4DA] hover:text-[#344054]"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#D5DCE8] text-[#667085] transition-colors hover:border-[#B8C4DA] hover:text-[#344054] dark:border-[#2A2A2A] dark:text-[#98A2B3] dark:hover:border-[#3A3A3A] dark:hover:text-white"
                         aria-label="Previous year"
                       >
                         <ChevronLeft className="h-4 w-4" />
                       </button>
-                      <span className="text-sm font-semibold text-[#344054]">{overviewPickerYear}</span>
+                      <span className="text-sm font-semibold text-[#344054] dark:text-[#F2F4F7]">{overviewPickerYear}</span>
                       <button
                         type="button"
                         onClick={() => setOverviewPickerYear((year) => year + 1)}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#D5DCE8] text-[#667085] transition-colors hover:border-[#B8C4DA] hover:text-[#344054]"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#D5DCE8] text-[#667085] transition-colors hover:border-[#B8C4DA] hover:text-[#344054] dark:border-[#2A2A2A] dark:text-[#98A2B3] dark:hover:border-[#3A3A3A] dark:hover:text-white"
                         aria-label="Next year"
                       >
                         <ChevronRight className="h-4 w-4" />
@@ -750,7 +752,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                               "rounded-xl px-2 py-2 text-sm font-medium transition-colors",
                               isSelected
                                 ? "bg-[#2F66F6] text-white"
-                                : "bg-[#F8FAFC] text-[#475467] hover:bg-[#EEF4FF] hover:text-[#2F66F6]",
+                                : "bg-[#F8FAFC] text-[#475467] hover:bg-[#EEF4FF] hover:text-[#2F66F6] dark:bg-[#151515] dark:text-[#D0D5DD] dark:hover:bg-[#242424] dark:hover:text-white",
                             )}
                           >
                             {monthLabel}
@@ -839,7 +841,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       align={isDesktop ? "end" : "start"}
                       alignOffset={isDesktop ? 0 : 10}
                       collisionPadding={16}
-                      className="w-[240px] max-w-[calc(100vw-2rem)] rounded-2xl border border-[#D5DCE8] bg-white p-3 text-sm font-medium leading-6 text-[#344054] shadow-xl"
+                      className="w-[240px] max-w-[calc(100vw-2rem)] rounded-2xl border border-[#D5DCE8] bg-white p-3 text-sm font-medium leading-6 text-[#344054] shadow-xl dark:border-[#2A2A2A] dark:bg-[#171717] dark:text-[#D0D5DD]"
                     >
                       {ICON_STACK_MESSAGE}
                     </PopoverContent>
@@ -850,7 +852,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
               <button
                 type="button"
                 onClick={handleToggleViewMode}
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-transparent text-[#344054] transition-all hover:bg-transparent hover:text-[#111827]"
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-transparent text-[#344054] transition-all hover:bg-transparent hover:text-[#111827] dark:text-[#98A2B3] dark:hover:text-white"
                 aria-label={viewMode === "grid" ? "Switch listed assets to list view" : "Switch listed assets to card view"}
               >
                 {viewMode === "grid" ? (

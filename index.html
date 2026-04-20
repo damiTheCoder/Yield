@@ -17,6 +17,19 @@
     <meta property="og:type" content="website" />
 
     <meta name="twitter:card" content="summary" />
+    <script>
+      (function () {
+        try {
+          var storedTheme = window.localStorage.getItem("forge-app-theme");
+          var theme = storedTheme === "dark" ? "dark" : "light";
+          document.documentElement.setAttribute("data-theme", theme);
+          document.documentElement.style.colorScheme = theme;
+        } catch (error) {
+          document.documentElement.setAttribute("data-theme", "light");
+          document.documentElement.style.colorScheme = "light";
+        }
+      })();
+    </script>
   </head>
 
   <body>

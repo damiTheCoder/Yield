@@ -97,6 +97,7 @@ type AppActions = {
   // Hunt-related actions
   getHuntProgress: (assetId: string) => HuntProgress;
   updateHuntProgress: (assetId: string, progress: HuntProgress) => void;
+  activateAssetHuntCode: (assetId: string, code: string) => { ok: boolean; message: string; code?: string };
   claimHuntToken: (assetId: string, quantity?: number) => boolean;
 };
 
@@ -123,6 +124,8 @@ const normalizeAssetBalances = (entry?: Partial<AssetBalances>): AssetBalances =
   coinTags: toNumeric(entry?.coinTags),
   lfts: toNumeric(entry?.lfts),
 });
+
+const normalizeCoinTagCode = (value: string): string => value.trim().toUpperCase();
 
 const normalizeUserAssetRecord = (
   raw: Record<string, Partial<AssetBalances>> | undefined,
@@ -907,7 +910,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   // Hunt-related functions
   const getHuntProgress = useCallback(
     (assetId: string): HuntProgress => {
-      return huntProgress[assetId] || { revealed: [], matched: [], failed: [], foundTokens: 0 };
+      return huntProgress[assetId] || { revealed: [], matched: [], failed: [], foundTokens: 0, activated: false };
     },
     [huntProgress]
   );
@@ -920,6 +923,56 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       }));
     },
     []
+  );
+
+  const activateAssetHuntCode = useCallback(
+    (assetId: string, code: string): { ok: boolean; message: string; code?: string } => {
+      const normalizedCode = normalizeCoinTagCode(code);
+      if (!normalizedCode) {
+        return { ok: false, message: "Enter a CoinTag key to start the hunt." };
+      }
+
+      const asset = assets.find((entry) => entry.id === assetId);
+      if (!asset) {
+        return { ok: false, message: "Asset not found." };
+      }
+      if (asset.secondaryMarket?.active) {
+        return { ok: false, message: "Hunt phase has ended for this asset." };
+      }
+
+      const existingCodes = assetCoinTagCodes[assetId] || [];
+      const codeIndex = existingCodes.findIndex((entry) => normalizeCoinTagCode(entry) === normalizedCode);
+      if (codeIndex < 0) {
+        return { ok: false, message: "That key is not active for this asset." };
+      }
+
+      const balances = normalizeAssetBalances(userAssets[assetId]);
+      if (balances.coinTags <= 0) {
+        return { ok: false, message: "No active CoinTag balance found for this asset." };
+      }
+
+      setAssetCoinTagCodes((prev) => {
+        const currentCodes = prev[assetId] || [];
+        return {
+          ...prev,
+          [assetId]: currentCodes.filter((entry, index) => index !== codeIndex),
+        };
+      });
+
+      setUserAssets((prev) => {
+        const previous = normalizeAssetBalances(prev[assetId]);
+        return {
+          ...prev,
+          [assetId]: {
+            coinTags: Math.max(0, previous.coinTags - 1),
+            lfts: previous.lfts,
+          },
+        };
+      });
+
+      return { ok: true, message: "Hunt unlocked.", code: existingCodes[codeIndex] };
+    },
+    [assetCoinTagCodes, assets, userAssets],
   );
 
   const claimHuntToken = useCallback(
@@ -1058,6 +1111,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       redeemAssetLFTs,
       getHuntProgress,
       updateHuntProgress,
+      activateAssetHuntCode,
       claimHuntToken,
       launchAsset: ({ name, ticker, image, summary, params: launchParams, raise }) => {
         const safeName = name.trim() || "Untitled Asset";
@@ -1136,6 +1190,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       redeemAssetLFTs,
       getHuntProgress,
       updateHuntProgress,
+      activateAssetHuntCode,
       claimHuntToken,
       slugify,
     ],

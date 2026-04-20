@@ -8,9 +8,12 @@ import {
   Check,
   Grid3X3,
   Loader2,
+  MoreHorizontal,
+  Moon,
   Newspaper,
   PieChart,
   Search,
+  Sun,
   Tag,
   Wallet,
   type LucideIcon,
@@ -19,12 +22,12 @@ import { Button } from "@/components/ui/button";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem, CommandSeparator } from "@/components/ui/command";
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useApp } from "@/lib/app-state";
 import type { Asset } from "@/lib/app-state";
 import { useTheme } from "@/hooks/useTheme";
 import { useToast } from "@/hooks/use-toast";
-import { cn, formatCurrency, formatCurrencyK } from "@/lib/utils";
+import { cn, formatCurrency, formatCurrencyK, formatUnitCurrency } from "@/lib/utils";
 
 type SearchResult = {
   type: "page" | "asset";
@@ -62,6 +65,8 @@ const NAV_LINKS = [
   { label: "Revenue", href: "/revenue" },
 ];
 
+const MOBILE_BOTTOM_HREFS = new Set(["/assets", "/portfolio", "/wallet"]);
+
 const MOBILE_NAV_ICONS: Record<string, LucideIcon> = {
   "/assets": Grid3X3,
   "/portfolio": PieChart,
@@ -80,6 +85,9 @@ const getMobileNavIcon = (item: MobileNavItem): LucideIcon => {
   return MOBILE_NAV_ICONS[item.href] ?? Grid3X3;
 };
 
+const isNavHrefActive = (pathname: string, href: string) =>
+  pathname === href || (href !== "/" && pathname.startsWith(href));
+
 type HeaderProps = {
   mobileNavItems?: MobileNavItem[];
 };
@@ -87,7 +95,7 @@ type HeaderProps = {
 const Header = ({ mobileNavItems = [] }: HeaderProps) => {
   const { assets } = useApp();
   const navigate = useNavigate();
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const isDarkTheme = theme === "dark";
   const { toast } = useToast();
   const [searchOpen, setSearchOpen] = useState(false);
@@ -98,6 +106,17 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+
+  const bottomNavItems = useMemo(
+    () =>
+      mobileNavItems.filter(
+        (item): item is Extract<MobileNavItem, { type: "link" }> =>
+          item.type === "link" && MOBILE_BOTTOM_HREFS.has(item.href),
+      ),
+    [mobileNavItems],
+  );
+
+  const hasActiveBottomNavItem = bottomNavItems.some((item) => isNavHrefActive(location.pathname, item.href));
 
   const mobileMenuSections = useMemo<MobileMenuSection[]>(() => {
     const primaryItems = mobileNavItems.filter(
@@ -214,7 +233,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
           <div className="flex min-w-0 flex-1 flex-col">
             <span className="truncate text-sm font-semibold text-foreground">{asset.name}</span>
             <span className="line-clamp-2 text-xs text-muted-foreground">
-              {symbol} · Cycle {asset.cycle.cycle} · LPU {formatCurrency(lpu)} · Reserve {formatCurrencyK(asset.cycle.reserve)} · CoinTag {formatCurrency(coinTagPrice)} · Backing {formatCurrencyK(asset.params.initialReserve)}
+              {symbol} · Cycle {asset.cycle.cycle} · LPU {formatUnitCurrency(lpu)} · Reserve {formatCurrencyK(asset.cycle.reserve)} · CoinTag {formatCurrency(coinTagPrice)} · Backing {formatCurrencyK(asset.params.initialReserve)}
             </span>
           </div>
         </div>
@@ -380,7 +399,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
             "relative w-full transition-[box-shadow,border-radius,max-width,background-color,backdrop-filter] duration-200",
             isScrolled
               ? "max-w-none rounded-none shadow-[0_10px_28px_rgba(6,11,22,0.08)]"
-              : "max-w-none rounded-none bg-white shadow-none",
+              : cn("max-w-none rounded-none shadow-none", isDarkTheme ? "bg-[#0F0F0F]" : "bg-white"),
             isScrolled && "header-glass-blur",
             isScrolled && (isDarkTheme ? "header-glass-app-dark" : "header-glass-app-light"),
           )}
@@ -441,6 +460,22 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                 </span>
               </Button>
 
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={toggleTheme}
+                aria-label={isDarkTheme ? "Switch to light mode" : "Switch to dark mode"}
+                className={cn(
+                  "h-8 w-8 rounded-full border transition-colors",
+                  isDarkTheme
+                    ? "border-[#2A2A2A] bg-[#1A1A1A] text-[#E6EAF0] hover:bg-[#242424] hover:text-white"
+                    : "border-[#E2E8F0] bg-[#F8FAFC] text-[#344054] hover:bg-[#EEF2F7] hover:text-[#111827]",
+                )}
+              >
+                {isDarkTheme ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </Button>
+
               <Dialog open={walletDialogOpen} onOpenChange={setWalletDialogOpen}>
                 <DialogTrigger asChild>
                   <Button
@@ -467,116 +502,6 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                     {connectedWallet ? "Wallet" : "Connect"}
                   </Button>
                 </DialogTrigger>
-
-                <div className="md:hidden ml-0">
-                  <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-                    <SheetTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 p-0 bg-transparent text-foreground hover:bg-transparent"
-                        aria-label="Open navigation menu"
-                      >
-                        <svg
-                          viewBox="0 0 24 24"
-                          className="h-9 w-9"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.8"
-                          strokeLinecap="round"
-                        >
-                          <line x1="2.5" y1="5" x2="22" y2="5" />
-                          <line x1="5.5" y1="12" x2="22" y2="12" />
-                          <line x1="8.5" y1="19" x2="22" y2="19" />
-                        </svg>
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent
-                      side="top"
-                      className="h-[100dvh] max-h-[100dvh] gap-0 overflow-y-auto rounded-none border-0 bg-white p-0 text-slate-700 shadow-none"
-                    >
-                      <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                      <div className="flex items-center px-5 pt-4 pr-14">
-                        <Link
-                          to="/"
-                          onClick={() => setSheetOpen(false)}
-                          className="flex items-center"
-                        >
-                          <img
-                            src="/h4.png"
-                            alt="Solaris logo"
-                            className="h-8 w-8 rounded-full object-cover"
-                          />
-                        </Link>
-                      </div>
-                      <div className="min-h-full px-5 pb-12 pt-8">
-                        {mobileMenuSections.map((section, sectionIndex) => (
-                          <div
-                            key={section.title ?? "primary"}
-                            className={cn(sectionIndex === 0 ? "" : "mt-11")}
-                          >
-                            {section.title ? (
-                              <div className="mb-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-                                {section.title}
-                              </div>
-                            ) : null}
-                            <div className="flex flex-col gap-5">
-                              {section.items.map((item, index) => {
-                                const isActive =
-                                  item.type === "link"
-                                    ? location.pathname === item.href || (item.href !== "/" && location.pathname.startsWith(item.href))
-                                    : item.active;
-                                const Icon = getMobileNavIcon(item);
-                                const itemClass = cn(
-                                  "flex min-h-[34px] w-full items-center gap-3 text-left text-[14px] font-medium tracking-[-0.01em] transition-colors",
-                                  isActive ? "text-slate-950" : "text-slate-600 hover:text-slate-950",
-                                );
-                                const iconClass = cn(
-                                  "h-[18px] w-[18px] shrink-0",
-                                  isActive ? "text-slate-950" : "text-slate-500",
-                                );
-
-                                if (item.type === "link") {
-                                  return (
-                                    <Link
-                                      key={`${section.title ?? "primary"}-${item.href}-${index}`}
-                                      to={item.href}
-                                      onClick={() => setSheetOpen(false)}
-                                      className={itemClass}
-                                    >
-                                      <Icon className={iconClass} strokeWidth={1.9} />
-                                      <span className="flex-1">{item.label}</span>
-                                      {section.showArrow ? (
-                                        <ArrowUpRight className="h-4 w-4 shrink-0 text-slate-400" strokeWidth={2} />
-                                      ) : null}
-                                    </Link>
-                                  );
-                                }
-
-                                return (
-                                  <button
-                                    key={`${section.title ?? "primary"}-${item.label}-${index}`}
-                                    onClick={() => {
-                                      item.onClick();
-                                      setSheetOpen(false);
-                                    }}
-                                    className={itemClass}
-                                  >
-                                    <Icon className={iconClass} strokeWidth={1.9} />
-                                    <span className="flex-1">{item.label}</span>
-                                    {section.showArrow ? (
-                                      <ArrowUpRight className="h-4 w-4 shrink-0 text-slate-400" strokeWidth={2} />
-                                    ) : null}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </SheetContent>
-                  </Sheet>
-                </div>
 
                 <DialogContent
                   className={`w-[calc(100%-2rem)] max-w-[420px] border-0 mx-auto rounded-3xl p-0 shadow-xl transition-colors duration-200 sm:max-w-md ${isDarkTheme ? "bg-[#0f0f10] text-neutral-100" : "bg-neutral-100"}`}
@@ -645,6 +570,153 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
           </div>
         </div>
       </header>
+
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent
+          side="top"
+          className="h-[100dvh] max-h-[100dvh] gap-0 overflow-y-auto rounded-none border-0 bg-white p-0 text-slate-700 shadow-none dark:bg-[#0F0F0F] dark:text-[#E6EAF0]"
+        >
+          <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+          <div className="flex items-center px-5 pt-4 pr-14">
+            <Link
+              to="/"
+              onClick={() => setSheetOpen(false)}
+              className="flex items-center"
+            >
+              <img
+                src="/h4.png"
+                alt="Solaris logo"
+                className="h-8 w-8 rounded-full object-cover"
+              />
+            </Link>
+          </div>
+          <div className="min-h-full px-5 pb-12 pt-8">
+            {mobileMenuSections.map((section, sectionIndex) => (
+              <div
+                key={section.title ?? "primary"}
+                className={cn(sectionIndex === 0 ? "" : "mt-11")}
+              >
+                {section.title ? (
+                  <div className="mb-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                    {section.title}
+                  </div>
+                ) : null}
+                <div className="flex flex-col gap-5">
+                  {section.items.map((item, index) => {
+                    const isActive =
+                      item.type === "link"
+                        ? isNavHrefActive(location.pathname, item.href)
+                        : item.active;
+                    const Icon = getMobileNavIcon(item);
+                    const itemClass = cn(
+                      "flex min-h-[34px] w-full items-center gap-3 text-left text-[14px] font-medium tracking-[-0.01em] transition-colors",
+                      isActive
+                        ? isDarkTheme
+                          ? "text-white"
+                          : "text-slate-950"
+                        : isDarkTheme
+                          ? "text-[#98A2B3] hover:text-white"
+                          : "text-slate-600 hover:text-slate-950",
+                    );
+                    const iconClass = cn(
+                      "h-[18px] w-[18px] shrink-0",
+                      isActive
+                        ? isDarkTheme
+                          ? "text-white"
+                          : "text-slate-950"
+                        : isDarkTheme
+                          ? "text-[#98A2B3]"
+                          : "text-slate-500",
+                    );
+
+                    if (item.type === "link") {
+                      return (
+                        <Link
+                          key={`${section.title ?? "primary"}-${item.href}-${index}`}
+                          to={item.href}
+                          onClick={() => setSheetOpen(false)}
+                          className={itemClass}
+                        >
+                          <Icon className={iconClass} strokeWidth={1.9} />
+                          <span className="flex-1">{item.label}</span>
+                          {section.showArrow ? (
+                            <ArrowUpRight className="h-4 w-4 shrink-0 text-slate-400" strokeWidth={2} />
+                          ) : null}
+                        </Link>
+                      );
+                    }
+
+                    return (
+                      <button
+                        key={`${section.title ?? "primary"}-${item.label}-${index}`}
+                        onClick={() => {
+                          item.onClick();
+                          setSheetOpen(false);
+                        }}
+                        className={itemClass}
+                      >
+                        <Icon className={iconClass} strokeWidth={1.9} />
+                        <span className="flex-1">{item.label}</span>
+                        {section.showArrow ? (
+                          <ArrowUpRight className="h-4 w-4 shrink-0 text-slate-400" strokeWidth={2} />
+                        ) : null}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {bottomNavItems.length > 0 ? (
+        <nav
+          aria-label="Primary mobile navigation"
+          className="fixed inset-x-0 bottom-0 z-40 bg-white/95 px-3 pb-[calc(0.375rem+env(safe-area-inset-bottom))] pt-1.5 backdrop-blur dark:bg-[#0F0F0F]/95 md:hidden"
+        >
+          <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
+            {bottomNavItems.map((item) => {
+              const Icon = getMobileNavIcon(item);
+              const isActive = isNavHrefActive(location.pathname, item.href);
+
+              return (
+                <Link
+                  key={`bottom-${item.href}`}
+                  to={item.href}
+                  className={cn(
+                    "flex h-12 flex-col items-center justify-center gap-1 rounded-lg text-[11px] font-semibold transition-colors",
+                    isActive
+                      ? "text-[#2F66F6]"
+                      : isDarkTheme
+                        ? "text-[#8F9BAD] hover:text-white"
+                        : "text-slate-500 hover:text-slate-950",
+                  )}
+                >
+                  <Icon className="h-5 w-5" strokeWidth={2} />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+            <button
+              type="button"
+              onClick={() => setSheetOpen(true)}
+              aria-expanded={sheetOpen}
+              className={cn(
+                "flex h-12 flex-col items-center justify-center gap-1 rounded-lg text-[11px] font-semibold transition-colors",
+                sheetOpen || !hasActiveBottomNavItem
+                  ? "text-[#2F66F6]"
+                  : isDarkTheme
+                    ? "text-[#8F9BAD] hover:text-white"
+                    : "text-slate-500 hover:text-slate-950",
+              )}
+            >
+              <MoreHorizontal className="h-5 w-5" strokeWidth={2.2} />
+              <span>More</span>
+            </button>
+          </div>
+        </nav>
+      ) : null}
     </>
   );
 };

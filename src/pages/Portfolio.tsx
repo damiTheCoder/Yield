@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useApp } from "@/lib/app-state";
-import { cn, formatCurrency } from "@/lib/utils";
+import { cn, formatCurrency, formatUnitCurrency } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,8 +16,41 @@ const toNumeric = (value: unknown) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const getAssetUnitPrice = (asset: { cycle: { lpu: number }; secondaryMarket?: { active: boolean; walv: number } }) =>
-  asset.secondaryMarket?.active ? asset.secondaryMarket.walv : asset.cycle.lpu;
+const getAssetUnitPrice = (asset: {
+  cycle: { reserve: number; supply: number; lpu: number };
+  secondaryMarket?: { active: boolean; walv: number; liquidityPool?: number; supplyPool?: number };
+}) => {
+  if (asset.secondaryMarket?.active) {
+    const supply = Math.max(0, asset.secondaryMarket.supplyPool ?? 0);
+    const liquidity = Math.max(0, asset.secondaryMarket.liquidityPool ?? 0);
+    return asset.secondaryMarket.walv || (supply > 0 ? liquidity / supply : 0);
+  }
+
+  const reserve = Math.max(0, asset.cycle.reserve);
+  const supply = Math.max(0, asset.cycle.supply);
+  return supply > 0 ? reserve / supply : asset.cycle.lpu;
+};
+
+const formatCompactHoldings = (value: number) => {
+  if (!Number.isFinite(value)) return "$0.00";
+
+  const abs = Math.abs(value);
+  const units = [
+    { value: 1_000_000_000_000, suffix: "t" },
+    { value: 1_000_000_000, suffix: "b" },
+    { value: 1_000_000, suffix: "m" },
+    { value: 1_000, suffix: "k" },
+  ];
+  const unit = units.find((entry) => abs >= entry.value);
+
+  if (!unit) {
+    return formatCurrency(value);
+  }
+
+  const scaled = value / unit.value;
+  const formatted = scaled >= 100 ? scaled.toFixed(0) : scaled >= 10 ? scaled.toFixed(1) : scaled.toFixed(2);
+  return `$${formatted.replace(/\.0+$/, "").replace(/(\.\d*[1-9])0+$/, "$1")}${unit.suffix}`;
+};
 
 export default function Portfolio() {
   const {
@@ -31,6 +64,7 @@ export default function Portfolio() {
 
   const [assetRedeemCounts, setAssetRedeemCounts] = useState<Record<string, number>>({});
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+  const [holdingsDialogOpen, setHoldingsDialogOpen] = useState(false);
 
 
   const accruedRewards = cycle?.accrued?.holderRewards ?? 0;
@@ -98,7 +132,7 @@ export default function Portfolio() {
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Current LPU</span>
-            <span className="font-mono text-xs text-foreground">{formatCurrency(unitPrice)}</span>
+            <span className="font-mono text-xs text-foreground">{formatUnitCurrency(unitPrice)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Reserve</span>
@@ -134,7 +168,7 @@ export default function Portfolio() {
               disabled={balances.lfts <= 0 || redeemCount <= 0 || marketOnlyPhase}
             >
               <span className="text-[10px] font-semibold uppercase tracking-wide">Redeem For</span>
-              <span className="text-xs font-semibold">{formatCurrency(unitPrice)}</span>
+              <span className="text-xs font-semibold">{formatUnitCurrency(unitPrice)}</span>
             </Button>
           </div>
         </div>
@@ -158,25 +192,21 @@ export default function Portfolio() {
 
   return (
     <div className="min-h-screen">
-      <main className="container mx-auto px-4 pb-10 pt-3 sm:pt-8">
-        <div className="space-y-8 text-sm [&_svg]:h-3.5 [&_svg]:w-3.5 lg:grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.35fr)] lg:gap-8 lg:space-y-0">
+      <main className="container mx-auto px-4 pb-10 pt-1 sm:pt-4">
+        <div className="space-y-6 text-sm [&_svg]:h-3.5 [&_svg]:w-3.5 lg:grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.35fr)] lg:gap-8 lg:space-y-0">
           <aside className="hidden lg:block lg:space-y-6 lg:pt-2">
             <Web3News variant="detail" />
           </aside>
 
-          <div className="space-y-8">
+          <div className="space-y-6">
             <Card className="rounded-3xl border-none bg-transparent p-0 text-white shadow-none">
               <CardContent className="p-0">
-                <div className="flex items-start justify-between gap-4 text-foreground">
-                  <div className="flex flex-col items-start gap-1 text-left">
-                    <p className="text-[10px] uppercase text-muted-foreground">Total LFT Holdings</p>
-                    <p className="text-4xl font-semibold text-foreground sm:text-[44px]">{formatCurrency(totalLftValue)}</p>
-                  </div>
+                <div className="flex flex-col items-center gap-3 text-center text-foreground">
                   <Popover>
                     <PopoverTrigger asChild>
                       <button
                         type="button"
-                        className="flex items-center pt-1 transition-transform hover:scale-[1.02]"
+                        className="flex items-center transition-transform hover:scale-[1.02]"
                         aria-label="Why these icons are here"
                       >
                         {PORTFOLIO_HEADER_ICONS.map((icon, index) => (
@@ -192,13 +222,33 @@ export default function Portfolio() {
                         ))}
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent align="end" className="w-[240px] rounded-2xl border border-[#D5DCE8] bg-white p-3 text-sm font-medium leading-6 text-[#344054] shadow-xl">
+                    <PopoverContent align="center" className="w-[240px] rounded-2xl border border-[#D5DCE8] bg-white p-3 text-sm font-medium leading-6 text-[#344054] shadow-xl">
                       {ICON_STACK_MESSAGE}
                     </PopoverContent>
                   </Popover>
+                  <div className="flex flex-col items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setHoldingsDialogOpen(true)}
+                      className="rounded-lg px-2 py-1 text-[3rem] font-semibold leading-none text-foreground transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F66F6] sm:text-[56px]"
+                      aria-label="Show exact total LFT holdings"
+                    >
+                      {formatCompactHoldings(totalLftValue)}
+                    </button>
+                    <p className="text-[10px] uppercase text-muted-foreground">Total LFT Holdings</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
+            <Dialog open={holdingsDialogOpen} onOpenChange={setHoldingsDialogOpen}>
+              <DialogContent className="mx-auto w-[calc(100%-2rem)] max-w-xs rounded-2xl border border-border/60 bg-white p-5 text-center shadow-xl">
+                <DialogHeader>
+                  <DialogTitle className="text-base font-semibold text-foreground">Total LFT Holdings</DialogTitle>
+                </DialogHeader>
+                <p className="font-mono text-2xl font-semibold text-foreground">{formatCurrency(totalLftValue)}</p>
+                <p className="text-xs text-muted-foreground">Exact current value</p>
+              </DialogContent>
+            </Dialog>
             <div className="grid gap-6 lg:grid-cols-2">
               <Card className="rounded-3xl border-0 bg-transparent p-0 backdrop-blur text-foreground sm:border sm:border-border/60 sm:bg-surface/60 sm:px-6 sm:py-6">
                 <CardHeader className="px-0 pt-0 sm:px-0 sm:pt-0">

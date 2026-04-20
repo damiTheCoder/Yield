@@ -61,7 +61,7 @@
   }
 
   .header-glass-app-dark {
-    background-color: rgba(0, 0, 0, 0.55) !important;
+    background-color: rgba(15, 15, 15, 0.84) !important;
   }
 
   .header-glass-app-light {
@@ -110,7 +110,7 @@
 
 @media (max-width: 767px) {
   .header-glass-app-dark {
-    background-color: rgba(0, 0, 0, 0.62) !important;
+    background-color: rgba(15, 15, 15, 0.92) !important;
   }
 
   .header-glass-app-light {
@@ -274,53 +274,50 @@
   }
 
   :root {
-    /* Black and white theme */
-    --background: 0 0% 0%;
-    --foreground: 0 0% 98%;
+    /* Polymarket-inspired dark theme: neutral charcoal surfaces, white type, blue accent */
+    --background: 0 0% 6%;
+    --foreground: 213 31% 91%;
 
-    --card: 0 0% 12%;
-    --card-foreground: 0 0% 98%;
+    --card: 0 0% 10%;
+    --card-foreground: 213 31% 91%;
 
-    --popover: 0 0% 12%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 213 31% 91%;
 
-    /* Primary - White */
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 4%;
+    --primary: 225 100% 59%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Dark Gray */
-    --secondary: 0 0% 18%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 0 0% 13%;
+    --secondary-foreground: 213 31% 91%;
 
-    --muted: 0 0% 22%;
-    --muted-foreground: 0 0% 70%;
+    --muted: 0 0% 16%;
+    --muted-foreground: 216 12% 66%;
 
-    /* Accent - Light Gray */
-    --accent: 0 0% 26%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 0 0% 18%;
+    --accent-foreground: 213 31% 91%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 22%;
+    --border: 0 0% 18%;
     --input: 0 0% 18%;
-    --ring: 0 0% 50%;
+    --ring: 225 100% 59%;
 
     --radius: 0.5rem;
 
     /* Custom marketplace colors */
-    --surface: 0 0% 16%;
-    --surface-hover: 0 0% 20%;
+    --surface: 0 0% 10%;
+    --surface-hover: 0 0% 14%;
     --accent-yellow: 51 100% 50%;
     --success-green: 142 76% 36%;
 
     /* Gradients - minimal for black/white theme */
-    --gradient-subtle: linear-gradient(135deg, hsl(0 0% 12%), hsl(0 0% 18%));
-    --gradient-card: linear-gradient(135deg, hsl(0 0% 14%), hsl(0 0% 20%));
+    --gradient-subtle: linear-gradient(135deg, hsl(0 0% 6%), hsl(0 0% 10%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 10%), hsl(0 0% 14%));
 
     /* Shadows */
-    --shadow-card: 0 4px 16px hsl(0 0% 0% / 0.4);
-    --shadow-hover: 0 8px 24px hsl(0 0% 0% / 0.3);
+    --shadow-card: 0 8px 24px hsl(218 34% 3% / 0.35);
+    --shadow-hover: 0 12px 36px hsl(218 34% 3% / 0.45);
 
     /* Animations */
     --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);

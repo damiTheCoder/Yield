@@ -35,6 +35,7 @@ function formatRelativeTime(date?: Date) {
 export default function Web3News({ variant = "sidebar", className }: Web3NewsProps) {
   const { news, loading } = useWeb3News();
   const { theme } = useTheme();
+  const [mobileNewsIndex, setMobileNewsIndex] = useState(0);
 
   const getDocumentTheme = () => {
     if (typeof document !== "undefined") {
@@ -105,6 +106,22 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
     displayedItems = [...displayedItems, ...placeholders];
   }
 
+  const mobileSlideCount = displayedItems.length;
+
+  useEffect(() => {
+    if (variant !== "mobile" || loading || mobileSlideCount <= 1) return;
+
+    const timer = window.setTimeout(() => {
+      setMobileNewsIndex((current) => (current + 1) % mobileSlideCount);
+    }, 4500);
+
+    return () => window.clearTimeout(timer);
+  }, [loading, mobileNewsIndex, mobileSlideCount, variant]);
+
+  useEffect(() => {
+    setMobileNewsIndex(0);
+  }, [mobileSlideCount]);
+
   const renderHeaderIcons = () => {
     const iconSizeClass =
       variant === "mobile"
@@ -139,7 +156,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
           align={variant === "mobile" ? "start" : "end"}
           alignOffset={variant === "mobile" ? 10 : 0}
           collisionPadding={16}
-          className="w-[240px] max-w-[calc(100vw-2rem)] rounded-2xl border border-[#D5DCE8] bg-white p-3 text-sm font-medium leading-6 text-[#344054] shadow-xl"
+          className="w-[240px] max-w-[calc(100vw-2rem)] rounded-2xl border border-[#D5DCE8] bg-white p-3 text-sm font-medium leading-6 text-[#344054] shadow-xl dark:border-[#2A2A2A] dark:bg-[#171717] dark:text-[#D0D5DD]"
         >
           {iconStackMessage}
         </PopoverContent>
@@ -304,6 +321,146 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
 
   if (variant === "detail") {
     return renderDetailLayout();
+  }
+
+  if (variant === "mobile") {
+    return (
+      <section className={cn(className)}>
+        <div className="flex flex-col gap-3 md:hidden">
+          <div className="flex items-center justify-between gap-3">
+            {renderHeaderIcons()}
+            <div className={cn("text-right text-foreground font-extrabold", headingSize)}>
+              Web3 Headlines
+            </div>
+          </div>
+          {loading || displayedItems.length === 0 ? (
+            <div className="w-full animate-pulse">
+              <div className={cn("h-56 w-full rounded-[22px]", shimmerBackgroundClasses)} />
+              <div className="mx-auto mt-3 h-1 w-24 rounded-full bg-border/50" />
+            </div>
+          ) : (
+            <div className="overflow-hidden">
+              <div
+                className="flex transition-transform duration-500 ease-out"
+                style={{ transform: `translateX(-${mobileNewsIndex * 100}%)` }}
+              >
+                {displayedItems.map((item) => {
+                  const isPlaceholder = !item.title;
+                  return isPlaceholder ? (
+                    <div key={item.id} className="w-full min-w-full">
+                      <div
+                        className={cn(
+                          "group relative block h-56 overflow-hidden rounded-[22px] transition-transform",
+                          cardBackgroundClasses,
+                        )}
+                      >
+                        <div className="h-full w-full bg-gradient-to-b from-black/6 to-transparent" />
+                        <div className="absolute inset-x-4 bottom-4 space-y-2">
+                          <div className="h-4 w-3/4 rounded bg-white/70" />
+                          <div className="h-3 w-1/2 rounded bg-white/50" />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <a
+                      key={item.id}
+                      href={item.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="group block w-full min-w-full overflow-hidden rounded-[22px] transition-transform"
+                    >
+                      <div className="relative h-56 overflow-hidden rounded-[22px] bg-black">
+                        <img
+                          src={item.imageUrl}
+                          alt={item.title}
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
+                        <h4 className="absolute inset-x-0 bottom-0 px-4 pb-4 text-[17px] font-semibold leading-snug text-white line-clamp-2">
+                          {item.title}
+                        </h4>
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
+              <div className="mx-auto mt-3 grid w-24 grid-cols-4 gap-1.5" aria-hidden="true">
+                {displayedItems.map((item, index) => (
+                  <span
+                    key={`mobile-news-status-${item.id}`}
+                    className={cn(
+                      "h-1 rounded-full transition-colors",
+                      index === mobileNewsIndex ? "bg-[#2F66F6]" : "bg-slate-200",
+                    )}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="hidden flex-col gap-3 md:flex">
+          <div className="flex items-center justify-between gap-3">
+            {renderHeaderIcons()}
+            <div className={cn("text-right text-foreground font-extrabold", headingSize)}>
+              Web3 Headlines
+            </div>
+          </div>
+          <div className={listWrapperClass}>
+            {loading || displayedItems.length === 0
+              ? shimmerItems.map((index) => (
+                  <div key={index} className="w-56 shrink-0 animate-pulse">
+                    <div className={cn("h-28 w-full rounded-xl", shimmerBackgroundClasses)} />
+                    <div className="mt-2 h-3 w-3/4 rounded bg-border/50" />
+                  </div>
+                ))
+              : displayedItems.map((item) => {
+                  const isPlaceholder = !item.title;
+                  return isPlaceholder ? (
+                    <div
+                      key={item.id}
+                      className={cn(
+                        "group block w-72 shrink-0 overflow-hidden rounded-xl transition-transform",
+                        cardBackgroundClasses,
+                      )}
+                    >
+                      <div className="h-28 w-full rounded-t-xl bg-gradient-to-b from-black/6 to-transparent" />
+                      <div className="space-y-1 px-3 py-4">
+                        <div className="h-4 w-3/4 bg-border/50 rounded" />
+                        <div className="h-3 w-1/2 bg-border/50 rounded" />
+                      </div>
+                    </div>
+                  ) : (
+                    <a
+                      key={item.id}
+                      href={item.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={cn(
+                        "group block w-72 shrink-0 overflow-hidden rounded-xl transition-transform hover:-translate-y-0.5",
+                        cardBackgroundClasses,
+                      )}
+                    >
+                      <div className="relative h-28 w-full overflow-hidden">
+                        <img
+                          src={item.imageUrl}
+                          alt={item.title}
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      </div>
+                      <div className="space-y-1 px-3 py-2">
+                        <h4 className={cn("text-sm font-medium line-clamp-2", cardTextClasses)}>{item.title}</h4>
+                      </div>
+                    </a>
+                  );
+                })}
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (

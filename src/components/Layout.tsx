@@ -46,7 +46,7 @@ const Layout = ({ children }: LayoutProps) => {
       <main
         className={cn(
           "transition-all duration-300",
-          hideShell ? "pb-16" : "pb-8"
+          hideShell ? "pb-16" : "pb-28 md:pb-8"
         )}
       >
         {children}
