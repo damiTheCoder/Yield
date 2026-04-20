@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Copy, ExternalLink, KeyRound } from "lucide-react";
+import { Copy, ExternalLink, KeyRound, Search } from "lucide-react";
 import { useApp } from "@/lib/app-state";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,17 +11,6 @@ import Web3News from "@/components/Web3News";
 const toNumeric = (value: unknown) => {
   const parsed = typeof value === "number" ? value : Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
-};
-
-const compactNumberFormatter = new Intl.NumberFormat("en-US", {
-  notation: "compact",
-  compactDisplay: "short",
-  maximumFractionDigits: 1,
-});
-
-const formatCompactNumber = (value: number) => {
-  if (!Number.isFinite(value)) return "0";
-  return compactNumberFormatter.format(value);
 };
 
 export default function Wallet() {
@@ -55,42 +44,6 @@ export default function Wallet() {
       .sort((a, b) => b.visibleCount - a.visibleCount);
   }, [assets, userAssets, getAssetCoinTagCodes, normalizedQuery]);
 
-  const totals = useMemo(() => {
-    return walletRows.reduce(
-      (acc, row) => {
-        acc.coinTags += row.visibleCount;
-        acc.codes += row.codes.length;
-        return acc;
-      },
-      { coinTags: 0, codes: 0 },
-    );
-  }, [walletRows]);
-  const readyToUseRows = useMemo(
-    () => walletRows.filter(({ asset, codes }) => !asset.secondaryMarket?.active && codes.length > 0),
-    [walletRows],
-  );
-  const marketOnlyRows = useMemo(
-    () => walletRows.filter(({ asset }) => asset.secondaryMarket?.active),
-    [walletRows],
-  );
-  const utilityCards = [
-    {
-      label: "Ready for hunt",
-      value: readyToUseRows.length,
-      helper: readyToUseRows.length > 0 ? "Collections with active CoinTag codes" : "No active hunt codes yet",
-    },
-    {
-      label: "Market-only collections",
-      value: marketOnlyRows.length,
-      helper: marketOnlyRows.length > 0 ? "Track these in portfolio or token view" : "All wallet rows are still hunt-active",
-    },
-    {
-      label: "Codes ready",
-      value: totals.codes,
-      helper: "One synced key unlocks a hunt session",
-    },
-  ];
-
   const copyCode = async (code: string) => {
     try {
       if (!navigator?.clipboard?.writeText) {
@@ -110,12 +63,6 @@ export default function Wallet() {
     }
   };
 
-  const quickStats = [
-    { label: "Total CoinTags", value: totals.coinTags },
-    { label: "Code Entries", value: totals.codes },
-    { label: "Assets Held", value: walletRows.length },
-  ];
-
   return (
     <div className="min-h-screen">
       <main className="container mx-auto px-4 pb-10 pt-3 sm:pt-8">
@@ -125,32 +72,6 @@ export default function Wallet() {
           </aside>
 
           <div className="max-w-5xl space-y-4 text-sm [&_svg]:h-3.5 [&_svg]:w-3.5 sm:space-y-6 lg:max-w-none">
-            <section className="grid grid-cols-3 gap-3 sm:gap-4">
-              {quickStats.map((stat) => (
-                <article
-                  key={stat.label}
-                  className="min-w-0 rounded-2xl border border-border/60 bg-surface/70 p-3 text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-border hover:bg-surface/90 sm:p-4"
-                >
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground sm:text-[11px]">
-                    {stat.label}
-                  </p>
-                  <p className="mt-2 truncate text-2xl font-semibold leading-none sm:text-3xl" title={String(stat.value)}>
-                    {formatCompactNumber(stat.value)}
-                  </p>
-                </article>
-              ))}
-            </section>
-
-            <section className="grid gap-3 md:grid-cols-3">
-              {utilityCards.map((card) => (
-                <article key={card.label} className="rounded-2xl bg-surface/60 px-4 py-4">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{card.label}</p>
-                  <p className="mt-2 text-2xl font-semibold text-foreground">{formatCompactNumber(card.value)}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{card.helper}</p>
-                </article>
-              ))}
-            </section>
-
             <Card className="rounded-none border-0 bg-transparent shadow-none">
               <CardContent className="space-y-5 p-0">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -163,12 +84,13 @@ export default function Wallet() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-border/60 bg-background/60 px-4 py-1.5 transition-colors duration-200 focus-within:border-ring/70 focus-within:bg-background/80">
+                <div className="flex max-w-2xl items-center gap-2 rounded-2xl border border-border/60 bg-background/60 px-3 py-1 transition-colors duration-200 focus-within:border-ring/70 focus-within:bg-background/80">
+                  <Search className="shrink-0 text-muted-foreground" />
                   <Input
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                     placeholder="Search asset by name or ticker"
-                    className="h-10 border-0 bg-transparent p-0 text-sm focus-visible:ring-0"
+                    className="h-8 border-0 bg-transparent p-0 text-sm focus-visible:ring-0"
                   />
                 </div>
 

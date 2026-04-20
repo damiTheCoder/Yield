@@ -549,8 +549,8 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 
   const renderListedList = (items: Asset[]) => (
     <div className={tableShellClasses}>
-      <div className="overflow-x-auto no-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        <Table className="min-w-[720px] text-sm">
+      <div className="asset-list-scroll overflow-x-auto no-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <Table className="asset-list-table text-sm md:min-w-[720px]">
           <TableHeader>
             <TableRow className="border-b-0 hover:bg-transparent">
               {isDesktop && (
@@ -558,11 +558,11 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                   <Star className="h-4 w-4 text-blue-500 fill-blue-500" />
                 </TableHead>
               )}
-              <TableHead className={cn("sticky left-0 z-20 min-w-[200px] text-left pl-4 sm:pl-6 border-b-0", tableStickyColumnClasses)}>Collection</TableHead>
-              <TableHead className="min-w-[140px] text-right border-b-0 px-4">Liquidity</TableHead>
-              <TableHead className="min-w-[140px] text-right border-b-0 px-8">LPU</TableHead>
-              <TableHead className="min-w-[140px] text-right border-b-0 px-4">CoinTag</TableHead>
-              <TableHead className="min-w-[160px] text-right border-b-0 pr-6">Backing Reserve</TableHead>
+              <TableHead className={cn("asset-list-collection-col sticky left-0 z-20 text-left pl-4 sm:pl-6 border-b-0 md:min-w-[200px]", tableStickyColumnClasses)}>Collection</TableHead>
+              <TableHead className="asset-list-metric-col min-w-0 text-right border-b-0 px-2 md:min-w-[140px] md:px-4">Liquidity</TableHead>
+              <TableHead className="asset-list-metric-col min-w-0 text-right border-b-0 px-2 md:min-w-[140px] md:px-8">LPU</TableHead>
+              <TableHead className="asset-list-metric-col min-w-0 text-right border-b-0 px-2 md:min-w-[140px] md:px-4">CoinTag</TableHead>
+              <TableHead className="asset-list-metric-col min-w-0 text-right border-b-0 px-2 md:min-w-[160px] md:pr-6">Backing Reserve</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -593,7 +593,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       />
                     </TableCell>
                   )}
-                  <TableCell className={cn("sticky left-0 z-10 min-w-[200px] border-b border-[#D9DDE6] pl-4 pr-4 dark:border-[#2A2A2A] sm:pl-6 md:border-b-0", tableStickyColumnClasses)}>
+                  <TableCell className={cn("asset-list-collection-col sticky left-0 z-10 border-b border-[#D9DDE6] pl-4 pr-3 dark:border-[#2A2A2A] sm:pl-6 md:min-w-[200px] md:border-b-0 md:pr-4", tableStickyColumnClasses)}>
                     <div className="flex items-center gap-3 text-[15px] md:text-sm">
                       <img src={asset.image} alt={asset.name} className="h-10 w-10 rounded-full object-cover md:h-9 md:w-9" />
                       <div className="flex flex-col min-w-0">
@@ -608,10 +608,10 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="min-w-[140px] border-b border-[#D9DDE6] px-4 text-right font-mono text-[15px] dark:border-[#2A2A2A] md:border-b-0 md:text-sm">{formatCurrencyK(safeReserve)}</TableCell>
-                  <TableCell className="min-w-[140px] border-b border-[#D9DDE6] px-8 text-right font-mono text-[15px] dark:border-[#2A2A2A] md:border-b-0 md:text-sm">{formatUnitCurrency(liveLpu)}</TableCell>
-                  <TableCell className="min-w-[140px] border-b border-[#D9DDE6] px-4 text-right font-mono text-[15px] dark:border-[#2A2A2A] md:border-b-0 md:text-sm">{formatCurrency(coinTagPrice)}</TableCell>
-                  <TableCell className="min-w-[160px] border-b border-[#D9DDE6] pl-4 pr-6 text-right font-mono text-[15px] dark:border-[#2A2A2A] md:border-b-0 md:text-sm">
+                  <TableCell className="asset-list-metric-col min-w-0 border-b border-[#D9DDE6] px-2 text-right font-mono text-[15px] dark:border-[#2A2A2A] md:min-w-[140px] md:border-b-0 md:px-4 md:text-sm">{formatCurrencyK(safeReserve)}</TableCell>
+                  <TableCell className="asset-list-metric-col min-w-0 border-b border-[#D9DDE6] px-2 text-right font-mono text-[15px] dark:border-[#2A2A2A] md:min-w-[140px] md:border-b-0 md:px-8 md:text-sm">{formatUnitCurrency(liveLpu)}</TableCell>
+                  <TableCell className="asset-list-metric-col min-w-0 border-b border-[#D9DDE6] px-2 text-right font-mono text-[15px] dark:border-[#2A2A2A] md:min-w-[140px] md:border-b-0 md:px-4 md:text-sm">{formatCurrency(coinTagPrice)}</TableCell>
+                  <TableCell className="asset-list-metric-col min-w-0 border-b border-[#D9DDE6] px-2 text-right font-mono text-[15px] dark:border-[#2A2A2A] md:min-w-[160px] md:border-b-0 md:pl-4 md:pr-6 md:text-sm">
                     {formatCurrencyK(asset.params.initialReserve)}
                   </TableCell>
                 </TableRow>
@@ -865,7 +865,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 
             {/* Control Buttons Row - Unified */}
             {/* Horizontal Network Selector */}
-            <div className="flex items-center gap-2 mt-4 mb-4 pb-2 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-2 mt-4 mb-1 pb-1 overflow-x-auto no-scrollbar">
               {NETWORKS.map((network) => (
                 <button
                   key={network.id}

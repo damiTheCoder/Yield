@@ -1044,6 +1044,36 @@
     display: none !important;
   }
 
+  @media (max-width: 767px) {
+    .asset-list-scroll>div {
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .asset-list-table {
+      min-width: 150% !important;
+      width: 150% !important;
+      table-layout: fixed;
+    }
+
+    .asset-list-collection-col {
+      max-width: 33.333333% !important;
+      min-width: 33.333333% !important;
+      width: 33.333333% !important;
+    }
+
+    .asset-list-metric-col {
+      max-width: 16.666667% !important;
+      min-width: 16.666667% !important;
+      width: 16.666667% !important;
+    }
+
+    .asset-list-table th.asset-list-metric-col {
+      font-size: 0.75rem;
+      line-height: 1.1;
+      white-space: normal;
+    }
+  }
+
   /* Stronger mobile rule to hide horizontal scrollbars on containers (preserve touch) */
   @media (max-width: 768px) {
     .overflow-x-auto.no-scrollbar {
