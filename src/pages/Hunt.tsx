@@ -165,6 +165,7 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
   const huntData = useMemo(() => generateHuntData(assetId), [assetId]);
   const maxTokens = huntData.totalTokens || TOTAL_HUNT_TOKENS;
   const activeKeys = getAssetCoinTagCodes(assetId);
+  const firstActiveKey = activeKeys[0];
 
   // Reset when switching to a different asset
   useEffect(() => {
@@ -207,6 +208,21 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
     },
     [assetId, failed, foundTokens, getHuntProgress, isHuntActive, matched, revealed, updateHuntProgress],
   );
+
+  useEffect(() => {
+    if (marketOnly || isHuntActive || !firstActiveKey) return;
+
+    const result = activateAssetHuntCode(assetId, firstActiveKey);
+    if (!result.ok) return;
+
+    setIsHuntActive(true);
+    setActivationKey("");
+    setActivationMessageType("success");
+    setActivationMessage("Hunt unlocked. Open as many boxes as you want.");
+    setStatusType("success");
+    setStatus("Hunt unlocked. Open boxes, then submit revealed coordinates.");
+    persistProgress({ activated: true, activationCode: result.code });
+  }, [activateAssetHuntCode, assetId, firstActiveKey, isHuntActive, marketOnly, persistProgress]);
 
   const handleActivateHunt = useCallback(() => {
     if (marketOnly) {
@@ -373,7 +389,7 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
           <DialogHeader className="space-y-2 text-left">
             <DialogTitle>Enter CoinTag key</DialogTitle>
             <DialogDescription>
-              Copy your key from Wallet, paste it here, then the hunt stays unlocked.
+              One CoinTag unlocks this hunt. Once the game starts, open as many boxes as you want.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">

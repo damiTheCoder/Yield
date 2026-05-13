@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useMemo, useState, useEf
 import {
   CycleParams,
   CycleState,
+  RevenueSplit,
   YieldIndex,
   applyCoinTagSales,
   convertLFTtoYield,
@@ -15,6 +16,7 @@ import { saveState, loadState, clearState, hasStoredState, HuntProgress } from "
 
 export const HUNT_TOKEN_SUPPLY = 1_000_000;
 export const HUNT_TOKEN_BUNDLE = 20;
+const MIN_LISTED_ASSET_RESERVE = 1_000;
 const MAX_REDEMPTION_CYCLES = 5;
 type User = {
   usd: number;
@@ -227,7 +229,6 @@ const areCoinTagCodeMapsEqual = (
   return true;
 };
 
-const HUNT_LOCKED_ASSETS = new Set(["nova"]);
 const BLOCKED_ASSET_NAMES = new Set(["new lft drop"]);
 
 const shouldHideAsset = (asset: Partial<Asset> | undefined): boolean => {
@@ -237,7 +238,7 @@ const shouldHideAsset = (asset: Partial<Asset> | undefined): boolean => {
 };
 
 const computeHuntPoolSeed = (asset: Asset | undefined): number => {
-  if (!asset || HUNT_LOCKED_ASSETS.has(asset.id)) {
+  if (!asset) {
     return 0;
   }
   if (asset.cycle?.initialSupply && asset.cycle.initialSupply > 0) {
@@ -279,10 +280,77 @@ const normalizeSecondaryMarketState = (state?: Partial<SecondaryMarketState>): S
     : [],
 });
 
-const normalizeRuntimeAsset = (asset: Asset): Asset => ({
-  ...asset,
-  secondaryMarket: normalizeSecondaryMarketState(asset.secondaryMarket),
+const normalizeRevenueSplit = (split?: Partial<RevenueSplit>): RevenueSplit => ({
+  creator: Math.max(0, toNumeric(split?.creator, DEFAULT_SPLIT.creator)),
+  nextCycleLiquidity: Math.max(0, toNumeric(split?.nextCycleLiquidity, DEFAULT_SPLIT.nextCycleLiquidity)),
+  platform: Math.max(0, toNumeric(split?.platform, DEFAULT_SPLIT.platform)),
+  currentCycleLiquidity: Math.max(0, toNumeric(split?.currentCycleLiquidity, DEFAULT_SPLIT.currentCycleLiquidity)),
+  holderRewards: Math.max(0, toNumeric(split?.holderRewards, DEFAULT_SPLIT.holderRewards)),
 });
+
+const normalizeCycleState = (cycle: Partial<CycleState> | undefined, params: CycleParams): CycleState => {
+  const split = normalizeRevenueSplit(cycle?.split ?? params.split);
+  const cycleNumber = Math.max(1, Math.floor(toNumeric(cycle?.cycle, 1)));
+  const initialSupply = Math.max(1, Math.floor(toNumeric(cycle?.initialSupply, params.initialSupply || HUNT_TOKEN_SUPPLY)));
+  const maxSupply = Math.max(1, Math.floor(toNumeric(cycle?.maxSupply, initialSupply)));
+  const supply = Math.max(0, Math.floor(toNumeric(cycle?.supply, maxSupply)));
+  const totalSales = Math.max(0, toNumeric(cycle?.totalSales));
+  const salesLiquidity = totalSales * split.currentCycleLiquidity;
+  const computedReserve = toNumeric(params.initialReserve) + salesLiquidity;
+  const fallbackReserve = computedReserve > 0 ? computedReserve : MIN_LISTED_ASSET_RESERVE;
+  const rawReserve = Math.max(0, toNumeric(cycle?.reserve));
+  const reserve = rawReserve > 0 ? rawReserve : fallbackReserve;
+  const normalizedParams = { ...params, initialReserve: reserve, initialSupply, split };
+  const base = initializeCycle(normalizedParams, cycleNumber);
+  const supplyForLpu = supply > 0 ? supply : maxSupply;
+
+  return {
+    ...base,
+    ...cycle,
+    cycle: cycleNumber,
+    reserve,
+    supply,
+    initialSupply,
+    maxSupply,
+    lpu: supplyForLpu > 0 ? reserve / supplyForLpu : 0,
+    totalSales,
+    seedNext: Math.max(0, toNumeric(cycle?.seedNext, totalSales * split.nextCycleLiquidity)),
+    accrued: {
+      creator: Math.max(0, toNumeric(cycle?.accrued?.creator, base.accrued.creator)),
+      nextCycleLiquidity: Math.max(0, toNumeric(cycle?.accrued?.nextCycleLiquidity, base.accrued.nextCycleLiquidity)),
+      platform: Math.max(0, toNumeric(cycle?.accrued?.platform, base.accrued.platform)),
+      currentCycleLiquidity: Math.max(0, toNumeric(cycle?.accrued?.currentCycleLiquidity, base.accrued.currentCycleLiquidity)),
+      holderRewards: Math.max(0, toNumeric(cycle?.accrued?.holderRewards, base.accrued.holderRewards)),
+    },
+    distribution: cycle?.distribution ?? base.distribution,
+    split,
+    ended: Boolean(cycle?.ended),
+    discoveredTokens: Math.max(0, Math.floor(toNumeric(cycle?.discoveredTokens, base.discoveredTokens))),
+    creatorTokens: Math.max(0, Math.floor(toNumeric(cycle?.creatorTokens, base.creatorTokens))),
+    platformTokens: Math.max(0, Math.floor(toNumeric(cycle?.platformTokens, base.platformTokens))),
+    investorTokens: Math.max(0, Math.floor(toNumeric(cycle?.investorTokens, base.investorTokens))),
+  };
+};
+
+const normalizeRuntimeAsset = (asset: Asset): Asset => {
+  const split = normalizeRevenueSplit(asset.params?.split);
+  const rawSeededReserve = Math.max(toNumeric(asset.params?.initialReserve), toNumeric(asset.cycle?.reserve));
+  const seededReserve = rawSeededReserve > 0 ? rawSeededReserve : MIN_LISTED_ASSET_RESERVE;
+  const normalizedParams: CycleParams = {
+    ...asset.params,
+    initialReserve: seededReserve,
+    initialSupply: Math.max(1, Math.floor(toNumeric(asset.params?.initialSupply, HUNT_TOKEN_SUPPLY))),
+    redemptionThreshold: Math.max(0, toNumeric(asset.params?.redemptionThreshold, 200)),
+    split,
+  };
+
+  return {
+    ...asset,
+    params: normalizedParams,
+    cycle: normalizeCycleState(asset.cycle, normalizedParams),
+    secondaryMarket: normalizeSecondaryMarketState(asset.secondaryMarket),
+  };
+};
 
 const snapshotFromCycle = (cycle: CycleState): CycleLiquiditySnapshot => ({
   cycle: Math.max(1, Math.floor(toNumeric(cycle.cycle, 1))),
@@ -366,7 +434,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     return Object.fromEntries(
       assetList.map((asset) => [
         asset.id,
-        asset.id === "nova" || asset.secondaryMarket?.active ? 0 : (asset.cycle?.initialSupply || 0),
+        asset.secondaryMarket?.active ? 0 : (asset.cycle?.initialSupply || 0),
       ]),
     );
   };
@@ -403,8 +471,21 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setAssets((prev) => {
-      const filtered = prev.filter((asset) => !shouldHideAsset(asset));
-      return filtered.length === prev.length ? prev : filtered;
+      const normalized = prev
+        .filter((asset) => !shouldHideAsset(asset))
+        .map((asset) => normalizeRuntimeAsset(asset));
+      if (normalized.length !== prev.length) return normalized;
+      const changed = normalized.some((asset, index) => {
+        const current = prev[index];
+        return (
+          asset.params.initialReserve !== current.params.initialReserve ||
+          asset.cycle.reserve !== current.cycle.reserve ||
+          asset.cycle.supply !== current.cycle.supply ||
+          asset.cycle.lpu !== current.cycle.lpu ||
+          Boolean(asset.secondaryMarket?.active) !== Boolean(current.secondaryMarket?.active)
+        );
+      });
+      return changed ? normalized : prev;
     });
   }, []);
 
@@ -416,7 +497,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         const next: Record<string, number> = {};
         assets.forEach((asset) => {
           if (!asset) return;
-          if (asset.id === "nova" || asset.secondaryMarket?.active) {
+          if (asset.secondaryMarket?.active) {
             next[asset.id] = 0;
             return;
           }
@@ -467,7 +548,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       let mutated = false;
       const next = { ...prev };
       assets.forEach((asset) => {
-        if (HUNT_LOCKED_ASSETS.has(asset.id)) return;
         if (asset.secondaryMarket?.active) return;
         const current = toNumeric(prev[asset.id]);
         if (current <= 0) {
@@ -987,11 +1067,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
       if (asset.secondaryMarket?.active) {
         console.error(`❌ Hunt Debug - Asset ${assetId} is in market-only phase`);
-        return false;
-      }
-
-      if (HUNT_LOCKED_ASSETS.has(assetId)) {
-        console.error(`❌ Hunt Debug - Asset ${assetId} is locked for hunts`);
         return false;
       }
 

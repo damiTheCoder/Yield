@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Web3News from "@/components/Web3News";
 
 const toNumeric = (value: unknown) => {
@@ -18,8 +19,19 @@ export default function Wallet() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
+  const [selectedKeyAssetId, setSelectedKeyAssetId] = useState<string | null>(null);
 
   const normalizedQuery = query.trim().toLowerCase();
+
+  const keyedAssetIcons = useMemo(() => {
+    return assets
+      .map((asset) => ({
+        asset,
+        codeCount: getAssetCoinTagCodes(asset.id).length,
+      }))
+      .filter(({ codeCount }) => codeCount > 0)
+      .sort((a, b) => b.codeCount - a.codeCount);
+  }, [assets, getAssetCoinTagCodes]);
 
   const walletRows = useMemo(() => {
     return assets
@@ -44,6 +56,12 @@ export default function Wallet() {
       .sort((a, b) => b.visibleCount - a.visibleCount);
   }, [assets, userAssets, getAssetCoinTagCodes, normalizedQuery]);
 
+  const selectedKeyAsset = useMemo(() => {
+    return keyedAssetIcons.find(({ asset }) => asset.id === selectedKeyAssetId)?.asset ?? null;
+  }, [keyedAssetIcons, selectedKeyAssetId]);
+
+  const selectedKeyCodes = selectedKeyAsset ? getAssetCoinTagCodes(selectedKeyAsset.id) : [];
+
   const copyCode = async (code: string) => {
     try {
       if (!navigator?.clipboard?.writeText) {
@@ -65,26 +83,62 @@ export default function Wallet() {
 
   return (
     <div className="min-h-screen">
-      <main className="container mx-auto px-4 pb-10 pt-3 sm:pt-8">
+      <main className="container mx-auto px-4 pb-10 pt-1 sm:pt-4">
         <div className="space-y-4 sm:space-y-6 lg:grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.35fr)] lg:gap-8 lg:space-y-0">
           <aside className="hidden lg:block lg:space-y-6 lg:pt-2">
             <Web3News variant="detail" />
           </aside>
 
-          <div className="max-w-5xl space-y-4 text-sm [&_svg]:h-3.5 [&_svg]:w-3.5 sm:space-y-6 lg:max-w-none">
+          <div className="max-w-5xl space-y-4 text-sm [&_svg]:h-3.5 [&_svg]:w-3.5 lg:max-w-none">
             <Card className="rounded-none border-0 bg-transparent shadow-none">
-              <CardContent className="space-y-5 p-0">
+              <CardContent className="space-y-4 p-0">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
+                  <div className="w-full text-center">
                     <p className="text-[11px] uppercase tracking-wide text-muted-foreground">CoinTag wallet</p>
                     <h2 className="mt-1 text-xl font-semibold text-foreground">Asset Wallet</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="mx-auto mt-1 max-w-2xl text-sm text-muted-foreground">
                       View every CoinTag you own by asset, including the code assigned at purchase.
                     </p>
+                    {keyedAssetIcons.length > 0 && (
+                      <div className="mt-4 flex justify-center">
+                        <div className="flex items-center">
+                          {keyedAssetIcons.slice(0, 8).map(({ asset }, index) => (
+                            <button
+                              key={asset.id}
+                              type="button"
+                              onClick={() => setSelectedKeyAssetId(asset.id)}
+                              className={index === 0 ? "" : "-ml-3"}
+                              title={`View ${asset.name} keys`}
+                              aria-label={`View ${asset.name} keys`}
+                            >
+                              <img
+                                src={asset.image}
+                                alt=""
+                                className="h-11 w-11 rounded-full border-2 border-background object-cover shadow-sm transition-transform hover:scale-105 sm:h-12 sm:w-12"
+                              />
+                            </button>
+                          ))}
+                          {keyedAssetIcons.length > 8 && (
+                            <span className="-ml-3 flex h-11 w-11 items-center justify-center rounded-full border-2 border-background bg-muted text-xs font-semibold text-muted-foreground shadow-sm sm:h-12 sm:w-12">
+                              +{keyedAssetIcons.length - 8}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <div className="flex max-w-2xl items-center gap-2 rounded-2xl border border-border/60 bg-background/60 px-3 py-1 transition-colors duration-200 focus-within:border-ring/70 focus-within:bg-background/80">
+                <div className="flex flex-wrap justify-center gap-3">
+                  <Button className="rounded-full bg-blue-500 text-white hover:bg-blue-600" onClick={() => navigate("/assets")}>
+                    Browse Active Hunts
+                  </Button>
+                  <Button variant="outline" className="rounded-full" onClick={() => navigate("/portfolio")}>
+                    Open Portfolio
+                  </Button>
+                </div>
+
+                <div className="mx-auto flex w-full max-w-2xl items-center gap-2 rounded-2xl border border-border/60 bg-background/60 px-3 py-1 transition-colors duration-200 focus-within:border-ring/70 focus-within:bg-background/80">
                   <Search className="shrink-0 text-muted-foreground" />
                   <Input
                     value={query}
@@ -92,15 +146,6 @@ export default function Wallet() {
                     placeholder="Search asset by name or ticker"
                     className="h-8 border-0 bg-transparent p-0 text-sm focus-visible:ring-0"
                   />
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <Button className="rounded-full bg-blue-500 text-white hover:bg-blue-600" onClick={() => navigate("/assets")}>
-                    Browse Active Hunts
-                  </Button>
-                  <Button variant="outline" className="rounded-full" onClick={() => navigate("/portfolio")}>
-                    Open Portfolio
-                  </Button>
                 </div>
 
                 {walletRows.length === 0 ? (
@@ -190,6 +235,48 @@ export default function Wallet() {
           </div>
         </div>
       </main>
+
+      <Dialog open={Boolean(selectedKeyAsset)} onOpenChange={(open) => !open && setSelectedKeyAssetId(null)}>
+        <DialogContent className="w-[calc(100%-2rem)] max-w-md rounded-2xl border border-border/60 p-5">
+          {selectedKeyAsset && (
+            <>
+              <DialogHeader className="items-center text-center">
+                <img
+                  src={selectedKeyAsset.image}
+                  alt={selectedKeyAsset.name}
+                  className="mb-2 h-14 w-14 rounded-full border border-border/60 object-cover"
+                />
+                <DialogTitle>{selectedKeyAsset.name}</DialogTitle>
+                <DialogDescription>
+                  Active CoinTag {selectedKeyCodes.length === 1 ? "key" : "keys"} ready for this asset.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-2">
+                {selectedKeyCodes.map((code) => (
+                  <div
+                    key={`${selectedKeyAsset.id}-modal-${code}`}
+                    className="flex items-center justify-between gap-2 rounded-xl bg-muted/25 px-3 py-2"
+                  >
+                    <span className="flex min-w-0 items-center gap-2 font-mono text-xs font-semibold text-foreground sm:text-sm">
+                      <KeyRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      <span className="truncate">{code}</span>
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0 rounded-lg transition-colors hover:bg-background/70"
+                      onClick={() => copyCode(code)}
+                      aria-label={`Copy code ${code}`}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

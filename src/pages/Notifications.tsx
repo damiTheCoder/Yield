@@ -68,7 +68,7 @@ export default function Notifications() {
           id: `${asset.id}-coins-ready`,
           type: "coins_ready",
           title: "CoinTags Ready",
-          content: `${ownedCoinTags} CoinTag${ownedCoinTags === 1 ? "" : "s"} are ready for ${asset.name} cycle ${asset.cycle.cycle}. Enter one key to unlock the hunt, then open as many boxes as you want.`,
+          content: `${ownedCoinTags} CoinTag${ownedCoinTags === 1 ? "" : "s"} are ready for ${asset.name} cycle ${asset.cycle.cycle}. One CoinTag unlocks the hunt, then you can open as many boxes as you want.`,
           timestamp: `${index + 1}h`,
           priority: "high",
           asset: baseAsset,

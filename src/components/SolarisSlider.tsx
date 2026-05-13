@@ -135,115 +135,26 @@ const SolarisSlider = () => {
       return;
     }
 
-    const mobileQuery = window.matchMedia("(max-width: 768px)");
-    let rafId = 0;
-    let observer: IntersectionObserver | null = null;
-
     animatedElements.forEach((element) => element.classList.add("scroll-drop-ready"));
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const target = entry.target as HTMLElement;
+          target.classList.add("is-visible");
+          observer.unobserve(target);
+        });
+      },
+      {
+        threshold: 0.12,
+        rootMargin: "0px 0px -10% 0px",
+      },
+    );
 
-    const clearDesktopListeners = () => {
-      window.removeEventListener("scroll", scheduleUpdate);
-      window.removeEventListener("resize", scheduleUpdate);
-    };
-
-    const disconnectObserver = () => {
-      if (!observer) return;
-      observer.disconnect();
-      observer = null;
-    };
-
-    const updateDesktopVisibility = () => {
-      const viewportHeight = window.innerHeight;
-      const revealStart = viewportHeight * 0.82;
-      const revealEnd = viewportHeight * 0.08;
-      const hideTop = -96;
-      const hideBottom = viewportHeight + 96;
-
-      animatedElements.forEach((element) => {
-        const rect = element.getBoundingClientRect();
-        const shouldShow = rect.top <= revealStart && rect.bottom >= revealEnd;
-        const shouldHide = rect.bottom < hideTop || rect.top > hideBottom;
-
-        if (shouldShow) {
-          element.classList.add("is-visible");
-          return;
-        }
-
-        if (shouldHide) {
-          element.classList.remove("is-visible");
-        }
-      });
-    };
-
-    const scheduleUpdate = () => {
-      if (rafId) return;
-      rafId = window.requestAnimationFrame(() => {
-        rafId = 0;
-        updateDesktopVisibility();
-      });
-    };
-
-    const enableMobileAnimation = () => {
-      clearDesktopListeners();
-      disconnectObserver();
-
-      // Reveal anything already close to the viewport immediately on mobile.
-      const initialRevealLine = window.innerHeight * 0.96;
-      animatedElements.forEach((element) => {
-        const rect = element.getBoundingClientRect();
-        if (rect.top <= initialRevealLine) {
-          element.classList.add("is-visible");
-        }
-      });
-
-      observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (!entry.isIntersecting) return;
-            const target = entry.target as HTMLElement;
-            target.classList.add("is-visible");
-            observer?.unobserve(target);
-          });
-        },
-        {
-          threshold: 0.06,
-          rootMargin: "0px 0px -10% 0px",
-        },
-      );
-
-      animatedElements.forEach((element) => {
-        if (!element.classList.contains("is-visible")) {
-          observer?.observe(element);
-        }
-      });
-    };
-
-    const enableDesktopAnimation = () => {
-      disconnectObserver();
-      updateDesktopVisibility();
-      window.addEventListener("scroll", scheduleUpdate, { passive: true });
-      window.addEventListener("resize", scheduleUpdate);
-    };
-
-    const syncAnimationMode = () => {
-      if (mobileQuery.matches) {
-        enableMobileAnimation();
-        return;
-      }
-
-      enableDesktopAnimation();
-    };
-
-    syncAnimationMode();
-    mobileQuery.addEventListener("change", syncAnimationMode);
+    animatedElements.forEach((element) => observer.observe(element));
 
     return () => {
-      if (rafId) {
-        window.cancelAnimationFrame(rafId);
-      }
-      clearDesktopListeners();
-      disconnectObserver();
-      mobileQuery.removeEventListener("change", syncAnimationMode);
+      observer.disconnect();
     };
   }, []);
 
@@ -323,6 +234,7 @@ const SolarisSlider = () => {
           min-height: 100vh;
           display: flex;
           flex-direction: column;
+          background: #ffffff;
         }
 
         .landing-top-band {
@@ -395,8 +307,8 @@ const SolarisSlider = () => {
           border: none;
           background: transparent;
           color: #060b16;
-          font-size: 18px;
-          font-weight: 700;
+          font-size: 22px;
+          font-weight: 900;
           justify-self: start;
           cursor: pointer;
           padding: 0;
@@ -553,26 +465,48 @@ const SolarisSlider = () => {
         .landing-empty {
           flex: 1;
           min-height: 36vh;
+          position: relative;
           background: #ffffff;
         }
 
         .landing-section {
           max-width: 1220px;
           margin: 0 auto;
-          padding: 72px 24px 40px;
+          padding: 92px 24px 64px;
+          position: relative;
+          z-index: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          isolation: isolate;
+        }
+
+        .landing-section::before {
+          content: "";
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          width: 100vw;
+          aspect-ratio: 16 / 9;
+          transform: translate(-50%, -50%);
+          background: url("/b4.png") center center / 100% 100% no-repeat;
+          pointer-events: none;
+          z-index: -1;
         }
 
         .landing-section-title {
           margin: 0;
-          color: #6da8ff;
-          font-size: clamp(32px, 5.2vw, 64px);
+          color: #2f7bf7;
+          font-size: clamp(38px, 5.6vw, 72px);
           line-height: 0.96;
           letter-spacing: -0.04em;
-          font-weight: 300;
+          font-weight: 400;
         }
 
         .landing-section-copy {
-          margin: 14px 0 0;
+          margin: 18px auto 0;
           max-width: 860px;
           color: rgba(6, 11, 22, 0.72);
           font-size: clamp(14px, 1.1vw, 17px);
@@ -627,8 +561,8 @@ const SolarisSlider = () => {
           position: relative;
           overflow: hidden;
           width: 100%;
-          min-height: 390px;
-          padding: 30px 30px 168px;
+          min-height: 440px;
+          padding: 30px 30px 232px;
           border-radius: 34px;
           text-align: left;
           display: flex;
@@ -679,7 +613,7 @@ const SolarisSlider = () => {
         .problem-box-frame {
           position: absolute;
           left: 50%;
-          bottom: -18px;
+          bottom: 24px;
           width: 190px;
           height: 190px;
           border-radius: 28px;
@@ -692,15 +626,18 @@ const SolarisSlider = () => {
         .problem-box-image {
           width: 100%;
           height: 100%;
-          object-fit: cover;
+          object-fit: contain;
           display: block;
           border-radius: 28px;
         }
 
         .lft-section {
           margin-top: 12px;
+          scroll-margin-top: 110px;
+          position: relative;
+          z-index: 1;
           padding: 72px 24px 88px;
-          background: transparent;
+          background: #ffffff;
         }
 
         .lft-section-inner {
@@ -709,22 +646,81 @@ const SolarisSlider = () => {
         }
 
         .lft-image-frame {
-          width: min(100%, 980px);
-          margin: 28px auto 0;
-          padding: 0;
-          border-radius: 18px;
+          width: min(100%, 1220px);
+          margin: 0 auto;
+          padding: clamp(24px, 3vw, 36px) clamp(20px, 4vw, 48px);
+          border-radius: 0;
           background: transparent;
-          box-shadow: 0 22px 52px rgba(33, 86, 144, 0.14);
+          box-shadow: none;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          text-align: center;
         }
 
-        .lft-image {
+        .lft-intro-title {
+          margin: 0;
+          max-width: 980px;
+          color: #2f7bf7;
+          font-size: clamp(30px, 4.2vw, 54px);
+          line-height: 1;
+          letter-spacing: -0.04em;
+          font-weight: 600;
+        }
+
+        .lft-intro-copy {
+          margin: 0;
+          max-width: 980px;
+          color: rgba(6, 11, 22, 0.72);
+          font-size: clamp(18px, 2vw, 28px);
+          line-height: 1.45;
+          letter-spacing: -0.02em;
+          font-weight: 300;
+        }
+
+        .lft-intro-image-shell {
+          position: relative;
+          width: 100vw;
+          max-width: none;
+          margin-top: 28px;
+          margin-left: calc(50% - 50vw);
+          margin-right: calc(50% - 50vw);
+          overflow: hidden;
+          isolation: isolate;
+          line-height: 0;
+          border-radius: 0;
+        }
+
+        .lft-intro-image-shell::before,
+        .lft-intro-image-shell::after {
+          content: "";
+          position: absolute;
+          left: 0;
+          right: 0;
+          z-index: 1;
+          pointer-events: none;
+        }
+
+        .lft-intro-image-shell::before {
+          top: 0;
+          height: clamp(48px, 6vw, 88px);
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.46) 46%, rgba(255, 255, 255, 0) 100%);
+        }
+
+        .lft-intro-image-shell::after {
+          bottom: 0;
+          height: clamp(76px, 9vw, 132px);
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.52) 58%, rgba(255, 255, 255, 0.96) 100%);
+        }
+
+        .lft-intro-image {
           width: 100%;
+          height: auto;
           display: block;
-          border-radius: 18px;
-        }
-
-        .lft-image-picture {
-          display: block;
+          border-radius: 0;
+          image-rendering: auto;
         }
 
         .paradigm-section {
@@ -1044,7 +1040,8 @@ const SolarisSlider = () => {
           }
 
           .nav-brand {
-            font-size: 16px;
+            font-size: 20px;
+            font-weight: 900;
           }
 
           .nav-logo {
@@ -1060,8 +1057,9 @@ const SolarisSlider = () => {
           }
 
           .landing-hero {
+            margin: 18px 0 22px;
             min-height: 320px;
-            padding: 24px 12px 90px;
+            padding: 38px 12px 104px;
           }
 
           .landing-hero-title {
@@ -1091,11 +1089,15 @@ const SolarisSlider = () => {
           }
 
           .landing-section {
-            padding: 52px 16px 28px;
+            padding: 72px 16px 40px;
+          }
+
+          .landing-section::before {
+            width: min(112vw, 560px);
           }
 
           .landing-section-title {
-            font-size: clamp(28px, 9vw, 42px);
+            font-size: clamp(34px, 9vw, 52px);
           }
 
           .landing-section-copy {
@@ -1135,8 +1137,8 @@ const SolarisSlider = () => {
 
           .problem-box {
             width: min(100%, 640px);
-            min-height: 290px;
-            padding: 20px 18px 112px;
+            min-height: 320px;
+            padding: 20px 18px 152px;
             border-radius: 24px;
           }
 
@@ -1149,7 +1151,7 @@ const SolarisSlider = () => {
           .problem-box-frame {
             width: 118px;
             height: 118px;
-            bottom: -10px;
+            bottom: 16px;
             border-radius: 20px;
           }
 
@@ -1159,18 +1161,50 @@ const SolarisSlider = () => {
 
           .lft-section {
             margin-top: 8px;
+            scroll-margin-top: 78px;
             padding: 48px 16px 56px;
           }
 
-          .lft-image-frame {
-            width: min(94vw, 380px);
-            margin-top: 20px;
-            padding: 0;
-            border-radius: 13px;
+          .landing-empty {
+            background: #ffffff;
           }
 
-          .lft-image {
-            border-radius: 13px;
+          .lft-image-frame {
+            width: 100%;
+            margin-top: 0;
+            padding: 18px 12px;
+            border-radius: 0;
+            gap: 8px;
+          }
+
+          .lft-intro-title {
+            font-size: clamp(28px, 8vw, 38px);
+          }
+
+          .lft-intro-copy {
+            font-size: clamp(16px, 4.8vw, 22px);
+            line-height: 1.42;
+          }
+
+          .lft-intro-image-shell {
+            margin-top: 18px;
+            border-radius: 0;
+          }
+
+          .lft-intro-image-shell::before {
+            height: clamp(18px, 6vw, 28px);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.32) 50%, rgba(255, 255, 255, 0) 100%);
+          }
+
+          .lft-intro-image-shell::after {
+            height: clamp(28px, 8vw, 44px);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.36) 56%, rgba(255, 255, 255, 0.94) 100%);
+          }
+
+          .lft-intro-image {
+            width: 100%;
+            height: auto;
+            border-radius: 0;
           }
 
           .paradigm-section {
@@ -1296,7 +1330,7 @@ const SolarisSlider = () => {
                 <span className="nav-logo">
                   <img src="/h4.png" alt="Solaris logo" />
                 </span>
-                <span>Solaris Ledger</span>
+                <span>Solaris</span>
               </button>
 
               <div className="nav-links">
@@ -1335,22 +1369,22 @@ const SolarisSlider = () => {
         </div>
 
         <main className="landing-empty">
-          <section className="problem-section">
-            <div className="scroll-drop">
+          <section className="problem-section scroll-drop">
+            <div>
               <h3 className="problem-title">The problem</h3>
               <p className="problem-subtitle">Problems across all asset class</p>
             </div>
 
             <div className="problem-list">
-              <div className="problem-box-row scroll-drop" data-drop-delay="1">
-                <article className="problem-box problem-box--blue scroll-drop" data-drop-delay="1">
+              <div className="problem-box-row">
+                <article className="problem-box problem-box--blue">
                   <p className="problem-box-copy">{PRIMARY_PROBLEM.text}</p>
                   <div className="problem-box-frame">
                     <img className="problem-box-image" src={PRIMARY_PROBLEM.image} alt={PRIMARY_PROBLEM.alt} />
                   </div>
                 </article>
 
-                <article className="problem-box problem-box--yellow scroll-drop" data-drop-delay="2">
+                <article className="problem-box problem-box--yellow">
                   <p className="problem-box-copy">{SECONDARY_PROBLEM.text}</p>
                   <div className="problem-box-frame">
                     <img className="problem-box-image" src={SECONDARY_PROBLEM.image} alt={SECONDARY_PROBLEM.alt} />
@@ -1358,15 +1392,15 @@ const SolarisSlider = () => {
                 </article>
               </div>
 
-              <div className="problem-box-row scroll-drop" data-drop-delay="2">
-                <article className="problem-box problem-box--green scroll-drop" data-drop-delay="3">
+              <div className="problem-box-row">
+                <article className="problem-box problem-box--green">
                   <p className="problem-box-copy">{TERTIARY_PROBLEM.text}</p>
                   <div className="problem-box-frame">
                     <img className="problem-box-image" src={TERTIARY_PROBLEM.image} alt={TERTIARY_PROBLEM.alt} />
                   </div>
                 </article>
 
-                <article className="problem-box problem-box--purple scroll-drop" data-drop-delay="4">
+                <article className="problem-box problem-box--purple">
                   <p className="problem-box-copy">{QUATERNARY_PROBLEM.text}</p>
                   <div className="problem-box-frame">
                     <img className="problem-box-image" src={QUATERNARY_PROBLEM.image} alt={QUATERNARY_PROBLEM.alt} />
@@ -1376,7 +1410,7 @@ const SolarisSlider = () => {
             </div>
           </section>
 
-          <section className="landing-section scroll-drop">
+          <section className="landing-section">
             <h3 className="landing-section-title">Zero to Value.</h3>
             <p className="landing-section-copy">
               Digital assets shouldn&apos;t be a gamble. Most tokens today are built on hype and they end in extraction leaving
@@ -1385,15 +1419,21 @@ const SolarisSlider = () => {
             </p>
           </section>
 
-          <section className="lft-section scroll-drop" id="lft-section" data-drop-delay="1">
+          <section className="lft-section" id="lft-section">
             <div className="lft-section-inner">
               <div className="lft-image-frame">
-                <img className="lft-image" src="/v2.png" alt="LFT interface preview" />
+                <h3 className="lft-intro-title">Introducing LFTs.</h3>
+                <p className="lft-intro-copy">
+                  Liquidity Funded Tokens. Value-backed from day one. Guaranteed redemption that never hits zero.
+                </p>
+                <div className="lft-intro-image-shell">
+                  <img className="lft-intro-image" src="/B8.png" alt="LFT preview" />
+                </div>
               </div>
             </div>
           </section>
 
-          <section className="paradigm-section scroll-drop" data-drop-delay="2">
+          <section className="paradigm-section">
             <div className="paradigm-section-inner">
               <p className="paradigm-copy">
                 Liquidity Funded Tokens (LFTs) introduce a new paradigm in digital assets: tokens backed by real liquidity
@@ -1405,15 +1445,14 @@ const SolarisSlider = () => {
 
           <section className="how-it-works-section">
             <div className="how-it-works-inner">
-              <h3 className="how-it-works-heading scroll-drop">How it works</h3>
+              <h3 className="how-it-works-heading">How it works</h3>
               <div className="how-it-works-track">
                 {HOW_IT_WORKS_STEPS.map((item, index) => {
                   const isOpen = openHowItWorks === index;
                   return (
                     <article
-                      className="how-it-works-card scroll-drop"
+                      className="how-it-works-card"
                       data-open={isOpen}
-                      data-drop-delay={String(Math.min(index + 1, 5))}
                       key={item.title}
                     >
                       <button
@@ -1440,7 +1479,7 @@ const SolarisSlider = () => {
 
           <footer className="landing-footer">
             <div className="landing-footer-inner">
-              <div className="landing-footer-brand scroll-drop">
+              <div className="landing-footer-brand">
                 <div className="landing-footer-mark">
                   <img src="/h4.png" alt="Solaris logo" />
                   <span>Solaris</span>
@@ -1469,8 +1508,8 @@ const SolarisSlider = () => {
               </div>
 
               <div className="landing-footer-columns">
-                {FOOTER_SECTIONS.map((section, index) => (
-                  <div className="landing-footer-column scroll-drop" data-drop-delay={String(Math.min(index + 1, 4))} key={section.title}>
+                {FOOTER_SECTIONS.map((section) => (
+                  <div className="landing-footer-column" key={section.title}>
                     <h4 className="landing-footer-column-title">{section.title}</h4>
                     <div className="landing-footer-links">
                       {section.links.map((link) => (

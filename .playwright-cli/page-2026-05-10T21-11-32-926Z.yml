@@ -1,0 +1,116 @@
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e4]:
+    - navigation:
+      - generic [ref=e6]:
+        - button "Solaris logo Solaris Ledger" [ref=e7] [cursor=pointer]:
+          - img "Solaris logo" [ref=e9]
+          - generic [ref=e10]: Solaris Ledger
+        - generic [ref=e11]:
+          - button "Features" [ref=e12] [cursor=pointer]
+          - button "How It Works" [ref=e13] [cursor=pointer]
+          - button "Marketplace" [ref=e14] [cursor=pointer]
+          - button "About" [ref=e15] [cursor=pointer]
+        - button "Get Started" [ref=e16] [cursor=pointer]:
+          - text: Get Started
+          - generic [ref=e17]: ›
+    - generic [ref=e20]:
+      - heading "Solaris" [level=1] [ref=e21]
+      - img
+      - generic [ref=e22]:
+        - paragraph [ref=e23]: The era of Non extractive tokens
+        - button "Learn more" [active] [ref=e24] [cursor=pointer]
+    - main [ref=e25]:
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - heading "The problem" [level=3] [ref=e28]
+          - paragraph [ref=e29]: Problems across all asset class
+        - generic [ref=e30]:
+          - generic [ref=e31]:
+            - article [ref=e32]:
+              - paragraph [ref=e33]: "Meme Coins: No intrinsic value → driven by hype and speculation → rapid price pumps → early holders cash out → late buyers get dumped on → price crashes → often trends toward zero."
+              - img "Meme coins" [ref=e35]
+            - article [ref=e36]:
+              - paragraph [ref=e37]: "NFTs: One-time artist revenue followed by abandonment; zero guaranteed floor; buyers risk total loss; no ongoing cash flow; reliant on resale speculation."
+              - img "NFTs" [ref=e39]
+          - generic [ref=e40]:
+            - article [ref=e41]:
+              - paragraph [ref=e42]: "Utility Tokens: Utility claims rarely deliver; inflationary erosion; no real redemption rights; prone to pump-and-dumps; regulatory risks."
+              - img "Utility tokens" [ref=e44]
+            - article [ref=e45]:
+              - paragraph [ref=e46]: "Result: Users get burned, creators lack sustainable income, regulators skeptical."
+              - img "Result" [ref=e48]
+      - generic [ref=e49]:
+        - heading "Zero to Value." [level=3] [ref=e50]
+        - paragraph [ref=e51]: Digital assets shouldn't be a gamble. Most tokens today are built on hype and they end in extraction leaving the end users liquidated. We built something different. A token that actually has a guaranteed floor that requires no complex engagement such as trading, farming or drops.
+      - generic [ref=e54]:
+        - heading "Introducing LFTs." [level=3] [ref=e55]
+        - paragraph [ref=e56]: Liquidity Funded Tokens. Value-backed from day one. Guaranteed redemption that never hits zero.
+        - img "LFT preview" [ref=e58]
+      - paragraph [ref=e61]: "Liquidity Funded Tokens (LFTs) introduce a new paradigm in digital assets: tokens backed by real liquidity from day one, with redemption value that grows in real-time as the community engages, structured in self-contained cycles that compound strength over time."
+      - generic [ref=e63]:
+        - heading "How it works" [level=3] [ref=e64]
+        - generic [ref=e65]:
+          - article [ref=e66]:
+            - button "1 Launch an LFT" [expanded] [ref=e67] [cursor=pointer]:
+              - generic [ref=e68]: "1"
+              - generic [ref=e69]: Launch an LFT
+              - generic [ref=e70]: +
+            - paragraph [ref=e73]: A creator deploys a Liquidity Funded Token and seeds the first cycle with real reserve liquidity from day one.
+          - article [ref=e74]:
+            - button "2 Users enter through CoinTags" [ref=e75] [cursor=pointer]:
+              - generic [ref=e76]: "2"
+              - generic [ref=e77]: Users enter through CoinTags
+              - generic [ref=e78]: +
+          - article [ref=e79]:
+            - button "3 Revenue splits in real time" [ref=e80] [cursor=pointer]:
+              - generic [ref=e81]: "3"
+              - generic [ref=e82]: Revenue splits in real time
+              - generic [ref=e83]: +
+          - article [ref=e84]:
+            - button "4 Redeem or continue the cycle" [ref=e85] [cursor=pointer]:
+              - generic [ref=e86]: "4"
+              - generic [ref=e87]: Redeem or continue the cycle
+              - generic [ref=e88]: +
+      - generic [ref=e90]:
+        - generic [ref=e91]:
+          - generic [ref=e92]:
+            - img "Solaris logo" [ref=e93]
+            - generic [ref=e94]: Solaris
+          - paragraph [ref=e95]: Liquidity-backed token cycles built for real value, measurable demand, and cleaner creator economics.
+          - paragraph [ref=e96]: © 2026 Solaris. All rights reserved.
+          - generic [ref=e97]:
+            - button "Instagram" [ref=e98] [cursor=pointer]:
+              - img [ref=e99]
+            - button "Twitter" [ref=e102] [cursor=pointer]:
+              - img [ref=e103]
+            - button "LinkedIn" [ref=e105] [cursor=pointer]:
+              - img [ref=e106]
+            - button "Telegram" [ref=e110] [cursor=pointer]:
+              - img [ref=e111]
+            - button "YouTube" [ref=e114] [cursor=pointer]:
+              - img [ref=e115]
+        - generic [ref=e118]:
+          - generic [ref=e119]:
+            - heading "Platform" [level=4] [ref=e120]
+            - generic [ref=e121]:
+              - button "Assets" [ref=e122] [cursor=pointer]
+              - button "Portfolio" [ref=e123] [cursor=pointer]
+              - button "Revenue" [ref=e124] [cursor=pointer]
+              - button "Wallet" [ref=e125] [cursor=pointer]
+          - generic [ref=e126]:
+            - heading "Creators" [level=4] [ref=e127]
+            - generic [ref=e128]:
+              - button "LaunchPad" [ref=e129] [cursor=pointer]
+              - button "How It Works" [ref=e130] [cursor=pointer]
+              - button "Token Financials" [ref=e131] [cursor=pointer]
+              - button "Notifications" [ref=e132] [cursor=pointer]
+          - generic [ref=e133]:
+            - heading "Resources" [level=4] [ref=e134]
+            - generic [ref=e135]:
+              - button "Blog" [ref=e136] [cursor=pointer]
+              - button "Marketplace" [ref=e137] [cursor=pointer]
+              - button "Connect Wallet" [ref=e138] [cursor=pointer]
+              - button "Get Started" [ref=e139] [cursor=pointer]

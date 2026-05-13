@@ -92,6 +92,7 @@ export default function AssetDetail() {
   const lpu = tokenInfo?.walv && tokenInfo.walv > 0 ? tokenInfo.walv : liveSupply > 0 ? liveReserve / liveSupply : 0;
   const currentLiquidity = tokenInfo?.phase === "market" ? Math.max(0, tokenInfo.totalValue) : liveReserve;
   const huntFee = Math.max(4.2, lpu * 0.4);
+  const huntUnlocked = asset ? Boolean(getHuntProgress(asset.id).activated) : false;
 
   const chartData = useMemo(() => {
     if (!asset) {
@@ -222,18 +223,17 @@ export default function AssetDetail() {
   const chartConfig = { value: { label: "Liquidity", color: "hsl(var(--accent-yellow))" } } as const;
 
   useEffect(() => {
-    const huntUnlocked = asset ? Boolean(getHuntProgress(asset.id).activated) : false;
     if (huntUnlocked) {
       setShowHuntPrompt(true);
-      setPurchaseMessage("Hunt unlocked.");
+      setPurchaseMessage("Hunt already unlocked. Open as many boxes as you want.");
     } else if (ua.coinTags > 0) {
       setShowHuntPrompt(true);
-      setPurchaseMessage("CoinTag purchased. Copy its key from Wallet, then start Hunt.");
+      setPurchaseMessage("One CoinTag is ready. Start Hunt to unlock the game.");
     } else {
       setShowHuntPrompt(false);
       setPurchaseMessage(null);
     }
-  }, [asset, getHuntProgress, ua.coinTags]);
+  }, [asset?.id, huntUnlocked, ua.coinTags]);
 
   useEffect(() => {
     setIsWebview(detectWebView());
@@ -505,7 +505,7 @@ export default function AssetDetail() {
                 Secure Checkout
               </div>
               <p className="text-sm font-medium text-foreground">Buy 1 CoinTag</p>
-              <p className="text-xs text-muted-foreground">Fast checkout with instant settlement.</p>
+              <p className="text-xs text-muted-foreground">One CoinTag unlocks the game. Open as many boxes as you want.</p>
             </div>
             <div className="rounded-full border border-border/60 bg-background px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
               1 tag
@@ -544,14 +544,18 @@ export default function AssetDetail() {
           "bg-blue-500 text-white hover:bg-blue-600",
           "disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground",
         )}
-        disabled={user.usd < huntFee || ua.coinTags >= 1 || isMarketOnlyPhase}
+        disabled={user.usd < huntFee || ua.coinTags >= 1 || isMarketOnlyPhase || huntUnlocked}
         onClick={() => {
           if (isMarketOnlyPhase) {
             setPurchaseMessage("CoinTag sales are closed. This asset is now in market-only trading mode.");
             return;
           }
+          if (huntUnlocked) {
+            setPurchaseMessage("Hunt already unlocked. Open as many boxes as you want.");
+            return;
+          }
           if (ua.coinTags >= 1) {
-            setPurchaseMessage("CoinTag already purchased.");
+            setPurchaseMessage("CoinTag already purchased. Start Hunt to unlock the game.");
             return;
           }
           if (user.usd < huntFee) {
@@ -559,6 +563,7 @@ export default function AssetDetail() {
             return;
           }
           buyAssetCoinTags(asset.id, huntFee, huntFee);
+          setPurchaseMessage("One CoinTag purchased. Start Hunt to unlock the game.");
           setShowHuntPrompt(true);
         }}
       >

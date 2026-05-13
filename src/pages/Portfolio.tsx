@@ -293,7 +293,7 @@ export default function Portfolio() {
                     No asset-specific LFTs yet. Hunt CoinTags to populate this section.
                   </p>
                 ) : (
-                  <div className="overflow-hidden rounded-2xl border border-border/60 bg-background/50">
+                  <div className="overflow-hidden rounded-2xl bg-[#F3F4F6] dark:bg-[#1A1A1A]">
                     <div className="divide-y divide-border/50">
                       {ownedAssetLfts.map((asset) => {
                         const rawBalances = userAssets[asset.id];

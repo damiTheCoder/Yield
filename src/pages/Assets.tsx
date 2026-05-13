@@ -2,10 +2,10 @@ import { useApp } from "@/lib/app-state";
 import type { Asset } from "@/lib/app-state";
 import { useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { cn, formatCurrency, formatCurrencyK, formatCompactCurrency, formatUnitCurrency } from "@/lib/utils";
+import { cn, formatCurrency, formatCurrencyK, formatUnitCurrency } from "@/lib/utils";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CalendarDays, Check, ChevronLeft, ChevronRight, LayoutGrid, Rows3, Star } from "lucide-react";
+import { Check, LayoutGrid, Rows3, Star } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -14,11 +14,11 @@ import MarketTickerTape from "@/components/MarketTickerTape";
 import type { TouchEvent } from "react";
 
 const MAX_TRENDING = 10;
-const MONTH_OPTIONS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
 const ASSET_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/r1.jpeg"];
 const MOBILE_ASSET_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/r1.jpeg"];
 const ICON_STACK_MESSAGE = "we just felt this will make the UX design look good 😂";
 type Network = "all" | "polygon" | "ethereum" | "solana" | "base" | "optimism";
+const ASSET_NETWORK_IDS: Exclude<Network, "all">[] = ["polygon", "ethereum", "solana", "base", "optimism"];
 const NETWORKS = [
   {
     id: "all" as const,
@@ -113,47 +113,6 @@ function formatLiquidityPerUnit(value: number) {
   if (value >= 1) return value.toFixed(2);
   if (value >= 0.01) return value.toFixed(3);
   return value.toFixed(4);
-}
-
-function clampNumber(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value));
-}
-
-function getMonthStart(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), 1);
-}
-
-function getMonthOffset(date: Date, reference = new Date()) {
-  return (date.getFullYear() - reference.getFullYear()) * 12 + (date.getMonth() - reference.getMonth());
-}
-
-function createMonthlyOverviewStats(baseTotalVolume: number, monthDate: Date) {
-  const normalizedMonth = getMonthStart(monthDate);
-  const monthOffset = getMonthOffset(normalizedMonth);
-  const monthIndex = normalizedMonth.getMonth();
-  const yearOffset = normalizedMonth.getFullYear() - 2025;
-
-  const volumeFactor = clampNumber(
-    1 + Math.sin((monthIndex + 1) * 1.24) * 0.1 - monthOffset * 0.018 + yearOffset * 0.022,
-    0.72,
-    1.42,
-  );
-  const profitMargin = clampNumber(
-    0.078 + Math.cos((monthIndex + 2) * 0.86) * 0.011 + yearOffset * 0.002,
-    0.058,
-    0.11,
-  );
-
-  const totalVolume = baseTotalVolume * volumeFactor;
-  const totalProfit = totalVolume * profitMargin;
-
-  return {
-    id: `${normalizedMonth.getFullYear()}-${String(normalizedMonth.getMonth() + 1).padStart(2, "0")}`,
-    label: normalizedMonth.toLocaleString("en-US", { month: "short", year: "numeric" }),
-    monthLabel: normalizedMonth.toLocaleString("en-US", { month: "short" }),
-    totalVolume,
-    totalProfit,
-  };
 }
 
 function hslToRgb(h: number, s: number, l: number): RGBColor {
@@ -311,6 +270,19 @@ function detectWebView(): boolean {
   );
 }
 
+function getNetworkInfo(id: Network) {
+  return NETWORKS.find((network) => network.id === id) ?? NETWORKS[0];
+}
+
+function getAssetNetworkId(asset: Asset): Exclude<Network, "all"> {
+  const hash = asset.id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return ASSET_NETWORK_IDS[hash % ASSET_NETWORK_IDS.length];
+}
+
+function getAssetNetwork(asset: Asset) {
+  return getNetworkInfo(getAssetNetworkId(asset));
+}
+
 export function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit, showSearchBar = false }: AssetsPageProps) {
   const { assets, userAssets, assetAvailable } = useApp();
   const { theme } = useTheme();
@@ -326,10 +298,6 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   });
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  const [activeOverviewMetric, setActiveOverviewMetric] = useState<"volume" | "profit">("volume");
-  const [selectedOverviewDate, setSelectedOverviewDate] = useState(() => getMonthStart(new Date()));
-  const [isOverviewPickerOpen, setIsOverviewPickerOpen] = useState(false);
-  const [overviewPickerYear, setOverviewPickerYear] = useState(() => getMonthStart(new Date()).getFullYear());
 
   const toggleFavorite = useCallback((id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -372,10 +340,6 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     return () => mediaQuery.removeEventListener("change", handleResize);
   }, []);
 
-  useEffect(() => {
-    setOverviewPickerYear(selectedOverviewDate.getFullYear());
-  }, [selectedOverviewDate]);
-
   const normalizedSearch = searchTerm.trim().toLowerCase();
 
   const handleToggleViewMode = useCallback(() => {
@@ -388,10 +352,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     // Filter by network (assign chains based on asset ID hash for demo)
     if (selectedNetwork !== "all") {
       filtered = filtered.filter((asset) => {
-        const hash = asset.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        const networks: Network[] = ["polygon", "ethereum", "solana", "base", "optimism"];
-        const assignedNetwork = networks[hash % networks.length];
-        return assignedNetwork === selectedNetwork;
+        return getAssetNetworkId(asset) === selectedNetwork;
       });
     }
 
@@ -414,14 +375,6 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   const listedHeaderIcons = isDesktop ? ASSET_HEADER_ICONS : MOBILE_ASSET_HEADER_ICONS;
   const cardBorderClass = "";
   const cardMediaBorderClass = isDarkTheme ? "border-b-0" : "border-b border-slate-200/60";
-  const baseTotalVolume = useMemo(
-    () => assets.reduce((sum, asset) => sum + (asset.cycle?.reserve || 0), 0) * 1000,
-    [assets],
-  );
-  const activeOverviewStats = useMemo(
-    () => createMonthlyOverviewStats(baseTotalVolume, selectedOverviewDate),
-    [baseTotalVolume, selectedOverviewDate],
-  );
 
   const selectedNetworkInfo = NETWORKS.find(n => n.id === selectedNetwork) || NETWORKS[0];
   const brandHeadingGradient = "linear-gradient(130deg, #7dd3fc 0%, #38bdf8 45%, #0ea5e9 100%)";
@@ -575,6 +528,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
               const changeText = formatChange(change);
               const changeClass = changeColorClass(change);
               const assetLive = isAssetLive(asset);
+              const assetNetwork = getAssetNetwork(asset);
               return (
                 <TableRow
                   key={asset.id}
@@ -595,7 +549,14 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                   )}
                   <TableCell className={cn("asset-list-collection-col sticky left-0 z-10 border-b border-[#D9DDE6] pl-4 pr-3 dark:border-[#2A2A2A] sm:pl-6 md:min-w-[200px] md:border-b-0 md:pr-4", tableStickyColumnClasses)}>
                     <div className="flex items-center gap-3 text-[15px] md:text-sm">
-                      <img src={asset.image} alt={asset.name} className="h-10 w-10 rounded-full object-cover md:h-9 md:w-9" />
+                      <div className="relative h-10 w-10 shrink-0 md:h-9 md:w-9">
+                        <img src={asset.image} alt={asset.name} className="h-full w-full rounded-full object-cover" />
+                        <img
+                          src={assetNetwork.image}
+                          alt={assetNetwork.name}
+                          className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-2 border-white bg-white object-cover p-[1px] grayscale contrast-125 dark:border-[#151515] md:h-3.5 md:w-3.5"
+                        />
+                      </div>
                       <div className="flex flex-col min-w-0">
                         <div className="flex items-center gap-1">
                           <span className="truncate text-[17px] font-semibold text-foreground md:text-base">{asset.name}</span>
@@ -672,114 +633,6 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
       </button>
     );
   };
-  const AssetStatsOverview = ({ className }: { className?: string }) => {
-    const isVolumeView = activeOverviewMetric === "volume";
-    const activeTitle = isVolumeView ? "Total LFT volume" : "Total profit from LFT volume";
-    const activeValue = isVolumeView ? activeOverviewStats.totalVolume : activeOverviewStats.totalProfit;
-
-    return (
-      <section
-        className={cn(
-          "relative overflow-hidden rounded-[24px] bg-transparent px-2 py-1 sm:px-3 sm:py-2",
-          className ?? "mb-6",
-        )}
-      >
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1 space-y-2">
-            <span className="block text-[13px] font-medium text-[#5E6B84] dark:text-[#98A2B3] sm:text-[15px]">
-              {activeTitle}
-            </span>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[1.75rem] font-semibold tracking-[-0.04em] text-[#2F66F6] sm:text-[2.1rem]">
-                {formatCompactCurrency(activeValue)}
-              </span>
-              <Popover
-                open={isOverviewPickerOpen}
-                onOpenChange={(open) => {
-                  setIsOverviewPickerOpen(open);
-                  if (open) {
-                    setOverviewPickerYear(selectedOverviewDate.getFullYear());
-                  }
-                }}
-              >
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className="inline-flex h-9 items-center gap-1 rounded-full border border-[#D5DCE8] bg-white px-2 pr-1.5 text-[13px] font-medium text-[#44516B] transition-colors hover:border-[#B8C4DA] dark:border-[#2A2A2A] dark:bg-[#151515] dark:text-[#D0D5DD] dark:hover:border-[#3A3A3A] sm:h-10 sm:px-2.5 sm:pr-2 sm:text-sm"
-                    aria-label="Choose overview month"
-                  >
-                    <CalendarDays className="h-3.5 w-3.5 text-[#7B8AA5]" />
-                    <span>{activeOverviewStats.monthLabel}</span>
-                    <ChevronRight className="h-3.5 w-3.5 rotate-90 text-[#7B8AA5]" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent align="start" className="w-[240px] rounded-2xl border border-[#D5DCE8] bg-white p-3 shadow-xl dark:border-[#2A2A2A] dark:bg-[#171717]">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <button
-                        type="button"
-                        onClick={() => setOverviewPickerYear((year) => year - 1)}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#D5DCE8] text-[#667085] transition-colors hover:border-[#B8C4DA] hover:text-[#344054] dark:border-[#2A2A2A] dark:text-[#98A2B3] dark:hover:border-[#3A3A3A] dark:hover:text-white"
-                        aria-label="Previous year"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </button>
-                      <span className="text-sm font-semibold text-[#344054] dark:text-[#F2F4F7]">{overviewPickerYear}</span>
-                      <button
-                        type="button"
-                        onClick={() => setOverviewPickerYear((year) => year + 1)}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#D5DCE8] text-[#667085] transition-colors hover:border-[#B8C4DA] hover:text-[#344054] dark:border-[#2A2A2A] dark:text-[#98A2B3] dark:hover:border-[#3A3A3A] dark:hover:text-white"
-                        aria-label="Next year"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                      {MONTH_OPTIONS.map((monthLabel, monthIndex) => {
-                        const isSelected =
-                          selectedOverviewDate.getFullYear() === overviewPickerYear &&
-                          selectedOverviewDate.getMonth() === monthIndex;
-
-                        return (
-                          <button
-                            key={monthLabel}
-                            type="button"
-                            onClick={() => {
-                              setSelectedOverviewDate(new Date(overviewPickerYear, monthIndex, 1));
-                              setIsOverviewPickerOpen(false);
-                            }}
-                            className={cn(
-                              "rounded-xl px-2 py-2 text-sm font-medium transition-colors",
-                              isSelected
-                                ? "bg-[#2F66F6] text-white"
-                                : "bg-[#F8FAFC] text-[#475467] hover:bg-[#EEF4FF] hover:text-[#2F66F6] dark:bg-[#151515] dark:text-[#D0D5DD] dark:hover:bg-[#242424] dark:hover:text-white",
-                            )}
-                          >
-                            {monthLabel}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-            <p className="text-[13px] text-[#98A2B3] sm:text-sm">For {activeOverviewStats.label}</p>
-          </div>
-          <Button
-            type="button"
-            size="icon"
-            onClick={() => setActiveOverviewMetric((current) => (current === "volume" ? "profit" : "volume"))}
-            className="h-9 w-9 shrink-0 rounded-full bg-[#2F66F6] p-0 text-white hover:bg-[#2558DE] sm:h-10 sm:w-10"
-            aria-label={isVolumeView ? "Show total profit from LFT volume" : "Show total LFT volume"}
-          >
-            <ArrowRight className="h-[15px] w-[15px] sm:h-4 sm:w-4" strokeWidth={3} />
-          </Button>
-        </div>
-      </section>
-    );
-  };
-
   return (
     <div className={cn("min-h-screen", "bg-background")}>
       <main className="flex-1 pb-20 pt-4 sm:pt-6">
@@ -790,10 +643,6 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
             {showTrending && (
               <Web3News variant="mobile" className="mb-4" />
             )}
-
-
-            {/* Stats overview - Unified for all */}
-            <AssetStatsOverview className="mb-4" />
 
             <MarketTickerTape />
 
@@ -865,7 +714,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 
             {/* Control Buttons Row - Unified */}
             {/* Horizontal Network Selector */}
-            <div className="flex items-center gap-2 mt-4 mb-1 pb-1 overflow-x-auto no-scrollbar">
+            <div className="mt-4 mb-4 flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
               {NETWORKS.map((network) => (
                 <button
                   key={network.id}
@@ -882,7 +731,14 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                   <div className="flex items-center gap-2">
                     <div className="w-5 h-5 rounded-full overflow-hidden bg-white/20 flex items-center justify-center">
                       {network.image ? (
-                        <img src={network.image} alt={network.name} className="w-full h-full object-cover" />
+                        <img
+                          src={network.image}
+                          alt={network.name}
+                          className={cn(
+                            "w-full h-full object-cover",
+                            network.id === "solana" && "grayscale contrast-150 brightness-75",
+                          )}
+                        />
                       ) : (
                         <span className="text-[10px]">{network.icon}</span>
                       )}
