@@ -465,13 +465,13 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                 variant="ghost"
                 size="icon"
                 onClick={toggleTheme}
-                aria-label={isDarkTheme ? "Switch to light mode" : "Switch to dark mode"}
-                className={cn(
-                  "h-8 w-8 rounded-full border transition-colors",
-                  isDarkTheme
-                    ? "border-[#2A2A2A] bg-[#1A1A1A] text-[#E6EAF0] hover:bg-[#242424] hover:text-white"
-                    : "border-[#E2E8F0] bg-[#F8FAFC] text-[#344054] hover:bg-[#EEF2F7] hover:text-[#111827]",
-                )}
+	                aria-label={isDarkTheme ? "Switch to light mode" : "Switch to dark mode"}
+	                className={cn(
+	                  "h-8 w-8 rounded-full border-0 transition-colors",
+	                  isDarkTheme
+	                    ? "bg-[#1A1A1A] text-[#E6EAF0] hover:bg-[#242424] hover:text-white"
+	                    : "bg-[#F8FAFC] text-[#344054] hover:bg-[#EEF2F7] hover:text-[#111827]",
+	                )}
               >
                 {isDarkTheme ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>

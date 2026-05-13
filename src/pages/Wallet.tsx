@@ -96,9 +96,6 @@ export default function Wallet() {
                   <div className="w-full text-center">
                     <p className="text-[11px] uppercase tracking-wide text-muted-foreground">CoinTag wallet</p>
                     <h2 className="mt-1 text-xl font-semibold text-foreground">Asset Wallet</h2>
-                    <p className="mx-auto mt-1 max-w-2xl text-sm text-muted-foreground">
-                      View every CoinTag you own by asset, including the code assigned at purchase.
-                    </p>
                     {keyedAssetIcons.length > 0 && (
                       <div className="mt-4 flex justify-center">
                         <div className="flex items-center">
@@ -129,15 +126,6 @@ export default function Wallet() {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap justify-center gap-3">
-                  <Button className="rounded-full bg-blue-500 text-white hover:bg-blue-600" onClick={() => navigate("/assets")}>
-                    Browse Active Hunts
-                  </Button>
-                  <Button variant="outline" className="rounded-full" onClick={() => navigate("/portfolio")}>
-                    Open Portfolio
-                  </Button>
-                </div>
-
                 <div className="mx-auto flex w-full max-w-2xl items-center gap-2 rounded-2xl border border-border/60 bg-background/60 px-3 py-1 transition-colors duration-200 focus-within:border-ring/70 focus-within:bg-background/80">
                   <Search className="shrink-0 text-muted-foreground" />
                   <Input
@@ -147,6 +135,10 @@ export default function Wallet() {
                     className="h-8 border-0 bg-transparent p-0 text-sm focus-visible:ring-0"
                   />
                 </div>
+
+                <p className="mx-auto max-w-2xl text-left text-sm text-muted-foreground">
+                  View every CoinTag you own by asset, including the code assigned at purchase.
+                </p>
 
                 {walletRows.length === 0 ? (
                   <div className="rounded-2xl border border-dashed border-border/60 bg-background/40 px-4 py-12 text-center">

@@ -79,6 +79,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
   const cardTextClasses = activeTheme === "dark" ? "text-white" : "text-gray-900";
 
   const items = useMemo(() => news ?? [], [news]);
+  const showNewsPlaceholders = loading && items.length === 0;
 
   const headingSize =
     variant === "sidebar"
@@ -112,14 +113,14 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
   const mobileSlideCount = displayedItems.length;
 
   useEffect(() => {
-    if (variant !== "mobile" || loading || mobileSlideCount <= 1) return;
+    if (variant !== "mobile" || showNewsPlaceholders || mobileSlideCount <= 1) return;
 
     const timer = window.setTimeout(() => {
       setMobileNewsIndex((current) => (current + 1) % mobileSlideCount);
     }, 4500);
 
     return () => window.clearTimeout(timer);
-  }, [loading, mobileNewsIndex, mobileSlideCount, variant]);
+  }, [showNewsPlaceholders, mobileNewsIndex, mobileSlideCount, variant]);
 
   useEffect(() => {
     setMobileNewsIndex(0);
@@ -202,7 +203,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
   const renderWebviewLayout = () => {
     const hero = displayedItems[0];
     const remainder = displayedItems.slice(1);
-    const heroIsPlaceholder = loading || !hero?.title;
+    const heroIsPlaceholder = showNewsPlaceholders || !hero?.title;
 
     return (
       <section className={cn("flex flex-col gap-5", className)}>
@@ -244,7 +245,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
           </div>
           <div className="space-y-4">
             {remainder.map((item, index) => {
-              const isPlaceholder = loading || !item?.title;
+              const isPlaceholder = showNewsPlaceholders || !item?.title;
               return isPlaceholder ? (
                 <div
                   key={`shimmer-${index}`}
@@ -299,7 +300,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
           {renderHeaderIcons()}
         </div>
         <div className="space-y-3">
-          {loading || displayedItems.length === 0
+          {showNewsPlaceholders || displayedItems.length === 0
             ? shimmerItems.concat(3).slice(0, 4).map((index) => (
                 <div key={index} className={cn("h-24 w-full animate-pulse rounded-2xl", shimmerBackgroundClasses)} />
               ))
@@ -368,7 +369,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
               Web3 Headlines
             </div>
           </div>
-          {loading || displayedItems.length === 0 ? (
+          {showNewsPlaceholders || displayedItems.length === 0 ? (
             <div className="w-full animate-pulse">
               <div className={cn("h-[320px] w-full rounded-[22px]", shimmerBackgroundClasses)} />
               <div className="mx-auto mt-3 h-1 w-24 rounded-full bg-border/50" />
@@ -452,7 +453,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
             </div>
           </div>
           <div className={listWrapperClass}>
-            {loading || displayedItems.length === 0
+            {showNewsPlaceholders || displayedItems.length === 0
               ? shimmerItems.map((index) => (
                   <div key={index} className="w-56 shrink-0 animate-pulse">
                     <div className={cn("h-28 w-full rounded-xl", shimmerBackgroundClasses)} />
@@ -527,7 +528,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
         )}
       </div>
       <div className={listWrapperClass}>
-        {loading || displayedItems.length === 0
+        {showNewsPlaceholders || displayedItems.length === 0
           ? shimmerItems.map((index) => (
               <div key={index} className="w-56 shrink-0 animate-pulse">
                 <div className={cn("h-28 w-full rounded-xl", shimmerBackgroundClasses)} />

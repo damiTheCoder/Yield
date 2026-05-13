@@ -61,6 +61,12 @@ function getFallbackBlogNews() {
   }));
 }
 
+function pinFirstBlog(items: Web3NewsItem[]) {
+  const [firstBlog] = getFallbackBlogNews();
+  const withoutFirstBlog = items.filter((item) => item.id !== firstBlog.id && item.url !== firstBlog.url);
+  return [firstBlog, ...withoutFirstBlog];
+}
+
 let cachedNews: Web3NewsItem[] | null = null;
 let cacheTimestamp = 0;
 let inflightRequest: Promise<Web3NewsItem[]> | null = null;
@@ -110,7 +116,7 @@ async function fetchWeb3News(forceRefresh = false): Promise<Web3NewsItem[]> {
         })
         .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
 
-      return cacheNews(normalized.length > 0 ? normalized : getFallbackBlogNews());
+      return cacheNews(normalized.length > 0 ? pinFirstBlog(normalized) : getFallbackBlogNews());
     })
     .catch(() => {
       return cacheNews(getFallbackBlogNews());
@@ -123,11 +129,8 @@ async function fetchWeb3News(forceRefresh = false): Promise<Web3NewsItem[]> {
 }
 
 export function useWeb3News(limit?: number) {
-  const initialNews = cachedNews
-    ? limit !== undefined
-      ? cachedNews.slice(0, limit)
-      : cachedNews
-    : null;
+  const initialItems = cachedNews ?? getFallbackBlogNews();
+  const initialNews = limit !== undefined ? initialItems.slice(0, limit) : initialItems;
 
   const [news, setNews] = useState<Web3NewsItem[] | null>(initialNews);
   const [loading, setLoading] = useState(!cachedNews);
