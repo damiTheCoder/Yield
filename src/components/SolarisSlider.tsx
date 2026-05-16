@@ -470,9 +470,11 @@ const SolarisSlider = () => {
         }
 
         .landing-section {
-          max-width: 1220px;
+          width: 100%;
+          max-width: none;
           margin: 0 auto;
-          padding: 92px 24px 64px;
+          min-height: clamp(560px, 56.25vw, 900px);
+          padding: clamp(96px, 10vw, 160px) 24px;
           position: relative;
           z-index: 0;
           display: flex;
@@ -481,19 +483,12 @@ const SolarisSlider = () => {
           justify-content: center;
           text-align: center;
           isolation: isolate;
+          background: url("/b4.png") center center / contain no-repeat;
         }
 
         .landing-section::before {
           content: "";
-          position: absolute;
-          left: 50%;
-          top: 50%;
-          width: 100vw;
-          aspect-ratio: 16 / 9;
-          transform: translate(-50%, -50%);
-          background: url("/b4.png") center center / 100% 100% no-repeat;
-          pointer-events: none;
-          z-index: -1;
+          display: none;
         }
 
         .landing-section-title {
@@ -616,7 +611,7 @@ const SolarisSlider = () => {
           bottom: 24px;
           width: 190px;
           height: 190px;
-          border-radius: 28px;
+          border-radius: 46px;
           transform: translateX(-50%) rotate(-8deg);
           box-shadow: 0 18px 36px rgba(6, 11, 22, 0.14);
           overflow: hidden;
@@ -628,7 +623,7 @@ const SolarisSlider = () => {
           height: 100%;
           object-fit: contain;
           display: block;
-          border-radius: 28px;
+          border-radius: inherit;
         }
 
         .lft-section {
@@ -1089,11 +1084,13 @@ const SolarisSlider = () => {
           }
 
           .landing-section {
-            padding: 72px 16px 40px;
+            min-height: clamp(380px, 72vw, 560px);
+            padding: 72px 16px 56px;
+            background-size: contain;
           }
 
           .landing-section::before {
-            width: min(112vw, 560px);
+            display: none;
           }
 
           .landing-section-title {
@@ -1152,11 +1149,11 @@ const SolarisSlider = () => {
             width: 118px;
             height: 118px;
             bottom: 16px;
-            border-radius: 20px;
+            border-radius: 30px;
           }
 
           .problem-box-image {
-            border-radius: 20px;
+            border-radius: inherit;
           }
 
           .lft-section {
