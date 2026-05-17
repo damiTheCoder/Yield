@@ -363,15 +363,9 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
     return (
       <section className={cn(className)}>
         <div className="flex flex-col gap-3 md:hidden">
-          <div className="flex items-center justify-between gap-3">
-            {renderHeaderIcons()}
-            <div className={cn("text-right text-foreground font-extrabold", headingSize)}>
-              Web3 Headlines
-            </div>
-          </div>
           {showNewsPlaceholders || displayedItems.length === 0 ? (
             <div className="w-full animate-pulse">
-              <div className={cn("h-[320px] w-full rounded-[22px]", shimmerBackgroundClasses)} />
+              <div className={cn("h-[340px] w-full rounded-[22px]", shimmerBackgroundClasses)} />
               <div className="mx-auto mt-3 h-1 w-24 rounded-full bg-border/50" />
             </div>
           ) : (
@@ -392,7 +386,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
 	                    <div key={item.id} className="w-full min-w-full">
 	                      <div
 	                        className={cn(
-	                          "group relative block h-[320px] overflow-hidden rounded-[22px] transition-transform",
+	                          "group relative block h-[340px] overflow-hidden rounded-[22px] transition-transform",
 	                          cardBackgroundClasses,
 	                        )}
 	                      >
@@ -411,7 +405,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
                       rel="noreferrer"
 	                      className="group block w-full min-w-full overflow-hidden rounded-[22px] transition-transform"
 	                    >
-	                      <div className="relative h-[320px] overflow-hidden rounded-[22px] bg-black">
+	                      <div className="relative h-[340px] overflow-hidden rounded-[22px] bg-black">
 	                        <img
 	                          src={item.imageUrl}
 	                          alt={item.title}
