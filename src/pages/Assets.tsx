@@ -554,7 +554,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                         <img
                           src={assetNetwork.image}
                           alt={assetNetwork.name}
-                          className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-2 border-white bg-white object-cover p-[1px] grayscale contrast-125 dark:border-[#151515] md:h-3.5 md:w-3.5"
+                          className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-2 border-white bg-white object-cover p-[1px] grayscale contrast-125 dark:border-black dark:bg-black md:h-3.5 md:w-3.5"
                         />
                       </div>
                       <div className="flex flex-col min-w-0">
@@ -644,7 +644,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
               <Web3News variant="mobile" className="mb-4" />
             )}
 
-            <MarketTickerTape />
+            <MarketTickerTape className="relative left-1/2 mb-4 w-screen -translate-x-1/2 md:hidden" />
 
             {/* SearchBar - toggleable on all platforms */}
             {(showSearchBar || isSearchVisible) && (
@@ -661,7 +661,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
             {/* Text Navigation Links - Unified */}
             <div className="mt-2 flex items-center justify-between gap-4 pb-2">
               <div className="flex min-w-0 items-center gap-4">
-                <span className="text-[22px] font-semibold text-foreground whitespace-nowrap">
+                <span className="hidden text-[22px] font-semibold text-foreground whitespace-nowrap md:inline">
                   Listed
                 </span>
                 {showViewAllButton && (
@@ -714,7 +714,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 
             {/* Control Buttons Row - Unified */}
             {/* Horizontal Network Selector */}
-            <div className="mt-4 mb-4 flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+            <div className="mt-4 mb-1 flex items-center gap-2 overflow-x-auto pb-0 no-scrollbar">
               {NETWORKS.map((network) => (
                 <button
                   key={network.id}

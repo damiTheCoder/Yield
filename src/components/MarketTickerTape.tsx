@@ -4,7 +4,13 @@ import { useTheme } from "@/hooks/useTheme";
 
 const COINGECKO_WIDGET_SRC = "https://widgets.coingecko.com/gecko-coin-price-marquee-widget.js";
 
-export default function MarketTickerTape({ className }: { className?: string }) {
+export default function MarketTickerTape({
+  className,
+  transparentBackground = false,
+}: {
+  className?: string;
+  transparentBackground?: boolean;
+}) {
   const { theme } = useTheme();
   const isDarkTheme = theme === "dark";
 
@@ -26,7 +32,7 @@ export default function MarketTickerTape({ className }: { className?: string }) 
         "coin-ids": "global-dollar,gho,aave,monad,usd-coin,polymarket",
         "initial-currency": "usd",
         "dark-mode": isDarkTheme ? "true" : "false",
-        "transparent-background": isDarkTheme ? "true" : "false",
+        "transparent-background": transparentBackground || isDarkTheme ? "true" : "false",
       })}
     </section>
   );

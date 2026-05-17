@@ -104,7 +104,7 @@ export default function Portfolio() {
     const wrapperClasses =
       variant === "grid"
         ? "rounded-2xl border border-border bg-card p-4 space-y-4 text-xs shadow-sm"
-        : "rounded-2xl bg-card p-4 space-y-4 text-xs shadow-lg";
+        : "rounded-3xl bg-[#F3F4F6] m-8 p-4 space-y-5 text-xs shadow-none dark:bg-[#1A1A1A]";
     const redeemButtonClasses =
       variant === "modal"
         ? "bg-sky-200 text-sky-950 shadow-[0_6px_16px_rgba(56,189,248,0.2)] hover:bg-sky-300"
@@ -336,7 +336,10 @@ export default function Portfolio() {
             </Card>
             <Dialog open={Boolean(selectedAsset)} onOpenChange={(open) => !open && setSelectedAssetId(null)}>
               {selectedAsset && (
-                <DialogContent overlayClassName="bg-transparent" className="mx-auto max-w-2xl rounded-[32px] border border-border/60 bg-surface/95 p-5 shadow-xl sm:p-6">
+                <DialogContent
+                  overlayClassName="bg-white/35 backdrop-blur-xl dark:bg-black/35"
+                  className="mx-auto max-w-2xl rounded-[32px] border-0 bg-transparent p-4 shadow-none backdrop-blur-none sm:p-5"
+                >
                   <DialogHeader>
                     <DialogTitle className="text-lg font-semibold text-foreground">{selectedAsset.name}</DialogTitle>
                     <p className="text-xs text-muted-foreground">

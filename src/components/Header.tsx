@@ -19,6 +19,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import MarketTickerTape from "@/components/MarketTickerTape";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem, CommandSeparator } from "@/components/ui/command";
@@ -106,6 +107,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+  const showMobileHeaderTicker = location.pathname === "/assets";
 
   const bottomNavItems = useMemo(
     () =>
@@ -568,6 +570,14 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
 
             </div>
           </div>
+          {showMobileHeaderTicker && (
+            <div className="flex justify-center px-3 pb-2 md:hidden">
+              <MarketTickerTape
+                className="mb-0 h-10 w-full max-w-[340px] rounded-2xl bg-[#F3F4F6] px-2 dark:bg-[#1F1F1F]"
+                transparentBackground
+              />
+            </div>
+          )}
         </div>
       </header>
 
