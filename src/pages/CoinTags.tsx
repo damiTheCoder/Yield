@@ -27,7 +27,7 @@ const splitLabels: Record<keyof RevenueSplit, string> = {
 };
 
 const DEFAULT_IMAGE = "/placeholder.svg";
-const LFT_SUPPLY = 1_000_000;
+const LFT_SUPPLY = 1_000;
 const TOTAL_COINTAGS = 100;
 
 export default function CoinTags() {
@@ -48,7 +48,7 @@ export default function CoinTags() {
 
   const preview = useMemo(() => {
     const safeReserve = Math.max(0, initialReserve);
-    const safeSupply = LFT_SUPPLY; // 1M units, halves each cycle automatically
+    const safeSupply = LFT_SUPPLY; // 1,000 units, halves each cycle automatically
     const safePrice = Math.max(1, pricePerTag);
     const tags = TOTAL_COINTAGS; // Always 100 CoinTags
     const raise = tags * safePrice; // Calculate total raise from CoinTag price
@@ -218,7 +218,7 @@ export default function CoinTags() {
                 <div>
                   <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Liquidity & Pricing</h3>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Set initial liquidity and CoinTag price. LFT supply starts at 1,000,000 units and halves automatically each cycle.
+                    Set initial liquidity and CoinTag price. LFT supply starts at 1,000 units and halves automatically each cycle.
                   </p>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
@@ -257,7 +257,7 @@ export default function CoinTags() {
                       className="bg-muted/50 cursor-not-allowed"
                     />
                     <p className="text-xs text-muted-foreground">
-                      Starts at 1,000,000 units (halves each new cycle automatically)
+                      Starts at 1,000 units (halves each new cycle automatically)
                     </p>
                   </div>
                   <div className="space-y-2">

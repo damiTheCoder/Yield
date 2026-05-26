@@ -355,7 +355,7 @@ const Index = () => {
                   },
                   {
                     title: "Divide the pool",
-                    description: "Liquidity splits into 1,000,000 tokens that inherit the floor value.",
+                    description: "Liquidity splits into 1,000 tokens that inherit the floor value.",
                   },
                   {
                     title: "Hunt with CoinTags",

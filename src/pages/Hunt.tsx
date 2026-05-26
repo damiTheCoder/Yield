@@ -5,6 +5,7 @@ import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { getDiscoverableSupply } from "@/domain/tokenomics";
 
 const LETTERS = "ABCDEFGHIJKLMNOPQRST".split("");
 const ROWS = Array.from({ length: 20 }, (_, i) => i + 1);
@@ -33,7 +34,7 @@ function createSeededRandom(seedString: string) {
   };
 }
 
-function generateHuntData(seed: string): HuntData {
+function generateHuntData(seed: string, totalTokens = TOTAL_HUNT_TOKENS): HuntData {
   const random = createSeededRandom(seed);
   const coords: string[] = [];
   LETTERS.forEach((letter) => {
@@ -66,13 +67,20 @@ function generateHuntData(seed: string): HuntData {
 
   const numWinningBoxes = Math.floor(boxes.length * 0.35); // ~112 winning boxes out of 320
   const winningBoxes = boxes.slice(0, numWinningBoxes);
-  const winningCoordinates = new Set(winningBoxes);
+  const winningCoordinates = new Set<string>();
   const bundles: Record<string, number> = {};
+  let remainingTokens = Math.max(0, Math.floor(totalTokens));
   winningBoxes.forEach((coord) => {
-    bundles[coord] = TOKEN_BUNDLE;
+    if (remainingTokens <= 0) {
+      return;
+    }
+    const bundle = Math.min(TOKEN_BUNDLE, remainingTokens);
+    winningCoordinates.add(coord);
+    bundles[coord] = bundle;
+    remainingTokens -= bundle;
   });
 
-  return { boxes, values, winningCoordinates, tokenBundles: bundles, totalTokens: TOTAL_HUNT_TOKENS };
+  return { boxes, values, winningCoordinates, tokenBundles: bundles, totalTokens };
 }
 
 export default function HuntPage() {
@@ -108,6 +116,7 @@ export default function HuntPage() {
       ticker={asset.ticker}
       cycleNumber={asset.cycle.cycle}
       pricePerUnit={asset.secondaryMarket?.active ? asset.secondaryMarket.walv : asset.cycle.lpu}
+      totalTokens={getDiscoverableSupply(asset.cycle)}
       image={asset.image}
       marketOnly={Boolean(asset.secondaryMarket?.active)}
     />
@@ -120,11 +129,12 @@ type HuntExperienceProps = {
   ticker?: string;
   cycleNumber: number;
   pricePerUnit: number;
+  totalTokens: number;
   image: string;
   marketOnly: boolean;
 };
 
-function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit, image, marketOnly }: HuntExperienceProps) {
+function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit, totalTokens, image, marketOnly }: HuntExperienceProps) {
   const navigate = useNavigate();
   const {
     getHuntProgress,
@@ -157,13 +167,13 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
   });
   const [foundTokens, setFoundTokens] = useState(() => {
     const saved = getHuntProgress(assetId);
-    return Math.min(saved.foundTokens, TOTAL_HUNT_TOKENS);
+    return Math.min(saved.foundTokens, totalTokens);
   });
   const [status, setStatus] = useState<string>("");
   const [statusType, setStatusType] = useState<"idle" | "success" | "error">("idle");
 
-  const huntData = useMemo(() => generateHuntData(assetId), [assetId]);
-  const maxTokens = huntData.totalTokens || TOTAL_HUNT_TOKENS;
+  const huntData = useMemo(() => generateHuntData(assetId, totalTokens), [assetId, totalTokens]);
+  const maxTokens = totalTokens || huntData.totalTokens || TOTAL_HUNT_TOKENS;
   const activeKeys = getAssetCoinTagCodes(assetId);
   const firstActiveKey = activeKeys[0];
 
@@ -174,14 +184,14 @@ function HuntExperience({ assetId, assetName, ticker, cycleNumber, pricePerUnit,
     setMatched(new Set(saved.matched));
     setFailed(new Set(saved.failed || [])); // Restore failed attempts from saved progress
     setIsHuntActive(Boolean(saved.activated));
-    setFoundTokens(Math.min(saved.foundTokens, huntData.totalTokens || TOTAL_HUNT_TOKENS));
+    setFoundTokens(Math.min(saved.foundTokens, totalTokens || huntData.totalTokens || TOTAL_HUNT_TOKENS));
     setInputValue("");
     setActivationKey("");
     setActivationMessage("");
     setActivationMessageType("idle");
     setStatus("");
     setStatusType("idle");
-  }, [assetId, getHuntProgress, huntData.totalTokens]);
+  }, [assetId, getHuntProgress, huntData.totalTokens, totalTokens]);
 
   const walletValue = foundTokens * pricePerUnit;
   const progressRatio = maxTokens > 0 ? foundTokens / maxTokens : 0;

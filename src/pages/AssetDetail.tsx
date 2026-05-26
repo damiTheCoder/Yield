@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useApp } from "@/lib/app-state";
 import { cn, formatCurrency, formatCurrencyK, formatUnitCurrency } from "@/lib/utils";
-import { DEFAULT_LAUNCHPAD_DISTRIBUTION } from "@/domain/tokenomics";
+import { DEFAULT_LAUNCHPAD_DISTRIBUTION, allocateLaunchPadTokens } from "@/domain/tokenomics";
 import { Dot, Image as ImageIcon, LineChart as LineChartIcon, X } from "lucide-react";
 import { Area, Bar, BarChart as RechartsBarChart, Cell, Line, LineChart as RechartsLineChart, XAxis, YAxis } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -293,7 +293,7 @@ export default function AssetDetail() {
     { key: "holder-rewards", label: "Holder rewards", value: asset.cycle.split.holderRewards, accent: "text-rose-400" },
   ];
   const backingReserve = liveReserve;
-  const totalSupply = asset.cycle.initialSupply ?? cycleMaxSupply;
+  const totalSupply = allocateLaunchPadTokens(cycleMaxSupply, launchDistribution).gameHunt;
   const nextCycleSupply = Math.max(1, Math.floor(cycleMaxSupply / 2));
   const discovered = Math.max(0, totalSupply - findable);
   const discoveryPercent = totalSupply > 0 ? (discovered / totalSupply) * 100 : 0;

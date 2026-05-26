@@ -19,7 +19,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import MarketTickerTape from "@/components/MarketTickerTape";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem, CommandSeparator } from "@/components/ui/command";
@@ -107,7 +106,6 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
-  const showMobileHeaderTicker = location.pathname === "/assets";
 
   const bottomNavItems = useMemo(
     () =>
@@ -406,8 +404,21 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
             isScrolled && (isDarkTheme ? "header-glass-app-dark" : "header-glass-app-light"),
           )}
         >
+          <div
+            className={cn(
+              "relative flex w-full items-center justify-center overflow-hidden bg-cover bg-center px-4 transition-[height,opacity] duration-300",
+              isScrolled ? "h-0 opacity-0" : "h-12 opacity-100 md:h-14",
+            )}
+            style={{ backgroundImage: "url('/ks1.png')" }}
+          >
+            <div className="absolute inset-0 bg-black/25" />
+            <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-b from-transparent via-white/65 to-white dark:via-[#0F0F0F]/70 dark:to-[#0F0F0F]" />
+            <span className="relative z-10 text-xl font-black tracking-[-0.01em] text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.45)] md:text-2xl" style={{ fontWeight: 1000 }}>
+              Liquidity Funded Tokens
+            </span>
+          </div>
           <div className="relative flex w-full items-center justify-between gap-2 px-3 py-2 md:px-6">
-            <div className="flex items-center gap-3">
+            <div className="relative z-10 flex items-center gap-3">
               <Link
                 to="/"
                 className="hover:opacity-80 transition-smooth flex items-center gap-2"
@@ -424,7 +435,12 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                 variant="ghost"
                 size="icon"
                 onClick={() => setSearchOpen(true)}
-                className="md:hidden"
+                className={cn(
+                  "h-8 w-8 rounded-full md:hidden",
+                  isDarkTheme
+                    ? "bg-[#1A1A1A] text-[#E6EAF0] hover:bg-[#242424] hover:text-white"
+                    : "bg-[#F8FAFC] text-[#344054] hover:bg-[#EEF2F7] hover:text-[#111827]",
+                )}
                 aria-label="Search listed assets"
               >
                 <Search className="h-4 w-4" />
@@ -448,7 +464,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
               ))}
             </nav>
 
-            <div className="flex items-center gap-1 md:gap-3">
+            <div className="relative z-10 flex items-center gap-1 md:gap-3">
               <Button
                 type="button"
                 variant="outline"
@@ -570,14 +586,6 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
 
             </div>
           </div>
-          {showMobileHeaderTicker && (
-            <div className="flex justify-center px-3 pb-2 md:hidden">
-              <MarketTickerTape
-                className="mb-0 h-10 w-full max-w-[340px] rounded-2xl bg-[#F3F4F6] px-2 dark:bg-[#1F1F1F]"
-                transparentBackground
-              />
-            </div>
-          )}
         </div>
       </header>
 

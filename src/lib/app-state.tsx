@@ -11,10 +11,12 @@ import {
   updateYieldIndex,
   redeemFinders,
   DEFAULT_SPLIT,
+  getRemainingDiscoverableTokens,
+  recordLftDiscovery,
 } from "@/domain/tokenomics";
 import { saveState, loadState, clearState, hasStoredState, HuntProgress } from "@/lib/storage";
 
-export const HUNT_TOKEN_SUPPLY = 1_000_000;
+export const HUNT_TOKEN_SUPPLY = 1_000;
 export const HUNT_TOKEN_BUNDLE = 20;
 const MIN_LISTED_ASSET_RESERVE = 1_000;
 const MAX_REDEMPTION_CYCLES = 5;
@@ -241,16 +243,16 @@ const computeHuntPoolSeed = (asset: Asset | undefined): number => {
   if (!asset) {
     return 0;
   }
-  if (asset.cycle?.initialSupply && asset.cycle.initialSupply > 0) {
-    return asset.cycle.initialSupply;
+  if (asset.cycle) {
+    return getRemainingDiscoverableTokens(asset.cycle);
   }
   if (asset.params?.initialSupply && asset.params.initialSupply > 0) {
-    return asset.params.initialSupply;
+    return Math.floor(asset.params.initialSupply * 0.7);
   }
-  return HUNT_TOKEN_SUPPLY;
+  return Math.floor(HUNT_TOKEN_SUPPLY * 0.7);
 };
 
-const TOKEN_SUPPLY = 1_000_000;
+const TOKEN_SUPPLY = 1_000;
 const createSecondaryMarketState = (): SecondaryMarketState => ({
   active: false,
   activatedFromCycle: null,
@@ -322,13 +324,13 @@ const normalizeCycleState = (cycle: Partial<CycleState> | undefined, params: Cyc
       currentCycleLiquidity: Math.max(0, toNumeric(cycle?.accrued?.currentCycleLiquidity, base.accrued.currentCycleLiquidity)),
       holderRewards: Math.max(0, toNumeric(cycle?.accrued?.holderRewards, base.accrued.holderRewards)),
     },
-    distribution: cycle?.distribution ?? base.distribution,
+    distribution: base.distribution,
     split,
     ended: Boolean(cycle?.ended),
     discoveredTokens: Math.max(0, Math.floor(toNumeric(cycle?.discoveredTokens, base.discoveredTokens))),
-    creatorTokens: Math.max(0, Math.floor(toNumeric(cycle?.creatorTokens, base.creatorTokens))),
-    platformTokens: Math.max(0, Math.floor(toNumeric(cycle?.platformTokens, base.platformTokens))),
-    investorTokens: Math.max(0, Math.floor(toNumeric(cycle?.investorTokens, base.investorTokens))),
+    creatorTokens: base.creatorTokens,
+    platformTokens: base.platformTokens,
+    investorTokens: base.investorTokens,
   };
 };
 
@@ -396,7 +398,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [params, setParams] = useState<CycleParams>(DEFAULT_PARAMS);
   const [cycle, setCycle] = useState<CycleState>(() => INITIAL_CYCLE_STATE);
   const [yieldIndex, setYieldIndex] = useState<YieldIndex>(DEFAULT_INDEX);
-  const [availableToFind, setAvailableToFind] = useState<number>(INITIAL_CYCLE_STATE.initialSupply);
+  const [availableToFind, setAvailableToFind] = useState<number>(() => getRemainingDiscoverableTokens(INITIAL_CYCLE_STATE));
 
   // Demo assets list (separate ecosystems) for listing view
   const makeAsset = (id: string, name: string, p: CycleParams, sales: number = 0, image: string = "/placeholder.svg", network: string = "ethereum"): Asset => {
@@ -434,7 +436,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     return Object.fromEntries(
       assetList.map((asset) => [
         asset.id,
-        asset.secondaryMarket?.active ? 0 : (asset.cycle?.initialSupply || 0),
+        asset.secondaryMarket?.active ? 0 : getRemainingDiscoverableTokens(asset.cycle),
       ]),
     );
   };
@@ -501,7 +503,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
             next[asset.id] = 0;
             return;
           }
-          const maxSupply = asset.cycle?.maxSupply ?? asset.cycle?.initialSupply ?? 0;
+          const maxSupply = asset.cycle ? getRemainingDiscoverableTokens(asset.cycle) : 0;
           const value = stored.assetAvailable?.[asset.id];
           next[asset.id] =
             typeof value === "number" && value > 0
@@ -630,7 +632,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     const resetCycle = initializeCycle(DEFAULT_PARAMS, 1);
     setCycle(resetCycle);
     setYieldIndex(DEFAULT_INDEX);
-    setAvailableToFind(resetCycle.initialSupply);
+    setAvailableToFind(getRemainingDiscoverableTokens(resetCycle));
     setUser({ usd: 1000000, coinTags: 0, lfts: 0, yieldUnits: 0, realizedRewards: 0, withdrawn: 0 });
     setAssets(defaultAssets);
     setAssetAvailable(buildInitialAvailability(defaultAssets));
@@ -663,6 +665,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           found += 1;
           remainingFindable -= 1;
         }
+      }
+      if (found > 0) {
+        setCycle((s) => recordLftDiscovery(s, found).state);
       }
       setAvailableToFind(remainingFindable);
       setUser((u) => ({ ...u, coinTags: u.coinTags - opened, lfts: u.lfts + found }));
@@ -702,7 +707,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const endCycle = useCallback(() => {
     setCycle((s) => {
       const next = endCycleAndSeedNext(s, params);
-      setAvailableToFind(next.supply);
+      setAvailableToFind(getRemainingDiscoverableTokens(next));
       return next;
     });
   }, [params, setAvailableToFind]);
@@ -770,7 +775,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         }
 
         const nextCycle = endCycleAndSeedNext(asset.cycle, asset.params);
-        nextSupply = nextCycle.supply;
+        nextSupply = getRemainingDiscoverableTokens(nextCycle);
         next[idx] = {
           ...asset,
           cycle: nextCycle,
@@ -864,7 +869,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       let remaining = assetAvailable[assetId];
       if (remaining === undefined) {
         const asset = assets.find((a) => a.id === assetId);
-        remaining = asset ? asset.cycle.initialSupply : 0;
+        remaining = asset ? getRemainingDiscoverableTokens(asset.cycle) : 0;
       }
       for (let i = 0; i < opened; i++) {
         if (remaining <= 0) break;
@@ -875,6 +880,16 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       }
       const normalizedRemaining = Math.max(0, remaining);
       setAssetAvailable((av) => ({ ...av, [assetId]: normalizedRemaining }));
+      if (found > 0) {
+        setAssets((arr) => {
+          const idx = arr.findIndex((entry) => entry.id === assetId);
+          if (idx < 0) return arr;
+          const next = arr.slice();
+          const asset = next[idx];
+          next[idx] = { ...asset, cycle: recordLftDiscovery(asset.cycle, found).state };
+          return next;
+        });
+      }
       setUserAssets((prev) => {
         const balances = normalizeAssetBalances(prev[assetId]);
         return {
@@ -913,7 +928,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       let available = prev[assetId];
       if (available === undefined) {
         const asset = assets.find((a) => a.id === assetId);
-        available = asset ? asset.cycle.initialSupply : 0;
+        available = asset ? getRemainingDiscoverableTokens(asset.cycle) : 0;
       }
       claimed = Math.min(count, available);
       if (claimed <= 0) return prev;
@@ -932,6 +947,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           lfts: balances.lfts + claimed,
         },
       };
+    });
+    setAssets((arr) => {
+      const idx = arr.findIndex((entry) => entry.id === assetId);
+      if (idx < 0) return arr;
+      const next = arr.slice();
+      const asset = next[idx];
+      next[idx] = { ...asset, cycle: recordLftDiscovery(asset.cycle, claimed).state };
+      return next;
     });
     if (nextAvailable <= 0 && claimed > 0) {
       advanceAssetCycle(assetId);
@@ -1071,7 +1094,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       }
 
       const requested = Math.max(1, Math.floor(quantity));
-      let available = toNumeric(assetAvailable[assetId], asset.cycle.initialSupply);
+      let available = toNumeric(assetAvailable[assetId], getRemainingDiscoverableTokens(asset.cycle));
       if (available <= 0) {
         const replenished = computeHuntPoolSeed(asset);
         console.log(`🪙 Hunt Debug - Replenishing pool for ${assetId} with ${replenished} units`);
@@ -1091,6 +1114,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         ...prev,
         [assetId]: remaining,
       }));
+      setAssets((arr) => {
+        const idx = arr.findIndex((entry) => entry.id === assetId);
+        if (idx < 0) return arr;
+        const next = arr.slice();
+        const asset = next[idx];
+        next[idx] = { ...asset, cycle: recordLftDiscovery(asset.cycle, actual).state };
+        return next;
+      });
       if (remaining <= 0 && actual > 0) {
         advanceAssetCycle(assetId);
       }
@@ -1126,7 +1157,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       const asset = assets.find((a) => a.id === assetId);
       if (!asset) return null;
       const market = normalizeSecondaryMarketState(asset.secondaryMarket);
-      const remaining = market.active ? 0 : (assetAvailable[assetId] ?? asset.cycle.initialSupply);
+      const remaining = market.active ? 0 : (assetAvailable[assetId] ?? getRemainingDiscoverableTokens(asset.cycle));
       const unlocked = market.active || remaining <= 0;
       const totalValue = market.active ? Math.max(0, market.liquidityPool) : Math.max(0, asset.cycle.reserve);
       const supply = market.active ? Math.max(0, market.supplyPool) : asset.cycle.supply;
@@ -1230,7 +1261,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           };
           return [nextAsset, ...prev];
         });
-        setAssetAvailable((prev) => ({ ...prev, [createdId]: cycleAfterRaise.initialSupply }));
+        setAssetAvailable((prev) => ({ ...prev, [createdId]: getRemainingDiscoverableTokens(cycleAfterRaise) }));
         setUserAssets((prev) => ({ ...prev, [createdId]: { coinTags: 0, lfts: 0 } }));
         setAssetCoinTagCodes((prev) => ({ ...prev, [createdId]: [] }));
         return createdId;

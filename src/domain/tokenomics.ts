@@ -16,17 +16,25 @@ export const DEFAULT_SPLIT: RevenueSplit = {
 
 // LaunchPad Token Distribution
 export type LaunchPadDistribution = {
-  gameHunt: number; // 60%
-  creator: number; // 20%
+  gameHunt: number; // 70%
+  creator: number; // 10%
   platform: number; // 10%
   investors: number; // 10%
 };
 
 export const DEFAULT_LAUNCHPAD_DISTRIBUTION: LaunchPadDistribution = {
-  gameHunt: 0.6,
-  creator: 0.2,
+  gameHunt: 0.7,
+  creator: 0.1,
   platform: 0.1,
   investors: 0.1,
+};
+
+export type LaunchPadTokenAllocation = {
+  gameHunt: number;
+  creator: number;
+  platform: number;
+  investors: number;
+  total: number;
 };
 
 export type CycleParams = {
@@ -62,11 +70,87 @@ export type CycleState = {
   investorTokens: number; // Investor allocation
 };
 
+const DISTRIBUTION_KEYS: Array<keyof LaunchPadDistribution> = ["gameHunt", "creator", "platform", "investors"];
+
 function getSupplyForCycle(baseSupply: number, cycle: number): number {
   if (baseSupply <= 0) return 0;
   const halvingFactor = Math.max(0, cycle - 1);
   const divisor = 2 ** halvingFactor;
   return Math.max(1, Math.floor(baseSupply / divisor));
+}
+
+function normalizeDistribution(distribution: LaunchPadDistribution): LaunchPadDistribution {
+  const total = DISTRIBUTION_KEYS.reduce((sum, key) => sum + Math.max(0, distribution[key]), 0);
+  if (total <= 0) return DEFAULT_LAUNCHPAD_DISTRIBUTION;
+
+  return {
+    gameHunt: Math.max(0, distribution.gameHunt) / total,
+    creator: Math.max(0, distribution.creator) / total,
+    platform: Math.max(0, distribution.platform) / total,
+    investors: Math.max(0, distribution.investors) / total,
+  };
+}
+
+export function allocateLaunchPadTokens(
+  maxSupply: number,
+  distribution: LaunchPadDistribution = DEFAULT_LAUNCHPAD_DISTRIBUTION,
+): LaunchPadTokenAllocation {
+  const supply = Math.max(0, Math.floor(maxSupply));
+  const normalized = normalizeDistribution(distribution);
+  const rawAllocations = DISTRIBUTION_KEYS.map((key) => ({
+    key,
+    exact: supply * normalized[key],
+    units: Math.floor(supply * normalized[key]),
+  }));
+
+  let assigned = rawAllocations.reduce((sum, entry) => sum + entry.units, 0);
+  const remainder = supply - assigned;
+  rawAllocations
+    .sort((a, b) => (b.exact - b.units) - (a.exact - a.units))
+    .slice(0, remainder)
+    .forEach((entry) => {
+      entry.units += 1;
+      assigned += 1;
+    });
+
+  const lookup = Object.fromEntries(rawAllocations.map((entry) => [entry.key, entry.units])) as Record<
+    keyof LaunchPadDistribution,
+    number
+  >;
+
+  return {
+    gameHunt: lookup.gameHunt,
+    creator: lookup.creator,
+    platform: lookup.platform,
+    investors: lookup.investors,
+    total: assigned,
+  };
+}
+
+export function getDiscoverableSupply(state: CycleState): number {
+  return allocateLaunchPadTokens(state.maxSupply, state.distribution).gameHunt;
+}
+
+export function getRemainingDiscoverableTokens(state: CycleState): number {
+  return Math.max(0, getDiscoverableSupply(state) - Math.max(0, Math.floor(state.discoveredTokens)));
+}
+
+export function recordLftDiscovery(state: CycleState, requestedUnits: number): { state: CycleState; claimed: number } {
+  if (state.ended || requestedUnits <= 0) return { state, claimed: 0 };
+
+  const requested = Math.max(0, Math.floor(requestedUnits));
+  const remainingDiscoverable = getRemainingDiscoverableTokens(state);
+  const claimed = Math.min(requested, remainingDiscoverable);
+
+  if (claimed <= 0) return { state, claimed: 0 };
+
+  return {
+    state: {
+      ...state,
+      discoveredTokens: state.discoveredTokens + claimed,
+    },
+    claimed,
+  };
 }
 
 export function initializeCycle(params: CycleParams, cycle = 1): CycleState {
@@ -75,6 +159,7 @@ export function initializeCycle(params: CycleParams, cycle = 1): CycleState {
   const reserve = params.initialReserve;
   const maxSupply = getSupplyForCycle(params.initialSupply, cycle);
   const supply = maxSupply; // Start with full supply available
+  const allocation = allocateLaunchPadTokens(maxSupply, distribution);
   
   return {
     cycle,
@@ -96,10 +181,10 @@ export function initializeCycle(params: CycleParams, cycle = 1): CycleState {
     split,
     ended: false,
     // LaunchPad distribution (percentages of maxSupply)
-    discoveredTokens: 0, // Will be discovered via hunt (60% available)
-    creatorTokens: Math.floor(maxSupply * distribution.creator), // 20%
-    platformTokens: Math.floor(maxSupply * distribution.platform), // 10%
-    investorTokens: Math.floor(maxSupply * distribution.investors), // 10%
+    discoveredTokens: 0, // Will be discovered via hunt (70% available)
+    creatorTokens: allocation.creator, // 10%
+    platformTokens: allocation.platform, // 10%
+    investorTokens: allocation.investors, // 10%
   };
 }
 
@@ -175,6 +260,7 @@ export function endCycleAndSeedNext(state: CycleState, params: CycleParams): Cyc
   const supply = maxSupply;
   const lpu = supply > 0 ? reserve / supply : 0;
   const distribution = DEFAULT_LAUNCHPAD_DISTRIBUTION;
+  const allocation = allocateLaunchPadTokens(maxSupply, distribution);
 
   return {
     cycle: nextCycle,
@@ -196,10 +282,10 @@ export function endCycleAndSeedNext(state: CycleState, params: CycleParams): Cyc
     split: state.split,
     ended: false,
     // LaunchPad distribution for new cycle
-    discoveredTokens: 0, // Will be discovered via hunt (60% available)
-    creatorTokens: Math.floor(maxSupply * distribution.creator), // 20%
-    platformTokens: Math.floor(maxSupply * distribution.platform), // 10%
-    investorTokens: Math.floor(maxSupply * distribution.investors), // 10%
+    discoveredTokens: 0, // Will be discovered via hunt (70% available)
+    creatorTokens: allocation.creator, // 10%
+    platformTokens: allocation.platform, // 10%
+    investorTokens: allocation.investors, // 10%
   };
 }
 

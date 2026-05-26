@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import Web3News from "@/components/Web3News";
 import MarketTickerTape from "@/components/MarketTickerTape";
 import type { TouchEvent } from "react";
+import { getDiscoverableSupply } from "@/domain/tokenomics";
 
 const MAX_TRENDING = 10;
 const ASSET_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/r1.jpeg"];
@@ -396,7 +397,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   const isAssetLive = useCallback((asset: Asset) => {
     const available = assetAvailable[asset.id];
     const hasHuntActivity =
-      typeof available === "number" && asset.cycle.initialSupply > 0 && available < asset.cycle.initialSupply;
+      typeof available === "number" && getDiscoverableSupply(asset.cycle) > 0 && available < getDiscoverableSupply(asset.cycle);
 
     return hasHuntActivity;
   }, [assetAvailable]);
@@ -433,7 +434,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
           }
         }}
         className={cn(
-          "group flex h-full w-full flex-col rounded-lg border border-[#EEF2F6] bg-white p-3 text-left shadow-[0_10px_24px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(15,23,42,0.08)] dark:border-[#2A2A2A] dark:bg-[#171717] dark:shadow-none dark:hover:bg-[#202020]",
+          "group flex h-full w-full flex-col rounded-lg border-0 bg-[#F5F7FA] p-3 text-left shadow-none transition-colors duration-200 hover:bg-[#EEF2F6] dark:bg-[#171717] dark:shadow-none dark:hover:bg-[#202020]",
         )}
       >
         <div className="flex min-w-0 items-start gap-3">
@@ -474,7 +475,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
               )}
             >
               <span className="block text-[10px] uppercase tracking-[0.14em] text-[#98A2B3]">{stat.label}</span>
-              <span className="mt-0.5 block truncate font-mono text-[0.88rem] font-semibold text-[#101828] dark:text-[#F2F4F7] sm:text-[0.92rem]">{stat.value}</span>
+              <span className="mt-0.5 block truncate text-[0.88rem] font-semibold tabular-nums text-[#101828] dark:text-[#F2F4F7] sm:text-[0.92rem]">{stat.value}</span>
             </div>
           ))}
         </div>
@@ -497,8 +498,8 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     </div>
   );
 
-  const tableShellClasses = "-mx-4 overflow-hidden rounded-2xl bg-transparent md:mx-0 md:bg-[#FAFAFA] dark:bg-transparent dark:md:bg-[#151515] mb-6 sm:-mx-6";
-  const tableStickyColumnClasses = "bg-white md:bg-[#F3F3F3] dark:bg-[#0F0F0F] dark:md:bg-[#151515]";
+  const tableShellClasses = "-mx-4 overflow-hidden rounded-2xl bg-transparent md:mx-0 md:bg-white dark:bg-transparent dark:md:bg-[#151515] mb-6 sm:-mx-6";
+  const tableStickyColumnClasses = "bg-white dark:bg-[#0F0F0F] dark:md:bg-[#151515]";
 
   const renderListedList = (items: Asset[]) => (
     <div className={tableShellClasses}>
@@ -569,10 +570,10 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="asset-list-metric-col min-w-0 border-b border-[#D9DDE6] px-2 text-right font-mono text-[15px] dark:border-[#2A2A2A] md:min-w-[140px] md:border-b-0 md:px-4 md:text-sm">{formatCurrencyK(safeReserve)}</TableCell>
-                  <TableCell className="asset-list-metric-col min-w-0 border-b border-[#D9DDE6] px-2 text-right font-mono text-[15px] dark:border-[#2A2A2A] md:min-w-[140px] md:border-b-0 md:px-8 md:text-sm">{formatUnitCurrency(liveLpu)}</TableCell>
-                  <TableCell className="asset-list-metric-col min-w-0 border-b border-[#D9DDE6] px-2 text-right font-mono text-[15px] dark:border-[#2A2A2A] md:min-w-[140px] md:border-b-0 md:px-4 md:text-sm">{formatCurrency(coinTagPrice)}</TableCell>
-                  <TableCell className="asset-list-metric-col min-w-0 border-b border-[#D9DDE6] px-2 text-right font-mono text-[15px] dark:border-[#2A2A2A] md:min-w-[160px] md:border-b-0 md:pl-4 md:pr-6 md:text-sm">
+                  <TableCell className="asset-list-metric-col min-w-0 border-b border-[#D9DDE6] px-2 text-right text-[15px] font-semibold tabular-nums dark:border-[#2A2A2A] md:min-w-[140px] md:border-b-0 md:px-4 md:text-sm">{formatCurrencyK(safeReserve)}</TableCell>
+                  <TableCell className="asset-list-metric-col min-w-0 border-b border-[#D9DDE6] px-2 text-right text-[15px] font-semibold tabular-nums dark:border-[#2A2A2A] md:min-w-[140px] md:border-b-0 md:px-8 md:text-sm">{formatUnitCurrency(liveLpu)}</TableCell>
+                  <TableCell className="asset-list-metric-col min-w-0 border-b border-[#D9DDE6] px-2 text-right text-[15px] font-semibold tabular-nums dark:border-[#2A2A2A] md:min-w-[140px] md:border-b-0 md:px-4 md:text-sm">{formatCurrency(coinTagPrice)}</TableCell>
+                  <TableCell className="asset-list-metric-col min-w-0 border-b border-[#D9DDE6] px-2 text-right text-[15px] font-semibold tabular-nums dark:border-[#2A2A2A] md:min-w-[160px] md:border-b-0 md:pl-4 md:pr-6 md:text-sm">
                     {formatCurrencyK(asset.params.initialReserve)}
                   </TableCell>
                 </TableRow>
@@ -633,18 +634,63 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
       </button>
     );
   };
+
+  const renderMobileTrendingTokens = () => {
+    if (!showTrending || trendingTokens.length === 0) return null;
+
+    return (
+      <section className="mb-5 md:hidden">
+        <div className="mb-2.5">
+          <h2 className="text-xl font-bold leading-tight text-foreground">Trending</h2>
+          <p className="text-xs text-muted-foreground">Tokens with momentum today</p>
+        </div>
+        <div className="grid grid-flow-col grid-rows-2 auto-cols-[62vw] gap-2 overflow-x-auto pb-1.5 no-scrollbar">
+          {trendingTokens.map(({ asset, change }) => {
+            const isPositive = change >= 0;
+            const liveLpu = asset.cycle.supply > 0 ? asset.cycle.reserve / asset.cycle.supply : 0;
+
+            return (
+              <button
+                key={`mobile-trending-${asset.id}`}
+                type="button"
+                onClick={() => navigate(`/assets/${asset.id}`)}
+                className="flex h-[70px] overflow-hidden rounded-xl bg-[#F3F5F8] text-left transition-colors hover:bg-[#EEF2F6] dark:bg-[#171717]"
+              >
+                <img src={asset.image} alt={asset.name} className="h-full w-[70px] shrink-0 object-cover" loading="lazy" />
+                <div className="flex min-w-0 flex-1 flex-col justify-center px-2.5">
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <span className="truncate text-sm font-semibold text-foreground">{asset.name}</span>
+                    <img src="/checklist.png" alt="verified" className="h-3.5 w-3.5 shrink-0" loading="lazy" />
+                  </div>
+                  <div className="mt-0.5 flex items-center gap-1.5 text-xs font-medium tabular-nums text-muted-foreground">
+                    <span>{liveLpu < 0.01 ? "< 0.01" : formatUnitCurrency(liveLpu)}</span>
+                    <span>{asset.ticker ?? asset.id.toUpperCase()}</span>
+                    <span className={isPositive ? "text-emerald-600" : "text-rose-500"}>{formatChange(change)}</span>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+    );
+  };
+
   return (
     <div className={cn("min-h-screen", "bg-background")}>
-      <main className="flex-1 pb-20 pt-4 sm:pt-6">
+      <main className="flex-1 pb-20 pt-2 sm:pt-6">
         <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col pt-0 pb-4">
 
-            {/* Status bar */}
+            {renderMobileTrendingTokens()}
+
             {showTrending && (
-              <Web3News variant="mobile" className="mb-4" />
+              <Web3News variant="mobile" className="mb-4 hidden md:block" />
             )}
 
-            <MarketTickerTape className="relative left-1/2 mb-4 w-screen -translate-x-1/2 md:hidden" />
+            <MarketTickerTape className="mb-4 hidden md:block" />
+
+            <MarketTickerTape className="relative left-1/2 mb-2 w-screen -translate-x-1/2 md:hidden" />
 
             {/* SearchBar - toggleable on all platforms */}
             {(showSearchBar || isSearchVisible) && (
@@ -659,8 +705,11 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
             )}
 
             {/* Text Navigation Links - Unified */}
-            <div className="mt-2 flex items-center justify-between gap-4 pb-2">
+            <div className="mt-0 flex items-center justify-between gap-4 pb-1 md:mt-2 md:pb-2">
               <div className="flex min-w-0 items-center gap-4">
+                <span className="text-[22px] font-semibold text-foreground whitespace-nowrap md:hidden">
+                  Listed LFTs
+                </span>
                 <span className="hidden text-[22px] font-semibold text-foreground whitespace-nowrap md:inline">
                   Listed
                 </span>
@@ -669,7 +718,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                     <PopoverTrigger asChild>
                       <button
                         type="button"
-                        className="flex items-center whitespace-nowrap transition-transform hover:scale-[1.02]"
+                        className="hidden items-center whitespace-nowrap transition-transform hover:scale-[1.02] md:flex"
                         aria-label="Why these icons are here"
                       >
                         {listedHeaderIcons.map((icon, index) => (
@@ -698,59 +747,132 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                 )}
               </div>
 
-              <button
-                type="button"
-                onClick={handleToggleViewMode}
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-transparent text-[#344054] transition-all hover:bg-transparent hover:text-[#111827] dark:text-[#98A2B3] dark:hover:text-white"
-                aria-label={viewMode === "grid" ? "Switch listed assets to list view" : "Switch listed assets to card view"}
-              >
-                {viewMode === "grid" ? (
-                  <LayoutGrid className="h-5 w-5" strokeWidth={2.4} />
-                ) : (
-                  <Rows3 className="h-5 w-5" strokeWidth={2.4} />
+              <div className="flex shrink-0 items-center gap-2">
+                {viewMode === "grid" && (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className={cn(
+                          "inline-flex h-9 items-center gap-2 rounded-xl px-3 text-sm font-semibold shadow-sm transition-colors",
+                          selectedNetworkInfo.selectedPillClass,
+                        )}
+                        aria-label="Choose network"
+                      >
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/20">
+                          {selectedNetworkInfo.image ? (
+                            <img
+                              src={selectedNetworkInfo.image}
+                              alt={selectedNetworkInfo.name}
+                              className={cn(
+                                "h-full w-full object-cover",
+                                selectedNetworkInfo.id === "solana" && "grayscale contrast-150 brightness-75",
+                              )}
+                            />
+                          ) : (
+                            <span className="text-[10px]">{selectedNetworkInfo.icon}</span>
+                          )}
+                        </span>
+                        <span className="max-w-[90px] truncate sm:max-w-none">{selectedNetworkInfo.name}</span>
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      align="end"
+                      collisionPadding={16}
+                      className="w-52 rounded-2xl border border-border/60 bg-background p-2 shadow-xl"
+                    >
+                      <div className="space-y-1">
+                        {NETWORKS.map((network) => (
+                          <button
+                            key={network.id}
+                            type="button"
+                            onClick={() => setSelectedNetwork(network.id)}
+                            className={cn(
+                              "flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm transition-colors hover:bg-muted",
+                              selectedNetwork === network.id && "bg-muted font-semibold",
+                            )}
+                          >
+                            <span className="flex min-w-0 items-center gap-2">
+                              <span className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
+                                {network.image ? (
+                                  <img
+                                    src={network.image}
+                                    alt={network.name}
+                                    className={cn(
+                                      "h-full w-full object-cover",
+                                      network.id === "solana" && "grayscale contrast-150 brightness-75",
+                                    )}
+                                  />
+                                ) : (
+                                  <span className="text-[10px]">{network.icon}</span>
+                                )}
+                              </span>
+                              <span className="truncate">{network.name}</span>
+                            </span>
+                            {selectedNetwork === network.id && <Check className="h-3.5 w-3.5 shrink-0" />}
+                          </button>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 )}
-              </button>
+
+                <button
+                  type="button"
+                  onClick={handleToggleViewMode}
+                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-transparent text-[#344054] transition-all hover:bg-transparent hover:text-[#111827] dark:text-[#98A2B3] dark:hover:text-white"
+                  aria-label={viewMode === "grid" ? "Switch listed assets to list view" : "Switch listed assets to card view"}
+                >
+                  {viewMode === "grid" ? (
+                    <LayoutGrid className="h-5 w-5" strokeWidth={2.4} />
+                  ) : (
+                    <Rows3 className="h-5 w-5" strokeWidth={2.4} />
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Control Buttons Row - Unified */}
             {/* Horizontal Network Selector */}
-            <div className="mt-4 mb-1 flex items-center gap-2 overflow-x-auto pb-0 no-scrollbar">
-              {NETWORKS.map((network) => (
-                <button
-                  key={network.id}
-                  type="button"
-                  onClick={() => setSelectedNetwork(network.id)}
-                  className={cn(
-                    "flex items-center gap-2 px-4 py-2 rounded-2xl transition-all duration-200 whitespace-nowrap whitespace-nowrap shadow-sm",
-                    network.id === "all" ? "border-0" : "border border-transparent",
-                    selectedNetwork === network.id
-                      ? cn("font-semibold", network.selectedPillClass)
-                      : network.pillClass
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full overflow-hidden bg-white/20 flex items-center justify-center">
-                      {network.image ? (
-                        <img
-                          src={network.image}
-                          alt={network.name}
-                          className={cn(
-                            "w-full h-full object-cover",
-                            network.id === "solana" && "grayscale contrast-150 brightness-75",
-                          )}
-                        />
-                      ) : (
-                        <span className="text-[10px]">{network.icon}</span>
-                      )}
+            {viewMode !== "grid" && (
+              <div className="mt-2 mb-2 flex items-center gap-2 overflow-x-auto pb-0 no-scrollbar md:mt-4 md:mb-6">
+                {NETWORKS.map((network) => (
+                  <button
+                    key={network.id}
+                    type="button"
+                    onClick={() => setSelectedNetwork(network.id)}
+                    className={cn(
+                      "flex items-center gap-2 px-4 py-2 rounded-2xl transition-all duration-200 whitespace-nowrap whitespace-nowrap shadow-sm",
+                      network.id === "all" ? "border-0" : "border border-transparent",
+                      selectedNetwork === network.id
+                        ? cn("font-semibold", network.selectedPillClass)
+                        : network.pillClass
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-full overflow-hidden bg-white/20 flex items-center justify-center">
+                        {network.image ? (
+                          <img
+                            src={network.image}
+                            alt={network.name}
+                            className={cn(
+                              "w-full h-full object-cover",
+                              network.id === "solana" && "grayscale contrast-150 brightness-75",
+                            )}
+                          />
+                        ) : (
+                          <span className="text-[10px]">{network.icon}</span>
+                        )}
+                      </div>
+                      <span className="text-sm">{network.name}</span>
                     </div>
-                    <span className="text-sm">{network.name}</span>
-                  </div>
-                  {selectedNetwork === network.id && (
-                    <Check className="h-3.5 w-3.5 ml-1" />
-                  )}
-                </button>
-              ))}
-            </div>
+                    {selectedNetwork === network.id && (
+                      <Check className="h-3.5 w-3.5 ml-1" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Table or Grid View - Unified */}
             {displayListedAssets.length > 0 ? (
