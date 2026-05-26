@@ -407,7 +407,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
           <div
             className={cn(
               "relative flex w-full items-center justify-center overflow-hidden bg-cover bg-center px-4 transition-[height,opacity] duration-300",
-              isScrolled ? "h-0 opacity-0" : "h-12 opacity-100 md:h-14",
+              isScrolled ? "h-0 opacity-0 md:h-14 md:opacity-100" : "h-12 opacity-100 md:h-14",
             )}
             style={{ backgroundImage: "url('/ks1.png')" }}
           >
