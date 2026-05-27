@@ -643,33 +643,35 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     ].filter((row) => row.length > 0);
 
     const renderTrendingRow = (row: typeof trendingTokens, rowIndex: number) => (
-      <div key={`trending-row-${rowIndex}`} className="flex gap-2 overflow-x-auto pb-0.5 no-scrollbar">
-        {row.map(({ asset, change }) => {
-          const isPositive = change >= 0;
-          const liveLpu = asset.cycle.supply > 0 ? asset.cycle.reserve / asset.cycle.supply : 0;
+      <div key={`trending-row-${rowIndex}`} className="relative left-1/2 w-screen -translate-x-1/2 overflow-x-auto pb-0.5 no-scrollbar">
+        <div className="flex gap-2 px-4">
+          {row.map(({ asset, change }) => {
+            const isPositive = change >= 0;
+            const liveLpu = asset.cycle.supply > 0 ? asset.cycle.reserve / asset.cycle.supply : 0;
 
-          return (
-            <button
-              key={`mobile-trending-${rowIndex}-${asset.id}`}
-              type="button"
-              onClick={() => navigate(`/assets/${asset.id}`)}
-              className="flex h-[70px] w-[62vw] shrink-0 overflow-hidden rounded-xl bg-[#F3F5F8] text-left transition-colors hover:bg-[#EEF2F6] dark:bg-[#171717]"
-            >
-              <img src={asset.image} alt={asset.name} className="h-full w-[70px] shrink-0 object-cover" loading="lazy" />
-              <div className="flex min-w-0 flex-1 flex-col justify-center px-2.5">
-                <div className="flex min-w-0 items-center gap-1.5">
-                  <span className="truncate text-sm font-semibold text-foreground">{asset.name}</span>
-                  <img src="/checklist.png" alt="verified" className="h-3.5 w-3.5 shrink-0" loading="lazy" />
+            return (
+              <button
+                key={`mobile-trending-${rowIndex}-${asset.id}`}
+                type="button"
+                onClick={() => navigate(`/assets/${asset.id}`)}
+                className="flex h-[70px] w-[62vw] shrink-0 overflow-hidden rounded-xl bg-[#F3F5F8] text-left transition-colors hover:bg-[#EEF2F6] dark:bg-[#171717]"
+              >
+                <img src={asset.image} alt={asset.name} className="h-full w-[70px] shrink-0 object-cover" loading="lazy" />
+                <div className="flex min-w-0 flex-1 flex-col justify-center px-2.5">
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <span className="truncate text-sm font-semibold text-foreground">{asset.name}</span>
+                    <img src="/checklist.png" alt="verified" className="h-3.5 w-3.5 shrink-0" loading="lazy" />
+                  </div>
+                  <div className="mt-0.5 flex items-center gap-1.5 text-xs font-medium tabular-nums text-muted-foreground">
+                    <span>{liveLpu < 0.01 ? "< 0.01" : formatUnitCurrency(liveLpu)}</span>
+                    <span>{asset.ticker ?? asset.id.toUpperCase()}</span>
+                    <span className={isPositive ? "text-emerald-600" : "text-rose-500"}>{formatChange(change)}</span>
+                  </div>
                 </div>
-                <div className="mt-0.5 flex items-center gap-1.5 text-xs font-medium tabular-nums text-muted-foreground">
-                  <span>{liveLpu < 0.01 ? "< 0.01" : formatUnitCurrency(liveLpu)}</span>
-                  <span>{asset.ticker ?? asset.id.toUpperCase()}</span>
-                  <span className={isPositive ? "text-emerald-600" : "text-rose-500"}>{formatChange(change)}</span>
-                </div>
-              </div>
-            </button>
-          );
-        })}
+              </button>
+            );
+          })}
+        </div>
       </div>
     );
 
