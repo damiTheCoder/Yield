@@ -596,11 +596,11 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 
   const trendingTokens = useMemo(() => {
     if (!showTrending) return [];
-    return [...listedAssets]
+    return [...assets]
       .map((asset) => ({ asset, change: getAssetChange(asset) }))
       .sort((a, b) => b.change - a.change)
       .slice(0, MAX_TRENDING);
-  }, [listedAssets, showTrending]);
+  }, [assets, showTrending]);
 
   const TrendingTokenCard = ({ asset, change }: { asset: Asset; change: number }) => {
     const baseColor = useAverageColor(asset.image, asset.id);
@@ -637,6 +637,41 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 
   const renderMobileTrendingTokens = () => {
     if (!showTrending || trendingTokens.length === 0) return null;
+    const trendingRows = [
+      trendingTokens.filter((_, index) => index % 2 === 0),
+      trendingTokens.filter((_, index) => index % 2 === 1),
+    ].filter((row) => row.length > 0);
+
+    const renderTrendingRow = (row: typeof trendingTokens, rowIndex: number) => (
+      <div key={`trending-row-${rowIndex}`} className="flex gap-2 overflow-x-auto pb-0.5 no-scrollbar">
+        {row.map(({ asset, change }) => {
+          const isPositive = change >= 0;
+          const liveLpu = asset.cycle.supply > 0 ? asset.cycle.reserve / asset.cycle.supply : 0;
+
+          return (
+            <button
+              key={`mobile-trending-${rowIndex}-${asset.id}`}
+              type="button"
+              onClick={() => navigate(`/assets/${asset.id}`)}
+              className="flex h-[70px] w-[62vw] shrink-0 overflow-hidden rounded-xl bg-[#F3F5F8] text-left transition-colors hover:bg-[#EEF2F6] dark:bg-[#171717]"
+            >
+              <img src={asset.image} alt={asset.name} className="h-full w-[70px] shrink-0 object-cover" loading="lazy" />
+              <div className="flex min-w-0 flex-1 flex-col justify-center px-2.5">
+                <div className="flex min-w-0 items-center gap-1.5">
+                  <span className="truncate text-sm font-semibold text-foreground">{asset.name}</span>
+                  <img src="/checklist.png" alt="verified" className="h-3.5 w-3.5 shrink-0" loading="lazy" />
+                </div>
+                <div className="mt-0.5 flex items-center gap-1.5 text-xs font-medium tabular-nums text-muted-foreground">
+                  <span>{liveLpu < 0.01 ? "< 0.01" : formatUnitCurrency(liveLpu)}</span>
+                  <span>{asset.ticker ?? asset.id.toUpperCase()}</span>
+                  <span className={isPositive ? "text-emerald-600" : "text-rose-500"}>{formatChange(change)}</span>
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    );
 
     return (
       <section className="mb-5 md:hidden">
@@ -644,33 +679,8 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
           <h2 className="text-xl font-bold leading-tight text-foreground">Trending</h2>
           <p className="text-xs text-muted-foreground">Tokens with momentum today</p>
         </div>
-        <div className="grid grid-flow-col grid-rows-2 auto-cols-[62vw] gap-2 overflow-x-auto pb-1.5 no-scrollbar">
-          {trendingTokens.map(({ asset, change }) => {
-            const isPositive = change >= 0;
-            const liveLpu = asset.cycle.supply > 0 ? asset.cycle.reserve / asset.cycle.supply : 0;
-
-            return (
-              <button
-                key={`mobile-trending-${asset.id}`}
-                type="button"
-                onClick={() => navigate(`/assets/${asset.id}`)}
-                className="flex h-[70px] overflow-hidden rounded-xl bg-[#F3F5F8] text-left transition-colors hover:bg-[#EEF2F6] dark:bg-[#171717]"
-              >
-                <img src={asset.image} alt={asset.name} className="h-full w-[70px] shrink-0 object-cover" loading="lazy" />
-                <div className="flex min-w-0 flex-1 flex-col justify-center px-2.5">
-                  <div className="flex min-w-0 items-center gap-1.5">
-                    <span className="truncate text-sm font-semibold text-foreground">{asset.name}</span>
-                    <img src="/checklist.png" alt="verified" className="h-3.5 w-3.5 shrink-0" loading="lazy" />
-                  </div>
-                  <div className="mt-0.5 flex items-center gap-1.5 text-xs font-medium tabular-nums text-muted-foreground">
-                    <span>{liveLpu < 0.01 ? "< 0.01" : formatUnitCurrency(liveLpu)}</span>
-                    <span>{asset.ticker ?? asset.id.toUpperCase()}</span>
-                    <span className={isPositive ? "text-emerald-600" : "text-rose-500"}>{formatChange(change)}</span>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
+        <div className="space-y-2 pb-1.5">
+          {trendingRows.map(renderTrendingRow)}
         </div>
       </section>
     );
