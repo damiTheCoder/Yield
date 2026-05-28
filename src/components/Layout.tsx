@@ -46,12 +46,12 @@ const Layout = ({ children }: LayoutProps) => {
       <main
         className={cn(
           "transition-all duration-300",
-          hideShell ? "pb-16" : "pb-28 md:pb-8"
+          hideShell ? "pb-16" : "pb-0 md:pb-8"
         )}
       >
         {children}
       </main>
-      {!hideShell && !isHuntPage && <SiteFooter className="sm:hidden" />}
+      {!hideShell && !isHuntPage && <SiteFooter className="pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:hidden" />}
     </div>
   );
 };

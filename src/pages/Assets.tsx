@@ -1,6 +1,6 @@
 import { useApp } from "@/lib/app-state";
 import type { Asset } from "@/lib/app-state";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn, formatCurrency, formatCurrencyK, formatUnitCurrency } from "@/lib/utils";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -18,6 +18,23 @@ const MAX_TRENDING = 10;
 const ASSET_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/r1.jpeg"];
 const MOBILE_ASSET_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/r1.jpeg"];
 const ICON_STACK_MESSAGE = "we just felt this will make the UX design look good 😂";
+const MOBILE_BLOG_POSTS = [
+  {
+    slug: "tokenized-yield-liquidity",
+    title: "Reimagining Liquidity: How Tokenized Yield Is Bridging Traditional Finance and Web3",
+    image: "/d5.png",
+  },
+  {
+    slug: "creative-liquidity-web3",
+    title: "The Creative Use of Liquidity in the Web3 Space",
+    image: "/d3.png",
+  },
+  {
+    slug: "liquidity-funded-tokens",
+    title: "Liquidity Funded Tokens (LFTs): Turning Hype Into Durable Value",
+    image: "/d1.png",
+  },
+];
 type Network = "all" | "polygon" | "ethereum" | "solana" | "base" | "optimism";
 const ASSET_NETWORK_IDS: Exclude<Network, "all">[] = ["polygon", "ethereum", "solana", "base", "optimism"];
 const NETWORKS = [
@@ -299,6 +316,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   });
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [showAllListed, setShowAllListed] = useState(false);
 
   const toggleFavorite = useCallback((id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -371,7 +389,9 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   }, [assets, normalizedSearch, selectedNetwork]);
 
   const listedAssets = filteredAssets;
-  const displayListedAssets = listedLimit ? listedAssets.slice(0, listedLimit) : listedAssets;
+  const effectiveListedLimit = showAllListed ? undefined : listedLimit;
+  const displayListedAssets = effectiveListedLimit ? listedAssets.slice(0, effectiveListedLimit) : listedAssets;
+  const showListedViewAll = Boolean(showViewAllButton && effectiveListedLimit && listedAssets.length > displayListedAssets.length);
   const totalVisibleAssets = listedAssets.length;
   const listedHeaderIcons = isDesktop ? ASSET_HEADER_ICONS : MOBILE_ASSET_HEADER_ICONS;
   const cardBorderClass = "";
@@ -520,7 +540,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
             </TableRow>
           </TableHeader>
           <TableBody>
-            {items.map((asset) => {
+            {items.map((asset, index) => {
               const safeReserve = Math.max(0, Number.isFinite(asset.cycle.reserve) ? asset.cycle.reserve : 0);
               const safeSupply = Math.max(0, Number.isFinite(asset.cycle.supply) ? asset.cycle.supply : asset.cycle.initialSupply || 0);
               const liveLpu = safeSupply > 0 ? safeReserve / safeSupply : 0;
@@ -530,10 +550,17 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
               const changeClass = changeColorClass(change);
               const assetLive = isAssetLive(asset);
               const assetNetwork = getAssetNetwork(asset);
+              const isLastVisibleAsset = index === items.length - 1;
+              const mobileDividerClass = isLastVisibleAsset
+                ? "border-b-0"
+                : "border-b border-[#D9DDE6] dark:border-[#2A2A2A]";
               return (
                 <TableRow
                   key={asset.id}
-                  className="cursor-pointer text-sm transition-colors hover:bg-surface/30 border-b border-[#D9DDE6] dark:border-[#2A2A2A] md:border-0 group"
+                  className={cn(
+                    "cursor-pointer text-sm transition-colors hover:bg-surface/30 md:border-0 group",
+                    mobileDividerClass,
+                  )}
                   onClick={() => navigate(`/assets/${asset.id}`)}
                 >
                   {isDesktop && (
@@ -548,7 +575,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       />
                     </TableCell>
                   )}
-                  <TableCell className={cn("asset-list-collection-col sticky left-0 z-10 border-b border-[#D9DDE6] pl-4 pr-3 dark:border-[#2A2A2A] sm:pl-6 md:min-w-[200px] md:border-b-0 md:pr-4", tableStickyColumnClasses)}>
+                  <TableCell className={cn("asset-list-collection-col sticky left-0 z-10 pl-4 pr-3 sm:pl-6 md:min-w-[200px] md:border-b-0 md:pr-4", mobileDividerClass, tableStickyColumnClasses)}>
                     <div className="flex items-center gap-3 text-[15px] md:text-sm">
                       <div className="relative h-10 w-10 shrink-0 md:h-9 md:w-9">
                         <img src={asset.image} alt={asset.name} className="h-full w-full rounded-full object-cover" />
@@ -570,10 +597,10 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="asset-list-metric-col min-w-0 border-b border-[#D9DDE6] px-2 text-right text-[15px] font-semibold tabular-nums dark:border-[#2A2A2A] md:min-w-[140px] md:border-b-0 md:px-4 md:text-sm">{formatCurrencyK(safeReserve)}</TableCell>
-                  <TableCell className="asset-list-metric-col min-w-0 border-b border-[#D9DDE6] px-2 text-right text-[15px] font-semibold tabular-nums dark:border-[#2A2A2A] md:min-w-[140px] md:border-b-0 md:px-8 md:text-sm">{formatUnitCurrency(liveLpu)}</TableCell>
-                  <TableCell className="asset-list-metric-col min-w-0 border-b border-[#D9DDE6] px-2 text-right text-[15px] font-semibold tabular-nums dark:border-[#2A2A2A] md:min-w-[140px] md:border-b-0 md:px-4 md:text-sm">{formatCurrency(coinTagPrice)}</TableCell>
-                  <TableCell className="asset-list-metric-col min-w-0 border-b border-[#D9DDE6] px-2 text-right text-[15px] font-semibold tabular-nums dark:border-[#2A2A2A] md:min-w-[160px] md:border-b-0 md:pl-4 md:pr-6 md:text-sm">
+                  <TableCell className={cn("asset-list-metric-col min-w-0 px-2 text-right text-[15px] font-semibold tabular-nums md:min-w-[140px] md:border-b-0 md:px-4 md:text-sm", mobileDividerClass)}>{formatCurrencyK(safeReserve)}</TableCell>
+                  <TableCell className={cn("asset-list-metric-col min-w-0 px-2 text-right text-[15px] font-semibold tabular-nums md:min-w-[140px] md:border-b-0 md:px-8 md:text-sm", mobileDividerClass)}>{formatUnitCurrency(liveLpu)}</TableCell>
+                  <TableCell className={cn("asset-list-metric-col min-w-0 px-2 text-right text-[15px] font-semibold tabular-nums md:min-w-[140px] md:border-b-0 md:px-4 md:text-sm", mobileDividerClass)}>{formatCurrency(coinTagPrice)}</TableCell>
+                  <TableCell className={cn("asset-list-metric-col min-w-0 px-2 text-right text-[15px] font-semibold tabular-nums md:min-w-[160px] md:border-b-0 md:pl-4 md:pr-6 md:text-sm", mobileDividerClass)}>
                     {formatCurrencyK(asset.params.initialReserve)}
                   </TableCell>
                 </TableRow>
@@ -688,9 +715,42 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     );
   };
 
+  const renderMobileBlogs = () => (
+    <section className="mb-5 md:hidden">
+      <div className="mb-2.5">
+        <h2 className="text-xl font-bold leading-tight text-foreground">Featured blog</h2>
+        <p className="text-xs text-muted-foreground">Get access to insightful blogs</p>
+      </div>
+      <div className="relative left-1/2 w-screen -translate-x-1/2 overflow-x-auto pb-1 no-scrollbar">
+        <div className="flex gap-3 px-4">
+          {MOBILE_BLOG_POSTS.map((post) => (
+            <Link
+              key={post.slug}
+              to={`/blog/${post.slug}`}
+              className="group block h-[270px] w-[78vw] shrink-0 overflow-hidden rounded-xl transition-transform"
+            >
+              <div className="relative h-full overflow-hidden rounded-xl bg-black">
+                <img
+                  src={post.image}
+                  alt={post.title}
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
+                <h4 className="absolute bottom-0 left-0 max-w-[90%] px-4 pb-5 text-left text-xl font-bold leading-tight text-white line-clamp-4">
+                  {post.title}
+                </h4>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
   return (
     <div className={cn("min-h-screen", "bg-background")}>
-      <main className="flex-1 pb-20 pt-2 sm:pt-6">
+      <main className="flex-1 pb-2 pt-2 sm:pt-6 md:pb-20">
         <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col pt-0 pb-4">
 
@@ -897,6 +957,53 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
               renderEmptyState()
             )}
 
+            {showListedViewAll && (
+              <div className="mt-2 mb-4 flex items-center justify-between gap-4">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="flex items-center whitespace-nowrap transition-transform hover:scale-[1.02]"
+                      aria-label="Why these icons are here"
+                    >
+                      {MOBILE_ASSET_HEADER_ICONS.map((icon, index) => (
+                        <span
+                          key={icon}
+                          className={cn(
+                            "h-8 w-8 overflow-hidden rounded-full bg-white",
+                            index === 0 ? "ml-0" : "-ml-2.5",
+                          )}
+                        >
+                          <img src={icon} alt="" className="h-full w-full object-cover" loading="lazy" />
+                        </span>
+                      ))}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    align="start"
+                    alignOffset={10}
+                    collisionPadding={16}
+                    className="w-[240px] max-w-[calc(100vw-2rem)] rounded-2xl border border-[#D5DCE8] bg-white p-3 text-sm font-medium leading-6 text-[#344054] shadow-xl dark:border-[#2A2A2A] dark:bg-[#171717] dark:text-[#D0D5DD]"
+                  >
+                    {ICON_STACK_MESSAGE}
+                  </PopoverContent>
+                </Popover>
+                <button
+                  type="button"
+                  onClick={() => setShowAllListed(true)}
+                  className="text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  View all
+                </button>
+              </div>
+            )}
+
+            {showTrending && (
+              <Web3News variant="mobile" className="mb-4 md:hidden" />
+            )}
+
+            {showTrending && renderMobileBlogs()}
+
           </div>
         </div>
       </main>
@@ -905,5 +1012,5 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 }
 
 export default function Assets() {
-  return <AssetsPage showTrending showViewAllButton listedLimit={12} />;
+  return <AssetsPage showTrending showViewAllButton listedLimit={7} />;
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useWeb3News } from "@/hooks/useWeb3News";
 import { useTheme } from "@/hooks/useTheme";
 import { cn } from "@/lib/utils";
@@ -35,10 +35,6 @@ function formatRelativeTime(date?: Date) {
 export default function Web3News({ variant = "sidebar", className }: Web3NewsProps) {
   const { news, loading } = useWeb3News();
   const { theme } = useTheme();
-  const [mobileNewsIndex, setMobileNewsIndex] = useState(0);
-  const mobileSwipeStartX = useRef<number | null>(null);
-  const mobileSwipeDeltaX = useRef(0);
-  const mobileDidSwipe = useRef(false);
 
   const getDocumentTheme = () => {
     if (typeof document !== "undefined") {
@@ -109,54 +105,6 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
     }));
     displayedItems = [...displayedItems, ...placeholders];
   }
-
-  const mobileSlideCount = displayedItems.length;
-
-  useEffect(() => {
-    if (variant !== "mobile" || showNewsPlaceholders || mobileSlideCount <= 1) return;
-
-    const timer = window.setTimeout(() => {
-      setMobileNewsIndex((current) => (current + 1) % mobileSlideCount);
-    }, 4500);
-
-    return () => window.clearTimeout(timer);
-  }, [showNewsPlaceholders, mobileNewsIndex, mobileSlideCount, variant]);
-
-  useEffect(() => {
-    setMobileNewsIndex(0);
-  }, [mobileSlideCount]);
-
-  const handleMobileSwipeStart = (event: React.TouchEvent<HTMLDivElement>) => {
-    mobileSwipeStartX.current = event.touches[0]?.clientX ?? null;
-    mobileSwipeDeltaX.current = 0;
-    mobileDidSwipe.current = false;
-  };
-
-  const handleMobileSwipeMove = (event: React.TouchEvent<HTMLDivElement>) => {
-    if (mobileSwipeStartX.current === null) return;
-    mobileSwipeDeltaX.current = event.touches[0].clientX - mobileSwipeStartX.current;
-  };
-
-  const handleMobileSwipeEnd = () => {
-    const delta = mobileSwipeDeltaX.current;
-    mobileSwipeStartX.current = null;
-    mobileSwipeDeltaX.current = 0;
-
-    if (mobileSlideCount <= 1 || Math.abs(delta) < 48) return;
-
-    mobileDidSwipe.current = true;
-    setMobileNewsIndex((current) => {
-      if (delta < 0) return (current + 1) % mobileSlideCount;
-      return (current - 1 + mobileSlideCount) % mobileSlideCount;
-    });
-  };
-
-  const handleMobileSwipeClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!mobileDidSwipe.current) return;
-    event.preventDefault();
-    event.stopPropagation();
-    mobileDidSwipe.current = false;
-  };
 
   const renderHeaderIcons = () => {
     const iconSizeClass =
@@ -360,42 +308,40 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
   }
 
   if (variant === "mobile") {
+    const mobileNewsItems = items.filter((item) => item.source !== "Solaris").slice(0, 4);
+    const showMobileNewsPlaceholders = loading && mobileNewsItems.length === 0;
+
+    if (!showMobileNewsPlaceholders && mobileNewsItems.length === 0) {
+      return null;
+    }
+
     return (
       <section className={cn(className)}>
         <div className="flex flex-col gap-3 md:hidden">
-          {showNewsPlaceholders || displayedItems.length === 0 ? (
-            <div className="w-full animate-pulse">
-              <div className={cn("h-[340px] w-full rounded-[22px]", shimmerBackgroundClasses)} />
-              <div className="mx-auto mt-3 h-1 w-24 rounded-full bg-border/50" />
+          {showMobileNewsPlaceholders ? (
+            <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
+              {shimmerItems.map((index) => (
+                <div key={index} className={cn("h-[270px] w-[78vw] shrink-0 animate-pulse rounded-xl", shimmerBackgroundClasses)} />
+              ))}
             </div>
           ) : (
-            <div
-              className="overflow-hidden touch-pan-y"
-              onTouchStart={handleMobileSwipeStart}
-              onTouchMove={handleMobileSwipeMove}
-              onTouchEnd={handleMobileSwipeEnd}
-              onClickCapture={handleMobileSwipeClick}
-            >
-              <div
-                className="flex transition-transform duration-500 ease-out"
-                style={{ transform: `translateX(-${mobileNewsIndex * 100}%)` }}
-              >
-                {displayedItems.map((item) => {
+            <div className="relative left-1/2 w-screen -translate-x-1/2 overflow-x-auto pb-1 no-scrollbar">
+              <div className="flex gap-3 px-4">
+                {mobileNewsItems.map((item) => {
                   const isPlaceholder = !item.title;
-	                  return isPlaceholder ? (
-	                    <div key={item.id} className="w-full min-w-full">
-	                      <div
-	                        className={cn(
-	                          "group relative block h-[340px] overflow-hidden rounded-[22px] transition-transform",
-	                          cardBackgroundClasses,
-	                        )}
-	                      >
+                  return isPlaceholder ? (
+                    <div
+                      key={item.id}
+                      className={cn(
+                        "group relative block h-[270px] w-[78vw] shrink-0 overflow-hidden rounded-xl transition-transform",
+                        cardBackgroundClasses,
+                      )}
+                    >
                         <div className="h-full w-full bg-gradient-to-b from-black/6 to-transparent" />
                         <div className="absolute inset-x-4 bottom-4 space-y-2">
                           <div className="h-4 w-3/4 rounded bg-white/70" />
                           <div className="h-3 w-1/2 rounded bg-white/50" />
                         </div>
-                      </div>
                     </div>
                   ) : (
                     <a
@@ -403,37 +349,23 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
                       href={item.url}
                       target="_blank"
                       rel="noreferrer"
-	                      className="group block w-full min-w-full overflow-hidden rounded-[22px] transition-transform"
-	                    >
-	                      <div className="relative h-[340px] overflow-hidden rounded-[22px] bg-black">
-	                        <img
-	                          src={item.imageUrl}
-	                          alt={item.title}
+                      className="group block h-[270px] w-[78vw] shrink-0 overflow-hidden rounded-xl transition-transform"
+                    >
+                      <div className="relative h-full overflow-hidden rounded-xl bg-black">
+                        <img
+                          src={item.imageUrl}
+                          alt={item.title}
                           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                           loading="lazy"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
-	                        <h4 className="absolute inset-x-0 bottom-0 px-4 pb-5 text-[18px] font-semibold leading-snug text-white line-clamp-3">
-	                          {item.title}
-	                        </h4>
-	                      </div>
+                        <h4 className="absolute bottom-0 left-0 max-w-[90%] px-4 pb-5 text-left text-xl font-bold leading-tight text-white line-clamp-4">
+                          {item.title}
+                        </h4>
+                      </div>
                     </a>
                   );
                 })}
-              </div>
-              <div className="mx-auto mt-3 grid w-24 grid-cols-4 gap-1.5">
-                {displayedItems.map((item, index) => (
-                  <button
-                    type="button"
-	                    key={`mobile-news-status-${item.id}`}
-                    aria-label={`Show headline ${index + 1}`}
-                    onClick={() => setMobileNewsIndex(index)}
-	                    className={cn(
-	                      "h-1 rounded-full transition-colors",
-	                      index === mobileNewsIndex ? "bg-[#2F66F6]" : "bg-slate-200",
-	                    )}
-	                  />
-                ))}
               </div>
             </div>
           )}
