@@ -727,7 +727,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
             <Link
               key={post.slug}
               to={`/blog/${post.slug}`}
-              className="group block h-[270px] w-[78vw] shrink-0 overflow-hidden rounded-xl transition-transform"
+              className="group block h-[220px] w-[78vw] shrink-0 overflow-hidden rounded-xl transition-transform"
             >
               <div className="relative h-full overflow-hidden rounded-xl bg-black">
                 <img

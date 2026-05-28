@@ -321,7 +321,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
           {showMobileNewsPlaceholders ? (
             <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
               {shimmerItems.map((index) => (
-                <div key={index} className={cn("h-[270px] w-[78vw] shrink-0 animate-pulse rounded-xl", shimmerBackgroundClasses)} />
+                <div key={index} className={cn("h-[220px] w-[78vw] shrink-0 animate-pulse rounded-xl", shimmerBackgroundClasses)} />
               ))}
             </div>
           ) : (
@@ -333,7 +333,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
                     <div
                       key={item.id}
                       className={cn(
-                        "group relative block h-[270px] w-[78vw] shrink-0 overflow-hidden rounded-xl transition-transform",
+                        "group relative block h-[220px] w-[78vw] shrink-0 overflow-hidden rounded-xl transition-transform",
                         cardBackgroundClasses,
                       )}
                     >
@@ -349,7 +349,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
                       href={item.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="group block h-[270px] w-[78vw] shrink-0 overflow-hidden rounded-xl transition-transform"
+                      className="group block h-[220px] w-[78vw] shrink-0 overflow-hidden rounded-xl transition-transform"
                     >
                       <div className="relative h-full overflow-hidden rounded-xl bg-black">
                         <img

@@ -187,7 +187,7 @@ export default function Wallet() {
                           </div>
 
                           {codes.length === 0 ? (
-                            <div className="rounded-xl bg-[#E5E7EB] px-3 py-2 text-xs text-muted-foreground dark:bg-[#262626]">
+                            <div className="rounded-xl bg-transparent px-3 py-2 text-xs text-muted-foreground">
                               You currently hold {ownedCoinTags} CoinTag{ownedCoinTags === 1 ? "" : "s"},
                               but no codes are synced yet.
                             </div>
@@ -196,7 +196,7 @@ export default function Wallet() {
                               {codes.map((code) => (
                                 <div
                                   key={`${asset.id}-${code}`}
-                                  className="flex items-center justify-between gap-2 rounded-xl bg-[#E5E7EB] px-3 py-2 dark:bg-[#262626]"
+                                  className="flex items-center justify-between gap-2 rounded-xl bg-transparent px-3 py-2"
                                 >
                                   <span className="flex min-w-0 items-center gap-2 font-mono text-xs font-semibold text-foreground sm:text-sm">
                                     <KeyRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
@@ -247,7 +247,7 @@ export default function Wallet() {
                 {selectedKeyCodes.map((code) => (
                   <div
                     key={`${selectedKeyAsset.id}-modal-${code}`}
-                    className="flex items-center justify-between gap-2 rounded-xl bg-muted/25 px-3 py-2"
+                    className="flex items-center justify-between gap-2 rounded-xl bg-transparent px-3 py-2"
                   >
                     <span className="flex min-w-0 items-center gap-2 font-mono text-xs font-semibold text-foreground sm:text-sm">
                       <KeyRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
