@@ -402,7 +402,7 @@ const SolarisSlider = () => {
           border-radius: 13px;
           padding: 0 36px;
           min-height: 64px;
-          background: #17171f;
+          background: #3b82f6;
           color: #ffffff;
           display: inline-flex;
           align-items: center;
@@ -416,7 +416,8 @@ const SolarisSlider = () => {
 
         .get-started-btn:hover {
           transform: translateY(-1px);
-          opacity: 0.95;
+          background: #2563eb;
+          opacity: 0.98;
         }
 
         .landing-hero {
@@ -500,11 +501,11 @@ const SolarisSlider = () => {
         }
 
         .learn-more-btn {
-          border: 2px solid #d9d9e2;
+          border: 0;
           border-radius: 8px;
           min-height: 64px;
           padding: 0 28px;
-          background: transparent;
+          background: #3b82f6;
           color: #ffffff;
           display: inline-flex;
           align-items: center;
@@ -519,8 +520,8 @@ const SolarisSlider = () => {
 
         .learn-more-btn:hover {
           transform: translateY(-1px);
-          background: #ffffff;
-          color: #111116;
+          background: #2563eb;
+          color: #ffffff;
         }
 
         .landing-hero-mark {
@@ -648,8 +649,8 @@ const SolarisSlider = () => {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          color: #111116;
-          background: #91f20e;
+          color: #ffffff;
+          background: #3b82f6;
           font-size: 20px;
           font-weight: 800;
           cursor: pointer;
@@ -658,16 +659,16 @@ const SolarisSlider = () => {
 
         .landing-section-action:hover {
           transform: translateY(-1px);
-          background: #a3ff20;
+          background: #2563eb;
         }
 
         .landing-section-action--secondary {
           color: #ffffff;
-          background: #000000;
+          background: #3b82f6;
         }
 
         .landing-section-action--secondary:hover {
-          background: #000000;
+          background: #2563eb;
         }
 
         .token-visual {
@@ -981,41 +982,40 @@ const SolarisSlider = () => {
         }
 
         .lft-section {
-          margin-top: 12px;
+          margin-top: 0;
           scroll-margin-top: 110px;
           position: relative;
           z-index: 1;
-          padding: 72px 24px 88px;
-          background:
-            radial-gradient(circle at 18% 0%, rgba(59, 130, 246, 0.28), transparent 34%),
-            linear-gradient(180deg, #050816 0%, #000000 100%);
+          padding: 48px 24px 72px;
+          background: #000000;
         }
 
         .lft-section-inner {
-          max-width: 1220px;
+          max-width: 980px;
           margin: 0 auto;
         }
 
         .lft-image-frame {
-          width: min(100%, 1220px);
+          width: min(100%, 980px);
           margin: 0 auto;
-          padding: clamp(24px, 3vw, 36px) clamp(20px, 4vw, 48px);
+          padding: clamp(26px, 4vw, 54px);
+          border: 4px solid rgba(148, 148, 156, 0.62);
           border-radius: 0;
-          background: transparent;
+          background: #000000;
           box-shadow: none;
           display: flex;
           flex-direction: column;
           align-items: flex-start;
           justify-content: center;
-          gap: 10px;
+          gap: 14px;
           text-align: left;
         }
 
         .lft-intro-title {
           margin: 0;
-          max-width: 980px;
-          color: #3b82f6;
-          font-size: clamp(30px, 4.2vw, 54px);
+          max-width: 780px;
+          color: #ffffff;
+          font-size: clamp(26px, 3.3vw, 46px);
           line-height: 1;
           letter-spacing: -0.04em;
           font-weight: 600;
@@ -1023,9 +1023,9 @@ const SolarisSlider = () => {
 
         .lft-intro-copy {
           margin: 0;
-          max-width: 980px;
+          max-width: 780px;
           color: rgba(255, 255, 255, 0.72);
-          font-size: clamp(18px, 2vw, 28px);
+          font-size: clamp(16px, 1.55vw, 24px);
           line-height: 1.45;
           letter-spacing: -0.02em;
           font-weight: 300;
@@ -1445,8 +1445,7 @@ const SolarisSlider = () => {
             margin-bottom: 8px;
             border-radius: 0;
             background: transparent;
-            border-top: 1px solid rgba(148, 148, 156, 0.38);
-            border-bottom: 1px solid rgba(148, 148, 156, 0.38);
+            border: 0;
             box-shadow: none;
             backdrop-filter: none;
             -webkit-backdrop-filter: none;
@@ -1668,7 +1667,7 @@ const SolarisSlider = () => {
           .lft-section {
             margin-top: 8px;
             scroll-margin-top: 78px;
-            padding: 48px 16px 56px;
+            padding: 36px 16px 44px;
           }
 
           .landing-empty {
@@ -1678,7 +1677,8 @@ const SolarisSlider = () => {
           .lft-image-frame {
             width: 100%;
             margin-top: 0;
-            padding: 18px 12px;
+            padding: 22px 16px;
+            border-width: 3px;
             border-radius: 0;
             gap: 8px;
             align-items: flex-start;
@@ -1686,11 +1686,11 @@ const SolarisSlider = () => {
           }
 
           .lft-intro-title {
-            font-size: clamp(28px, 8vw, 38px);
+            font-size: clamp(24px, 7vw, 34px);
           }
 
           .lft-intro-copy {
-            font-size: clamp(16px, 4.8vw, 22px);
+            font-size: clamp(14px, 4.2vw, 18px);
             line-height: 1.42;
           }
 
@@ -1894,7 +1894,7 @@ const SolarisSlider = () => {
                   <span>Real Liquidity.</span>
                 </h1>
                 <div className="landing-hero-pill">
-                  <span>Built on and backed by</span>
+                  <span>Built and powered by</span>
                   <span className="landing-hero-pill-mark" />
                   <span>base</span>
                 </div>
@@ -1963,8 +1963,7 @@ const SolarisSlider = () => {
             <div className="landing-section-content">
               <span className="landing-section-kicker">$LFT.</span>
               <h3 className="landing-section-title">
-                Fueling
-                <span className="landing-section-muted-line">Non-extractive</span>
+                Non-extractive
                 <span className="landing-section-muted-line">Digital Value.</span>
               </h3>
               <p className="landing-section-copy">
@@ -1999,9 +1998,6 @@ const SolarisSlider = () => {
                 <p className="lft-intro-copy">
                   Liquidity Funded Tokens. Value-backed from day one. Guaranteed redemption that never hits zero.
                 </p>
-                <div className="lft-intro-image-shell">
-                  <img className="lft-intro-image" src="/cora.png" alt="LFT preview" />
-                </div>
               </div>
             </div>
           </section>

@@ -230,7 +230,7 @@ const Index = () => {
                   <span className="mt-6 block text-[#d681ff]">Limitless Value.</span>
                 </h1>
                 <div className="mt-10 inline-flex items-center gap-2 rounded-md bg-white/[0.07] px-4 py-3 font-mono text-sm font-bold text-white ring-1 ring-white/[0.04] sm:text-base">
-                  <span>Built on and backed by</span>
+                  <span>Built and powered by</span>
                   <span className="inline-flex h-4 w-4 bg-white" />
                   <span className="text-xl font-black leading-none tracking-[-0.06em]">base</span>
                 </div>
