@@ -27,18 +27,42 @@ const PROBLEM_ITEMS = [
 
 const [PRIMARY_PROBLEM, SECONDARY_PROBLEM, TERTIARY_PROBLEM, QUATERNARY_PROBLEM] = PROBLEM_ITEMS;
 
-const ProblemDiagram = () => (
-  <div className="problem-diagram" aria-hidden="true">
-    <span className="problem-diagram-grid" />
-    <span className="problem-diagram-ring problem-diagram-ring--left" />
-    <span className="problem-diagram-ring problem-diagram-ring--left-inner" />
-    <span className="problem-diagram-ring problem-diagram-ring--right" />
-    <span className="problem-diagram-ring problem-diagram-ring--right-inner" />
-    <span className="problem-diagram-outline problem-diagram-outline--left" />
-    <span className="problem-diagram-outline problem-diagram-outline--right" />
-    <span className="problem-diagram-shape problem-diagram-shape--one" />
-    <span className="problem-diagram-shape problem-diagram-shape--two" />
-    <span className="problem-diagram-glow" />
+type ProblemDiagramVariant = "blue" | "yellow" | "green" | "purple";
+
+const ProblemDiagram = ({ variant }: { variant: ProblemDiagramVariant }) => (
+  <div className={`problem-diagram problem-diagram--${variant}`} aria-hidden="true">
+    {variant === "blue" && (
+      <svg viewBox="0 0 640 240" className="problem-diagram-svg" role="presentation">
+        <circle cx="180" cy="120" r="76" className="problem-diagram-stroke" />
+        <circle cx="470" cy="110" r="50" className="problem-diagram-fill" />
+        <path d="M265 121H375" className="problem-diagram-line" />
+        <rect x="300" y="78" width="52" height="84" rx="10" className="problem-diagram-box" />
+      </svg>
+    )}
+    {variant === "yellow" && (
+      <svg viewBox="0 0 640 240" className="problem-diagram-svg" role="presentation">
+        <rect x="150" y="72" width="116" height="96" rx="16" className="problem-diagram-box" />
+        <path d="M290 118H408" className="problem-diagram-line" />
+        <circle cx="444" cy="116" r="46" className="problem-diagram-fill" />
+        <path d="M410 72L520 182" className="problem-diagram-stroke" />
+      </svg>
+    )}
+    {variant === "green" && (
+      <svg viewBox="0 0 640 240" className="problem-diagram-svg" role="presentation">
+        <path d="M150 156C150 114 184 80 226 80H274V156H150Z" className="problem-diagram-fill" />
+        <path d="M286 156C286 114 320 80 362 80H410V156H286Z" className="problem-diagram-fill problem-diagram-fill--alt" />
+        <path d="M190 66V174" className="problem-diagram-line" />
+        <path d="M332 66V174" className="problem-diagram-line" />
+      </svg>
+    )}
+    {variant === "purple" && (
+      <svg viewBox="0 0 640 240" className="problem-diagram-svg" role="presentation">
+        <circle cx="190" cy="120" r="66" className="problem-diagram-stroke" />
+        <rect x="292" y="76" width="84" height="84" rx="18" className="problem-diagram-fill" />
+        <path d="M392 98H490" className="problem-diagram-line" />
+        <path d="M412 142H520" className="problem-diagram-line" />
+      </svg>
+    )}
   </div>
 );
 
@@ -861,198 +885,91 @@ const SolarisSlider = () => {
           position: absolute;
           inset: 0;
           overflow: hidden;
-          background:
-            radial-gradient(circle at 58% 54%, rgba(128, 157, 255, 0.2), transparent 36%),
-            linear-gradient(180deg, rgba(16, 16, 24, 0.04) 0%, rgba(18, 14, 28, 0.2) 100%);
+          background: linear-gradient(180deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.24) 100%);
         }
 
-        .problem-diagram-grid {
+        .problem-diagram-svg {
           position: absolute;
           inset: 0;
-          background-image:
-            linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
-          background-size: 140px 140px;
-          opacity: 0.58;
+          width: 100%;
+          height: 100%;
+          display: block;
         }
 
-        .problem-diagram-ring {
-          position: absolute;
-          border-radius: 50%;
-          border: 4px solid rgba(226, 224, 232, 0.62);
-          opacity: 0.82;
+        .problem-diagram-stroke,
+        .problem-diagram-line {
+          fill: none;
+          stroke: rgba(255, 255, 255, 0.5);
+          stroke-width: 6;
+          stroke-linecap: round;
+          stroke-linejoin: round;
         }
 
-        .problem-diagram-ring--left {
-          width: 360px;
-          height: 360px;
-          left: -72px;
-          bottom: -120px;
+        .problem-diagram-line {
+          stroke-width: 5;
         }
 
-        .problem-diagram-ring--left-inner {
-          width: 314px;
-          height: 314px;
-          left: -49px;
-          bottom: -97px;
-          border-color: rgba(226, 224, 232, 0.5);
+        .problem-diagram-box {
+          fill: rgba(255, 255, 255, 0.12);
+          stroke: rgba(255, 255, 255, 0.28);
+          stroke-width: 4;
         }
 
-        .problem-diagram-ring--right {
-          width: 376px;
-          height: 376px;
-          right: -144px;
-          bottom: -122px;
-          border-color: rgba(144, 169, 255, 0.68);
+        .problem-diagram-fill {
+          fill: rgba(128, 157, 255, 0.9);
         }
 
-        .problem-diagram-ring--right-inner {
-          width: 324px;
-          height: 324px;
-          right: -118px;
-          bottom: -96px;
-          border-color: rgba(128, 157, 255, 0.56);
+        .problem-diagram-fill--alt {
+          fill: rgba(95, 219, 146, 0.86);
         }
 
-        .problem-diagram-outline {
-          position: absolute;
-          width: 106px;
-          height: 82px;
-          border: 3px solid rgba(226, 224, 232, 0.36);
-          opacity: 0.9;
+        .problem-diagram--blue .problem-diagram-fill,
+        .problem-diagram--purple .problem-diagram-fill {
+          fill: rgba(128, 157, 255, 0.9);
         }
 
-        .problem-diagram-outline::before,
-        .problem-diagram-outline::after {
-          content: "";
-          position: absolute;
-          height: 3px;
-          background: rgba(226, 224, 232, 0.38);
+        .problem-diagram--yellow .problem-diagram-fill {
+          fill: rgba(255, 205, 95, 0.92);
         }
 
-        .problem-diagram-outline::before {
-          width: 52%;
-          left: 0;
-          top: 48%;
+        .problem-diagram--green .problem-diagram-fill {
+          fill: rgba(95, 219, 146, 0.9);
         }
 
-        .problem-diagram-outline::after {
-          width: 52%;
-          right: 0;
-          top: 66%;
+        .problem-diagram--blue .problem-diagram-stroke,
+        .problem-diagram--blue .problem-diagram-line {
+          stroke: rgba(145, 175, 255, 0.68);
         }
 
-        .problem-diagram-outline--left {
-          left: 30%;
-          bottom: 50px;
+        .problem-diagram--yellow .problem-diagram-stroke,
+        .problem-diagram--yellow .problem-diagram-line {
+          stroke: rgba(255, 214, 120, 0.72);
         }
 
-        .problem-diagram-outline--right {
-          left: 46%;
-          bottom: 64px;
-          opacity: 0.38;
+        .problem-diagram--green .problem-diagram-stroke,
+        .problem-diagram--green .problem-diagram-line {
+          stroke: rgba(120, 231, 168, 0.72);
         }
 
-        .problem-diagram-shape {
-          position: absolute;
-          width: 108px;
-          height: 96px;
-          bottom: 58px;
-          background: linear-gradient(135deg, #b4caff 0%, #6789dc 52%, #263a74 100%);
-          opacity: 0.9;
+        .problem-diagram--purple .problem-diagram-stroke,
+        .problem-diagram--purple .problem-diagram-line {
+          stroke: rgba(194, 156, 255, 0.72);
         }
 
-        .problem-diagram-shape--one {
-          right: 25%;
-          border-radius: 0 70px 0 70px;
+        .problem-diagram--blue {
+          background: linear-gradient(180deg, rgba(13, 23, 46, 0.14) 0%, rgba(10, 18, 37, 0.66) 100%);
         }
 
-        .problem-diagram-shape--two {
-          right: 12%;
-          border-radius: 70px 70px 0 0;
-          clip-path: inset(0 0 0 0 round 70px 70px 0 0);
-          opacity: 0.5;
+        .problem-diagram--yellow {
+          background: linear-gradient(180deg, rgba(43, 31, 8, 0.12) 0%, rgba(28, 21, 7, 0.7) 100%);
         }
 
-        .problem-diagram-glow {
-          position: absolute;
-          width: 220px;
-          height: 170px;
-          right: 18%;
-          bottom: 15px;
-          background: rgba(128, 157, 255, 0.18);
-          filter: blur(42px);
+        .problem-diagram--green {
+          background: linear-gradient(180deg, rgba(13, 36, 24, 0.12) 0%, rgba(8, 24, 15, 0.72) 100%);
         }
 
-        .problem-box--blue .problem-diagram {
-          background:
-            radial-gradient(circle at 56% 56%, rgba(128, 157, 255, 0.2), transparent 34%),
-            linear-gradient(180deg, rgba(13, 23, 46, 0.1) 0%, rgba(10, 18, 37, 0.66) 100%);
-        }
-
-        .problem-box--yellow .problem-diagram {
-          background:
-            radial-gradient(circle at 56% 56%, rgba(255, 205, 95, 0.2), transparent 34%),
-            linear-gradient(180deg, rgba(43, 31, 8, 0.1) 0%, rgba(28, 21, 7, 0.68) 100%);
-        }
-
-        .problem-box--green .problem-diagram {
-          background:
-            radial-gradient(circle at 56% 56%, rgba(89, 222, 148, 0.16), transparent 34%),
-            linear-gradient(180deg, rgba(13, 36, 24, 0.1) 0%, rgba(8, 24, 15, 0.7) 100%);
-        }
-
-        .problem-box--purple .problem-diagram {
-          background:
-            radial-gradient(circle at 56% 56%, rgba(128, 157, 255, 0.2), transparent 34%),
-            linear-gradient(180deg, rgba(33, 20, 51, 0.1) 0%, rgba(21, 13, 34, 0.7) 100%);
-        }
-
-        .problem-box--green .problem-diagram-ring--right,
-        .problem-box--green .problem-diagram-ring--right-inner {
-          border-color: rgba(112, 222, 153, 0.64);
-        }
-
-        .problem-box--yellow .problem-diagram-ring--right,
-        .problem-box--yellow .problem-diagram-ring--right-inner {
-          border-color: rgba(255, 209, 112, 0.62);
-        }
-
-        .problem-box--blue .problem-diagram-ring--right,
-        .problem-box--blue .problem-diagram-ring--right-inner {
-          border-color: rgba(144, 169, 255, 0.68);
-        }
-
-        .problem-box--green .problem-diagram-shape {
-          background: linear-gradient(135deg, #9beeb4 0%, #56bd79 52%, #244b34 100%);
-        }
-
-        .problem-box--yellow .problem-diagram-shape {
-          background: linear-gradient(135deg, #ffe49a 0%, #c9912c 52%, #5d3e0f 100%);
-        }
-
-        .problem-box--blue .problem-diagram-shape {
-          background: linear-gradient(135deg, #b4caff 0%, #6789dc 52%, #263a74 100%);
-        }
-
-        .problem-box--purple .problem-diagram-shape {
-          background: linear-gradient(135deg, #b4caff 0%, #6789dc 52%, #263a74 100%);
-        }
-
-        .problem-box--green .problem-diagram-glow {
-          background: rgba(89, 222, 148, 0.18);
-        }
-
-        .problem-box--yellow .problem-diagram-glow {
-          background: rgba(255, 205, 95, 0.18);
-        }
-
-        .problem-box--blue .problem-diagram-glow {
-          background: rgba(128, 157, 255, 0.18);
-        }
-
-        .problem-box--purple .problem-diagram-glow {
-          background: rgba(128, 157, 255, 0.18);
+        .problem-diagram--purple {
+          background: linear-gradient(180deg, rgba(33, 20, 51, 0.12) 0%, rgba(21, 13, 34, 0.72) 100%);
         }
 
         .problem-box-image {
@@ -1742,65 +1659,9 @@ const SolarisSlider = () => {
             border-radius: 0 0 24px 24px;
           }
 
-          .problem-diagram-ring--left {
-            width: 250px;
-            height: 250px;
-            left: -62px;
-            bottom: -102px;
-          }
-
-          .problem-diagram-ring--left-inner {
-            width: 220px;
-            height: 220px;
-            left: -47px;
-            bottom: -87px;
-          }
-
-          .problem-diagram-ring--right {
-            width: 270px;
-            height: 270px;
-            right: -125px;
-            bottom: -103px;
-          }
-
-          .problem-diagram-ring--right-inner {
-            width: 232px;
-            height: 232px;
-            right: -106px;
-            bottom: -84px;
-          }
-
-          .problem-diagram-outline {
-            width: 74px;
-            height: 58px;
-            border-width: 2px;
-          }
-
-          .problem-diagram-outline::before,
-          .problem-diagram-outline::after {
-            height: 2px;
-          }
-
-          .problem-diagram-outline--left {
-            left: 27%;
-            bottom: 36px;
-          }
-
-          .problem-diagram-outline--right {
-            left: 45%;
-            bottom: 45px;
-          }
-
-          .problem-diagram-shape {
-            width: 76px;
-            height: 68px;
-            bottom: 40px;
-          }
-
-          .problem-diagram-glow {
-            width: 150px;
-            height: 108px;
-            bottom: 12px;
+          .problem-diagram-svg {
+            transform: scale(0.92);
+            transform-origin: center;
           }
 
           .lft-section {
@@ -1869,12 +1730,12 @@ const SolarisSlider = () => {
           }
 
           .paradigm-copy {
-            font-size: clamp(17px, 5vw, 22px);
-            line-height: 1.5;
+            font-size: clamp(14px, 4vw, 18px);
+            line-height: 1.48;
           }
 
           .paradigm-copy + .paradigm-copy {
-            margin-top: 14px;
+            margin-top: 12px;
           }
 
           .how-it-works-section {
@@ -2067,14 +1928,14 @@ const SolarisSlider = () => {
                 <article className="problem-box problem-box--blue">
                   <p className="problem-box-copy">{PRIMARY_PROBLEM.text}</p>
                   <div className="problem-box-frame">
-                    <ProblemDiagram />
+                    <ProblemDiagram variant="blue" />
                   </div>
                 </article>
 
                 <article className="problem-box problem-box--yellow">
                   <p className="problem-box-copy">{SECONDARY_PROBLEM.text}</p>
                   <div className="problem-box-frame">
-                    <ProblemDiagram />
+                    <ProblemDiagram variant="yellow" />
                   </div>
                 </article>
               </div>
@@ -2083,14 +1944,14 @@ const SolarisSlider = () => {
                 <article className="problem-box problem-box--green">
                   <p className="problem-box-copy">{TERTIARY_PROBLEM.text}</p>
                   <div className="problem-box-frame">
-                    <ProblemDiagram />
+                    <ProblemDiagram variant="green" />
                   </div>
                 </article>
 
                 <article className="problem-box problem-box--blue">
                   <p className="problem-box-copy">{QUATERNARY_PROBLEM.text}</p>
                   <div className="problem-box-frame">
-                    <ProblemDiagram />
+                    <ProblemDiagram variant="purple" />
                   </div>
                 </article>
               </div>
