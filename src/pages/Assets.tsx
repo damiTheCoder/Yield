@@ -9,32 +9,18 @@ import { Check, LayoutGrid, Rows3, Star } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Web3News from "@/components/Web3News";
 import MarketTickerTape from "@/components/MarketTickerTape";
 import type { TouchEvent } from "react";
 import { getDiscoverableSupply } from "@/domain/tokenomics";
+import { useWeb3News } from "@/hooks/useWeb3News";
+import type { Web3NewsItem } from "@/hooks/useWeb3News";
 
 const MAX_TRENDING = 10;
 const ASSET_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/r1.jpeg"];
 const MOBILE_ASSET_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/r1.jpeg"];
 const ICON_STACK_MESSAGE = "we just felt this will make the UX design look good 😂";
-const MOBILE_BLOG_POSTS = [
-  {
-    slug: "tokenized-yield-liquidity",
-    title: "Reimagining Liquidity: How Tokenized Yield Is Bridging Traditional Finance and Web3",
-    image: "/d5.png",
-  },
-  {
-    slug: "creative-liquidity-web3",
-    title: "The Creative Use of Liquidity in the Web3 Space",
-    image: "/d3.png",
-  },
-  {
-    slug: "liquidity-funded-tokens",
-    title: "Liquidity Funded Tokens (LFTs): Turning Hype Into Durable Value",
-    image: "/d1.png",
-  },
-];
 type Network = "all" | "polygon" | "ethereum" | "solana" | "base" | "optimism";
 const ASSET_NETWORK_IDS: Exclude<Network, "all">[] = ["polygon", "ethereum", "solana", "base", "optimism"];
 const NETWORKS = [
@@ -317,6 +303,8 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [showAllListed, setShowAllListed] = useState(false);
+  const [selectedNews, setSelectedNews] = useState<Web3NewsItem | null>(null);
+  const { news: statusNews, loading: statusNewsLoading } = useWeb3News(8);
 
   const toggleFavorite = useCallback((id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -662,91 +650,66 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     );
   };
 
-  const renderMobileTrendingTokens = () => {
-    if (!showTrending || trendingTokens.length === 0) return null;
-    const trendingRows = [
-      trendingTokens.filter((_, index) => index % 2 === 0),
-      trendingTokens.filter((_, index) => index % 2 === 1),
-    ].filter((row) => row.length > 0);
+  const renderMobileNewsStatus = () => {
+    if (!showTrending) return null;
 
-    const renderTrendingRow = (row: typeof trendingTokens, rowIndex: number) => (
-      <div key={`trending-row-${rowIndex}`} className="relative left-1/2 w-screen -translate-x-1/2 overflow-x-auto pb-0.5 no-scrollbar">
-        <div className="flex gap-2 px-4">
-          {row.map(({ asset, change }) => {
-            const isPositive = change >= 0;
-            const liveLpu = asset.cycle.supply > 0 ? asset.cycle.reserve / asset.cycle.supply : 0;
+    const statusItems = statusNews ?? [];
+    const showPlaceholders = statusNewsLoading && statusItems.length === 0;
 
-            return (
-              <button
-                key={`mobile-trending-${rowIndex}-${asset.id}`}
-                type="button"
-                onClick={() => navigate(`/assets/${asset.id}`)}
-                className="flex h-[70px] w-[62vw] shrink-0 overflow-hidden rounded-xl bg-[#F3F5F8] text-left transition-colors hover:bg-[#EEF2F6] dark:bg-[#171717]"
-              >
-                <img src={asset.image} alt={asset.name} className="h-full w-[70px] shrink-0 object-cover" loading="lazy" />
-                <div className="flex min-w-0 flex-1 flex-col justify-center px-2.5">
-                  <div className="flex min-w-0 items-center gap-1.5">
-                    <span className="truncate text-sm font-semibold text-foreground">{asset.name}</span>
-                    <img src="/checklist.png" alt="verified" className="h-3.5 w-3.5 shrink-0" loading="lazy" />
-                  </div>
-                  <div className="mt-0.5 flex items-center gap-1.5 text-xs font-medium tabular-nums text-muted-foreground">
-                    <span>{liveLpu < 0.01 ? "< 0.01" : formatUnitCurrency(liveLpu)}</span>
-                    <span>{asset.ticker ?? asset.id.toUpperCase()}</span>
-                    <span className={isPositive ? "text-emerald-600" : "text-rose-500"}>{formatChange(change)}</span>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    );
+    if (!showPlaceholders && statusItems.length === 0) return null;
 
     return (
       <section className="mb-5 md:hidden">
-        <div className="mb-2.5">
-          <h2 className="text-xl font-bold leading-tight text-foreground">Trending</h2>
-          <p className="text-xs text-muted-foreground">Tokens with momentum today</p>
+        <div className="mb-3 flex items-end justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold leading-tight text-foreground">News status</h2>
+            <p className="text-xs text-muted-foreground">Latest stories from Web3</p>
+          </div>
+          <Link to="/blog" className="shrink-0 text-xs font-semibold text-[#2F66F6]">
+            View all
+          </Link>
         </div>
-        <div className="space-y-2 pb-1.5">
-          {trendingRows.map(renderTrendingRow)}
+        <div className="relative left-1/2 w-screen -translate-x-1/2 overflow-x-auto pb-1 no-scrollbar">
+          <div className="flex gap-4 px-4">
+            {showPlaceholders
+              ? Array.from({ length: 5 }, (_, index) => (
+                  <div key={`news-status-placeholder-${index}`} className="w-[76px] shrink-0">
+                    <div className="h-[76px] w-[76px] animate-pulse rounded-full bg-muted" />
+                    <div className="mx-auto mt-2 h-3 w-12 animate-pulse rounded bg-muted" />
+                  </div>
+                ))
+              : statusItems.map((item) => {
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setSelectedNews(item)}
+                      className="group w-[76px] shrink-0 text-center"
+                      aria-label={`Open headline: ${item.title}`}
+                    >
+                      <div className="rounded-full bg-gradient-to-tr from-[#2F66F6] via-[#00B2FF] to-[#33FF9C] p-[2px]">
+                        <div className="rounded-full bg-background p-[3px]">
+                          <div className="relative h-[66px] w-[66px] overflow-hidden rounded-full bg-muted">
+                            <img
+                              src={item.imageUrl}
+                              alt={item.title}
+                              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                              loading="lazy"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <p className="mt-2 line-clamp-2 text-[11px] font-semibold leading-tight text-foreground">
+                        {item.source || "Web3"}
+                      </p>
+                    </button>
+                  );
+                })}
+          </div>
         </div>
       </section>
     );
   };
-
-  const renderMobileBlogs = () => (
-    <section className="mb-5 md:hidden">
-      <div className="mb-2.5">
-        <h2 className="text-xl font-bold leading-tight text-foreground">Featured blog</h2>
-        <p className="text-xs text-muted-foreground">Get access to insightful blogs</p>
-      </div>
-      <div className="relative left-1/2 w-screen -translate-x-1/2 overflow-x-auto pb-1 no-scrollbar">
-        <div className="flex gap-3 px-4">
-          {MOBILE_BLOG_POSTS.map((post) => (
-            <Link
-              key={post.slug}
-              to={`/blog/${post.slug}`}
-              className="group block h-[220px] w-[78vw] shrink-0 overflow-hidden rounded-xl transition-transform"
-            >
-              <div className="relative h-full overflow-hidden rounded-xl bg-black">
-                <img
-                  src={post.image}
-                  alt={post.title}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
-                <h4 className="absolute bottom-0 left-0 max-w-[90%] px-4 pb-5 text-left text-xl font-bold leading-tight text-white line-clamp-4">
-                  {post.title}
-                </h4>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
 
   return (
     <div className={cn("min-h-screen", "bg-background")}>
@@ -754,7 +717,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
         <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col pt-0 pb-4">
 
-            {renderMobileTrendingTokens()}
+            {renderMobileNewsStatus()}
 
             {showTrending && (
               <Web3News variant="mobile" className="mb-4 hidden md:block" />
@@ -998,15 +961,62 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
               </div>
             )}
 
-            {showTrending && (
-              <Web3News variant="mobile" className="mb-4 md:hidden" />
-            )}
-
-            {showTrending && renderMobileBlogs()}
-
           </div>
         </div>
       </main>
+      <Dialog open={Boolean(selectedNews)} onOpenChange={(open) => !open && setSelectedNews(null)}>
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-[420px] overflow-hidden rounded-3xl border border-border/60 p-0">
+          {selectedNews ? (
+            <div>
+              {selectedNews.imageUrl ? (
+                <div className="relative h-44 overflow-hidden bg-muted">
+                  <img
+                    src={selectedNews.imageUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+                </div>
+              ) : null}
+              <DialogHeader className="space-y-3 px-5 pb-5 pt-5 text-left">
+                <DialogDescription className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2F66F6]">
+                  {selectedNews.source || "Web3 headline"}
+                </DialogDescription>
+                <DialogTitle className="text-2xl font-bold leading-tight tracking-[-0.03em] text-foreground">
+                  {selectedNews.title}
+                </DialogTitle>
+                <div className="flex items-center gap-3 pt-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="rounded-full bg-[#2F66F6] px-4 text-white hover:bg-[#2559DC]"
+                    onClick={() => {
+                      if (!selectedNews.url) return;
+                      if (selectedNews.url.startsWith("/")) {
+                        navigate(selectedNews.url);
+                      } else {
+                        window.open(selectedNews.url, "_blank", "noopener,noreferrer");
+                      }
+                      setSelectedNews(null);
+                    }}
+                  >
+                    Read story
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-full"
+                    onClick={() => setSelectedNews(null)}
+                  >
+                    Close
+                  </Button>
+                </div>
+              </DialogHeader>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -27,6 +27,21 @@ const PROBLEM_ITEMS = [
 
 const [PRIMARY_PROBLEM, SECONDARY_PROBLEM, TERTIARY_PROBLEM, QUATERNARY_PROBLEM] = PROBLEM_ITEMS;
 
+const ProblemDiagram = () => (
+  <div className="problem-diagram" aria-hidden="true">
+    <span className="problem-diagram-grid" />
+    <span className="problem-diagram-ring problem-diagram-ring--left" />
+    <span className="problem-diagram-ring problem-diagram-ring--left-inner" />
+    <span className="problem-diagram-ring problem-diagram-ring--right" />
+    <span className="problem-diagram-ring problem-diagram-ring--right-inner" />
+    <span className="problem-diagram-outline problem-diagram-outline--left" />
+    <span className="problem-diagram-outline problem-diagram-outline--right" />
+    <span className="problem-diagram-shape problem-diagram-shape--one" />
+    <span className="problem-diagram-shape problem-diagram-shape--two" />
+    <span className="problem-diagram-glow" />
+  </div>
+);
+
 const HOW_IT_WORKS_STEPS = [
   {
     title: "Launch an LFT",
@@ -48,30 +63,20 @@ const HOW_IT_WORKS_STEPS = [
 
 const FOOTER_SECTIONS = [
   {
-    title: "Platform",
+    title: "Launch App",
     links: [
-      { label: "Assets", to: "/assets" },
-      { label: "Portfolio", to: "/portfolio" },
-      { label: "Revenue", to: "/revenue" },
-      { label: "Wallet", to: "/wallet" },
+      { label: "Foundation", to: "/coin-tags" },
+      { label: "Token", to: "/assets" },
+      { label: "Airdrop", to: "/notifications" },
+      { label: "Staking", to: "/portfolio" },
     ],
   },
   {
-    title: "Creators",
+    title: "Build",
     links: [
-      { label: "LaunchPad", to: "/assets" },
-      { label: "How It Works", to: "/coin-tags" },
-      { label: "Token Financials", to: "/revenue" },
-      { label: "Notifications", to: "/notifications" },
-    ],
-  },
-  {
-    title: "Resources",
-    links: [
-      { label: "Blog", to: "/blog" },
-      { label: "Marketplace", to: "/assets" },
-      { label: "Connect Wallet", to: "/portfolio" },
-      { label: "Get Started", to: "/assets" },
+      { label: "Docs", to: "/blog" },
+      { label: "Terms of Service", to: "/blog" },
+      { label: "Privacy", to: "/blog" },
     ],
   },
 ] as const;
@@ -166,7 +171,7 @@ const SolarisSlider = () => {
           min-height: 100vh;
           width: 100%;
           color: #060b16;
-          background: #ffffff;
+          background: #000000;
           font-family: "Glacial Indifference", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
@@ -234,13 +239,24 @@ const SolarisSlider = () => {
           min-height: 100vh;
           display: flex;
           flex-direction: column;
-          background: #ffffff;
+          background: #000000;
         }
 
         .landing-top-band {
           position: relative;
-          background: url("/ks1.png") center top / cover no-repeat;
+          min-height: 100svh;
+          background: #000000 url("/ks1.jpeg") center center / cover no-repeat;
           overflow: hidden;
+        }
+
+        .landing-top-band::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background:
+            linear-gradient(180deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.46) 44%, rgba(0, 0, 0, 0.9) 100%),
+            radial-gradient(circle at 54% 62%, rgba(128, 157, 255, 0.22), transparent 34%);
+          pointer-events: none;
         }
 
         .landing-top-band::after {
@@ -250,7 +266,7 @@ const SolarisSlider = () => {
           right: 0;
           bottom: 0;
           height: 128px;
-          background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.64) 66%, #ffffff 100%);
+          background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #000000 100%);
           pointer-events: none;
         }
 
@@ -262,11 +278,11 @@ const SolarisSlider = () => {
           z-index: 50;
           padding: 14px 22px;
           pointer-events: none;
-          background: url("/ks1.png") center top / cover no-repeat;
+          background: transparent;
         }
 
         .landing-nav-inner {
-          max-width: 1220px;
+          max-width: 1320px;
           margin: 0 auto;
           pointer-events: auto;
         }
@@ -305,13 +321,16 @@ const SolarisSlider = () => {
           align-items: center;
           gap: 12px;
           border: none;
-          background: transparent;
-          color: #060b16;
+          border-radius: 13px;
+          background: #17171f;
+          color: #ffffff;
           font-size: 22px;
           font-weight: 900;
           justify-self: start;
           cursor: pointer;
-          padding: 0;
+          min-height: 64px;
+          padding: 0 28px;
+          box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
         }
 
         .nav-logo {
@@ -331,39 +350,44 @@ const SolarisSlider = () => {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          gap: 38px;
+          gap: 42px;
+          min-height: 64px;
+          padding: 0 42px;
+          border-radius: 13px;
+          background: #17171f;
+          box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
         }
 
         .nav-link {
           border: none;
           background: transparent;
-          color: rgba(6, 11, 22, 0.62);
+          color: #8d8e9c;
           font-size: 16px;
-          font-weight: 600;
+          font-weight: 800;
           cursor: pointer;
           transition: color 0.2s ease;
         }
 
         .nav-link:hover {
-          color: #2f7bf7;
+          color: #ffffff;
         }
 
         .get-started-btn {
           justify-self: end;
           border: none;
-          border-radius: 999px;
-          padding: 0 18px;
-          min-height: 44px;
-          background: #2f7bf7;
+          border-radius: 13px;
+          padding: 0 36px;
+          min-height: 64px;
+          background: #17171f;
           color: #ffffff;
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          font-size: 14px;
-          font-weight: 700;
+          font-size: 17px;
+          font-weight: 900;
           cursor: pointer;
           transition: transform 0.2s ease, opacity 0.2s ease;
-          box-shadow: 0 14px 28px rgba(47, 123, 247, 0.24);
+          box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
         }
 
         .get-started-btn:hover {
@@ -372,142 +396,360 @@ const SolarisSlider = () => {
         }
 
         .landing-hero {
-          min-height: clamp(360px, 64vh, 680px);
+          min-height: 100svh;
           position: relative;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 58px 20px 120px;
+          padding: 132px 32px 54px;
         }
 
         .landing-hero-inner {
           position: relative;
-          width: min(1100px, 100%);
-          min-height: clamp(260px, 44vw, 420px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          z-index: 1;
+          width: min(1240px, 100%);
+          min-height: calc(100svh - 186px);
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(360px, 0.75fr);
+          align-items: end;
+          gap: clamp(36px, 7vw, 120px);
         }
 
         .landing-hero-title {
-          position: absolute;
-          left: 50%;
-          top: 50%;
-          transform: translate(-50%, -50%) scaleX(1.12);
           margin: 0;
-          font-size: clamp(78px, 16vw, 250px);
-          line-height: 0.9;
-          letter-spacing: -0.03em;
+          font-size: clamp(58px, 9vw, 128px);
+          line-height: 0.98;
+          letter-spacing: -0.075em;
           font-weight: 400;
-          color: rgba(255, 255, 255, 0.96);
-          text-align: center;
-          white-space: nowrap;
-          z-index: 3;
-          text-shadow: 0 12px 30px rgba(112, 164, 207, 0.22);
+          color: #ffffff;
+          text-align: left;
+          white-space: normal;
+          text-shadow: 0 20px 48px rgba(0, 0, 0, 0.32);
         }
 
-        .landing-hero-ring {
-          position: relative;
-          z-index: 2;
-          width: clamp(220px, 34vw, 520px);
-          filter: drop-shadow(0 24px 48px rgba(38, 63, 88, 0.18));
-          user-select: none;
-          pointer-events: none;
+        .landing-hero-title span {
+          display: block;
+          margin-top: 22px;
+          color: #8fb3ff;
+        }
+
+        .landing-hero-pill {
+          margin-top: 46px;
+          display: inline-flex;
+          align-items: center;
+          gap: 9px;
+          border-radius: 7px;
+          background: rgba(255, 255, 255, 0.08);
+          padding: 14px 18px;
+          color: #ffffff;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+          font-size: 16px;
+          font-weight: 900;
+          box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        }
+
+        .landing-hero-pill-mark {
+          display: inline-flex;
+          width: 16px;
+          height: 16px;
+          background: #ffffff;
         }
 
         .landing-hero-actions {
-          position: absolute;
-          left: 50%;
-          bottom: clamp(-18px, 0vw, 8px);
-          transform: translateX(-50%);
-          z-index: 4;
           display: flex;
           flex-direction: column;
-          align-items: center;
-          gap: 0;
-          width: max-content;
+          align-items: flex-end;
+          gap: 36px;
+          padding-bottom: 8px;
         }
 
         .landing-hero-tagline {
-          margin: 0 0 32px;
-          color: #ffffff;
-          font-size: clamp(18px, 1.9vw, 28px);
-          line-height: 1.08;
-          letter-spacing: -0.02em;
-          font-weight: 600;
-          text-align: center;
-          white-space: nowrap;
-          text-shadow: 0 10px 24px rgba(6, 11, 22, 0.28);
+          margin: 0;
+          max-width: 620px;
+          color: #d2d2dc;
+          font-size: clamp(24px, 2.4vw, 38px);
+          line-height: 1.15;
+          letter-spacing: -0.055em;
+          font-weight: 900;
+          text-align: right;
+          text-shadow: 0 14px 34px rgba(0, 0, 0, 0.36);
         }
 
         .learn-more-btn {
-          border: none;
-          border-radius: 999px;
-          min-height: 56px;
-          padding: 0 30px;
-          background: #2f66f6;
+          border: 2px solid #d9d9e2;
+          border-radius: 8px;
+          min-height: 64px;
+          padding: 0 28px;
+          background: transparent;
           color: #ffffff;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          font-size: 17px;
-          font-weight: 700;
+          gap: 16px;
+          font-size: 18px;
+          font-weight: 900;
           cursor: pointer;
-          box-shadow: 0 16px 34px rgba(47, 102, 246, 0.28);
-          transition: transform 0.2s ease, background 0.2s ease;
+          box-shadow: none;
+          transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
         }
 
         .learn-more-btn:hover {
           transform: translateY(-1px);
-          background: #2558de;
+          background: #ffffff;
+          color: #111116;
+        }
+
+        .landing-hero-mark {
+          pointer-events: none;
+          position: absolute;
+          left: 50%;
+          top: 54%;
+          width: min(360px, 32vw);
+          height: min(150px, 12vw);
+          transform: translate(-50%, -50%);
+          opacity: 0.9;
+          filter: drop-shadow(0 0 72px rgba(128, 157, 255, 0.5));
+        }
+
+        .landing-hero-mark::before,
+        .landing-hero-mark::after {
+          content: "";
+          position: absolute;
+          top: 22%;
+          width: 44%;
+          height: 58%;
+          background: linear-gradient(135deg, #dbe8ff, #8fb3ff 48%, #4f7dde);
+        }
+
+        .landing-hero-mark::before {
+          left: 3%;
+          border-radius: 0 0 0 70px;
+        }
+
+        .landing-hero-mark::after {
+          right: 3%;
+          border-radius: 0 70px 0 0;
         }
 
         .landing-empty {
           flex: 1;
           min-height: 36vh;
           position: relative;
-          background: #ffffff;
+          background: #000000;
         }
 
         .landing-section {
           width: 100%;
           max-width: none;
           margin: 0 auto;
-          min-height: clamp(560px, 56.25vw, 900px);
-          padding: clamp(96px, 10vw, 160px) 24px;
+          min-height: clamp(560px, 56.25vw, 820px);
+          padding: clamp(72px, 8vw, 120px) clamp(24px, 4.8vw, 96px);
           position: relative;
           z-index: 0;
-          display: flex;
-          flex-direction: column;
+          display: grid;
+          grid-template-columns: minmax(0, 0.95fr) minmax(360px, 1.05fr);
           align-items: center;
-          justify-content: center;
-          text-align: center;
+          gap: clamp(48px, 7vw, 112px);
+          text-align: left;
           isolation: isolate;
-          background: url("/b4.png") center center / contain no-repeat;
+          overflow: hidden;
+          background:
+            radial-gradient(circle at 72% 42%, rgba(59, 130, 246, 0.18), transparent 34%),
+            #000000;
         }
 
         .landing-section::before {
           content: "";
-          display: none;
+          position: absolute;
+          inset: 0;
+          z-index: -1;
+          background:
+            linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+            linear-gradient(180deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+          background-size: 180px 180px;
+          opacity: 0.3;
         }
 
         .landing-section-title {
           margin: 0;
-          color: #2f7bf7;
-          font-size: clamp(38px, 5.6vw, 72px);
-          line-height: 0.96;
-          letter-spacing: -0.04em;
+          color: #ffffff;
+          font-size: clamp(54px, 6.8vw, 92px);
+          line-height: 0.92;
+          letter-spacing: -0.065em;
           font-weight: 400;
         }
 
+        .landing-section-kicker {
+          display: block;
+          margin-bottom: clamp(30px, 4vw, 56px);
+          color: #ffffff;
+          font-size: clamp(40px, 4.3vw, 72px);
+          line-height: 0.96;
+          letter-spacing: -0.055em;
+          font-weight: 400;
+        }
+
+        .landing-section-muted-line {
+          display: block;
+          margin-top: clamp(28px, 3vw, 48px);
+          color: #858692;
+        }
+
         .landing-section-copy {
-          margin: 18px auto 0;
-          max-width: 860px;
-          color: rgba(6, 11, 22, 0.72);
-          font-size: clamp(14px, 1.1vw, 17px);
-          line-height: 1.6;
-          font-weight: 300;
-          letter-spacing: -0.01em;
+          margin: clamp(46px, 4.5vw, 72px) 0 0;
+          max-width: 680px;
+          color: #aaaab4;
+          font-size: clamp(18px, 1.75vw, 29px);
+          line-height: 1.42;
+          font-weight: 700;
+          letter-spacing: -0.035em;
+        }
+
+        .landing-section-copy + .landing-section-copy {
+          margin-top: clamp(28px, 3vw, 48px);
+        }
+
+        .landing-section-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 16px;
+          margin-top: clamp(36px, 4vw, 56px);
+        }
+
+        .landing-section-action {
+          min-height: 64px;
+          border: 0;
+          border-radius: 8px;
+          padding: 0 28px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          color: #111116;
+          background: #91f20e;
+          font-size: 20px;
+          font-weight: 800;
+          cursor: pointer;
+          transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .landing-section-action:hover {
+          transform: translateY(-1px);
+          background: #a3ff20;
+        }
+
+        .landing-section-action--secondary {
+          color: #ffffff;
+          background: #000000;
+        }
+
+        .landing-section-action--secondary:hover {
+          background: #000000;
+        }
+
+        .token-visual {
+          position: relative;
+          min-height: clamp(420px, 38vw, 620px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .token-visual-ring {
+          position: absolute;
+          width: min(38vw, 560px);
+          aspect-ratio: 1;
+          border-radius: 999px;
+          border: 3px solid rgba(255, 255, 255, 0.45);
+        }
+
+        .token-visual-ring::after {
+          content: "";
+          position: absolute;
+          inset: 22px;
+          border-radius: inherit;
+          border: 3px solid rgba(255, 255, 255, 0.35);
+        }
+
+        .token-visual-ring--right {
+          transform: translateX(32%);
+          border-color: rgba(212, 157, 255, 0.62);
+        }
+
+        .token-visual-ring--right::after {
+          border-color: rgba(212, 157, 255, 0.48);
+        }
+
+        .token-visual-ring--left {
+          transform: translateX(-24%);
+        }
+
+        .token-visual-mark {
+          position: relative;
+          width: min(35vw, 480px);
+          height: min(13vw, 180px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0.92;
+        }
+
+        .token-visual-mark-outline {
+          position: absolute;
+          left: 2%;
+          width: 38%;
+          height: 92%;
+          border: 3px solid rgba(255, 255, 255, 0.22);
+          border-radius: 0 0 0 80px;
+        }
+
+        .token-visual-mark-outline::before,
+        .token-visual-mark-outline::after,
+        .token-visual-mark-fill::before,
+        .token-visual-mark-fill::after {
+          content: "";
+          position: absolute;
+          width: 50%;
+          height: 48%;
+          background: currentColor;
+        }
+
+        .token-visual-mark-outline::before {
+          right: 0;
+          top: 0;
+          border: 3px solid rgba(255, 255, 255, 0.24);
+          border-left: 0;
+          background: transparent;
+        }
+
+        .token-visual-mark-outline::after {
+          left: 0;
+          bottom: 0;
+          border: 3px solid rgba(255, 255, 255, 0.24);
+          border-right: 0;
+          background: transparent;
+        }
+
+        .token-visual-mark-fill {
+          position: absolute;
+          right: 1%;
+          width: 42%;
+          height: 92%;
+          color: #8fb3ff;
+          filter: drop-shadow(0 0 54px rgba(128, 157, 255, 0.38));
+        }
+
+        .token-visual-mark-fill::before {
+          left: 0;
+          bottom: 0;
+          border-radius: 0 0 0 80px;
+          background: linear-gradient(135deg, #dbe8ff, #8fb3ff);
+        }
+
+        .token-visual-mark-fill::after {
+          right: 0;
+          top: 0;
+          border-radius: 0 80px 0 0;
+          background: linear-gradient(135deg, #8fb3ff, #355fd6);
         }
 
         .problem-section {
@@ -520,7 +762,7 @@ const SolarisSlider = () => {
 
         .problem-title {
           margin: 0;
-          color: #060b16;
+          color: #ffffff;
           font-size: clamp(28px, 4vw, 52px);
           line-height: 1;
           letter-spacing: -0.04em;
@@ -529,7 +771,7 @@ const SolarisSlider = () => {
 
         .problem-subtitle {
           margin: 10px 0 0;
-          color: rgba(6, 11, 22, 0.54);
+          color: rgba(255, 255, 255, 0.58);
           font-size: clamp(15px, 1.2vw, 18px);
           line-height: 1.45;
           font-weight: 400;
@@ -565,19 +807,19 @@ const SolarisSlider = () => {
         }
 
         .problem-box--blue {
-          background: linear-gradient(180deg, #edf4ff 0%, #e4ecff 100%);
+          background: linear-gradient(180deg, #101a33 0%, #0b1327 100%);
         }
 
         .problem-box--yellow {
-          background: linear-gradient(180deg, #fff7de 0%, #fff0c2 100%);
+          background: linear-gradient(180deg, #2b1f08 0%, #1c1507 100%);
         }
 
         .problem-box--green {
-          background: linear-gradient(180deg, #edf9e6 0%, #e1f3d3 100%);
+          background: linear-gradient(180deg, #0d2418 0%, #08180f 100%);
         }
 
         .problem-box--purple {
-          background: linear-gradient(180deg, #f2ebff 0%, #eadfff 100%);
+          background: linear-gradient(180deg, #101a33 0%, #0b1327 100%);
         }
 
         .problem-box-copy {
@@ -590,32 +832,227 @@ const SolarisSlider = () => {
         }
 
         .problem-box--blue .problem-box-copy {
-          color: #1c4399;
+          color: #9bbcff;
         }
 
         .problem-box--yellow .problem-box-copy {
-          color: #8a5a07;
+          color: #ffd98a;
         }
 
         .problem-box--green .problem-box-copy {
-          color: #2f7f49;
+          color: #8ee0a7;
         }
 
         .problem-box--purple .problem-box-copy {
-          color: #6b38b8;
+          color: #9bbcff;
         }
 
         .problem-box-frame {
           position: absolute;
-          left: 50%;
-          bottom: 24px;
-          width: 190px;
-          height: 190px;
-          border-radius: 46px;
-          transform: translateX(-50%) rotate(-8deg);
-          box-shadow: 0 18px 36px rgba(6, 11, 22, 0.14);
+          inset: auto 0 0;
+          width: 100%;
+          height: 240px;
           overflow: hidden;
-          background: #ffffff;
+          border-radius: 0 0 34px 34px;
+          pointer-events: none;
+        }
+
+        .problem-diagram {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background:
+            radial-gradient(circle at 58% 54%, rgba(128, 157, 255, 0.2), transparent 36%),
+            linear-gradient(180deg, rgba(16, 16, 24, 0.04) 0%, rgba(18, 14, 28, 0.2) 100%);
+        }
+
+        .problem-diagram-grid {
+          position: absolute;
+          inset: 0;
+          background-image:
+            linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+          background-size: 140px 140px;
+          opacity: 0.58;
+        }
+
+        .problem-diagram-ring {
+          position: absolute;
+          border-radius: 50%;
+          border: 4px solid rgba(226, 224, 232, 0.62);
+          opacity: 0.82;
+        }
+
+        .problem-diagram-ring--left {
+          width: 360px;
+          height: 360px;
+          left: -72px;
+          bottom: -120px;
+        }
+
+        .problem-diagram-ring--left-inner {
+          width: 314px;
+          height: 314px;
+          left: -49px;
+          bottom: -97px;
+          border-color: rgba(226, 224, 232, 0.5);
+        }
+
+        .problem-diagram-ring--right {
+          width: 376px;
+          height: 376px;
+          right: -144px;
+          bottom: -122px;
+          border-color: rgba(144, 169, 255, 0.68);
+        }
+
+        .problem-diagram-ring--right-inner {
+          width: 324px;
+          height: 324px;
+          right: -118px;
+          bottom: -96px;
+          border-color: rgba(128, 157, 255, 0.56);
+        }
+
+        .problem-diagram-outline {
+          position: absolute;
+          width: 106px;
+          height: 82px;
+          border: 3px solid rgba(226, 224, 232, 0.36);
+          opacity: 0.9;
+        }
+
+        .problem-diagram-outline::before,
+        .problem-diagram-outline::after {
+          content: "";
+          position: absolute;
+          height: 3px;
+          background: rgba(226, 224, 232, 0.38);
+        }
+
+        .problem-diagram-outline::before {
+          width: 52%;
+          left: 0;
+          top: 48%;
+        }
+
+        .problem-diagram-outline::after {
+          width: 52%;
+          right: 0;
+          top: 66%;
+        }
+
+        .problem-diagram-outline--left {
+          left: 30%;
+          bottom: 50px;
+        }
+
+        .problem-diagram-outline--right {
+          left: 46%;
+          bottom: 64px;
+          opacity: 0.38;
+        }
+
+        .problem-diagram-shape {
+          position: absolute;
+          width: 108px;
+          height: 96px;
+          bottom: 58px;
+          background: linear-gradient(135deg, #b4caff 0%, #6789dc 52%, #263a74 100%);
+          opacity: 0.9;
+        }
+
+        .problem-diagram-shape--one {
+          right: 25%;
+          border-radius: 0 70px 0 70px;
+        }
+
+        .problem-diagram-shape--two {
+          right: 12%;
+          border-radius: 70px 70px 0 0;
+          clip-path: inset(0 0 0 0 round 70px 70px 0 0);
+          opacity: 0.5;
+        }
+
+        .problem-diagram-glow {
+          position: absolute;
+          width: 220px;
+          height: 170px;
+          right: 18%;
+          bottom: 15px;
+          background: rgba(128, 157, 255, 0.18);
+          filter: blur(42px);
+        }
+
+        .problem-box--blue .problem-diagram {
+          background:
+            radial-gradient(circle at 56% 56%, rgba(128, 157, 255, 0.2), transparent 34%),
+            linear-gradient(180deg, rgba(13, 23, 46, 0.1) 0%, rgba(10, 18, 37, 0.66) 100%);
+        }
+
+        .problem-box--yellow .problem-diagram {
+          background:
+            radial-gradient(circle at 56% 56%, rgba(255, 205, 95, 0.2), transparent 34%),
+            linear-gradient(180deg, rgba(43, 31, 8, 0.1) 0%, rgba(28, 21, 7, 0.68) 100%);
+        }
+
+        .problem-box--green .problem-diagram {
+          background:
+            radial-gradient(circle at 56% 56%, rgba(89, 222, 148, 0.16), transparent 34%),
+            linear-gradient(180deg, rgba(13, 36, 24, 0.1) 0%, rgba(8, 24, 15, 0.7) 100%);
+        }
+
+        .problem-box--purple .problem-diagram {
+          background:
+            radial-gradient(circle at 56% 56%, rgba(128, 157, 255, 0.2), transparent 34%),
+            linear-gradient(180deg, rgba(33, 20, 51, 0.1) 0%, rgba(21, 13, 34, 0.7) 100%);
+        }
+
+        .problem-box--green .problem-diagram-ring--right,
+        .problem-box--green .problem-diagram-ring--right-inner {
+          border-color: rgba(112, 222, 153, 0.64);
+        }
+
+        .problem-box--yellow .problem-diagram-ring--right,
+        .problem-box--yellow .problem-diagram-ring--right-inner {
+          border-color: rgba(255, 209, 112, 0.62);
+        }
+
+        .problem-box--blue .problem-diagram-ring--right,
+        .problem-box--blue .problem-diagram-ring--right-inner {
+          border-color: rgba(144, 169, 255, 0.68);
+        }
+
+        .problem-box--green .problem-diagram-shape {
+          background: linear-gradient(135deg, #9beeb4 0%, #56bd79 52%, #244b34 100%);
+        }
+
+        .problem-box--yellow .problem-diagram-shape {
+          background: linear-gradient(135deg, #ffe49a 0%, #c9912c 52%, #5d3e0f 100%);
+        }
+
+        .problem-box--blue .problem-diagram-shape {
+          background: linear-gradient(135deg, #b4caff 0%, #6789dc 52%, #263a74 100%);
+        }
+
+        .problem-box--purple .problem-diagram-shape {
+          background: linear-gradient(135deg, #b4caff 0%, #6789dc 52%, #263a74 100%);
+        }
+
+        .problem-box--green .problem-diagram-glow {
+          background: rgba(89, 222, 148, 0.18);
+        }
+
+        .problem-box--yellow .problem-diagram-glow {
+          background: rgba(255, 205, 95, 0.18);
+        }
+
+        .problem-box--blue .problem-diagram-glow {
+          background: rgba(128, 157, 255, 0.18);
+        }
+
+        .problem-box--purple .problem-diagram-glow {
+          background: rgba(128, 157, 255, 0.18);
         }
 
         .problem-box-image {
@@ -632,7 +1069,9 @@ const SolarisSlider = () => {
           position: relative;
           z-index: 1;
           padding: 72px 24px 88px;
-          background: #ffffff;
+          background:
+            radial-gradient(circle at 18% 0%, rgba(59, 130, 246, 0.28), transparent 34%),
+            linear-gradient(180deg, #050816 0%, #000000 100%);
         }
 
         .lft-section-inner {
@@ -649,16 +1088,16 @@ const SolarisSlider = () => {
           box-shadow: none;
           display: flex;
           flex-direction: column;
-          align-items: center;
+          align-items: flex-start;
           justify-content: center;
           gap: 10px;
-          text-align: center;
+          text-align: left;
         }
 
         .lft-intro-title {
           margin: 0;
           max-width: 980px;
-          color: #2f7bf7;
+          color: #3b82f6;
           font-size: clamp(30px, 4.2vw, 54px);
           line-height: 1;
           letter-spacing: -0.04em;
@@ -668,7 +1107,7 @@ const SolarisSlider = () => {
         .lft-intro-copy {
           margin: 0;
           max-width: 980px;
-          color: rgba(6, 11, 22, 0.72);
+          color: rgba(255, 255, 255, 0.72);
           font-size: clamp(18px, 2vw, 28px);
           line-height: 1.45;
           letter-spacing: -0.02em;
@@ -677,15 +1116,16 @@ const SolarisSlider = () => {
 
         .lft-intro-image-shell {
           position: relative;
-          width: 100vw;
-          max-width: none;
+          width: min(100%, 1180px);
+          max-width: 1180px;
           margin-top: 28px;
-          margin-left: calc(50% - 50vw);
-          margin-right: calc(50% - 50vw);
+          margin-left: auto;
+          margin-right: auto;
           overflow: hidden;
           isolation: isolate;
           line-height: 0;
-          border-radius: 0;
+          border-radius: 28px;
+          box-shadow: 0 28px 72px rgba(0, 0, 0, 0.45);
         }
 
         .lft-intro-image-shell::before,
@@ -701,25 +1141,25 @@ const SolarisSlider = () => {
         .lft-intro-image-shell::before {
           top: 0;
           height: clamp(48px, 6vw, 88px);
-          background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.46) 46%, rgba(255, 255, 255, 0) 100%);
+          background: linear-gradient(180deg, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.46) 46%, rgba(0, 0, 0, 0) 100%);
         }
 
         .lft-intro-image-shell::after {
           bottom: 0;
           height: clamp(76px, 9vw, 132px);
-          background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.52) 58%, rgba(255, 255, 255, 0.96) 100%);
+          background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.52) 58%, rgba(0, 0, 0, 0.96) 100%);
         }
 
         .lft-intro-image {
           width: 100%;
           height: auto;
           display: block;
-          border-radius: 0;
+          border-radius: inherit;
           image-rendering: auto;
         }
 
         .paradigm-section {
-          padding: 0 24px 104px;
+          padding: 0 48px 104px;
         }
 
         .paradigm-section-inner {
@@ -727,22 +1167,27 @@ const SolarisSlider = () => {
           margin: 0 auto;
           padding: clamp(72px, 10vw, 124px) clamp(24px, 4vw, 72px);
           border-radius: 36px;
-          background: url("/r2.png") center / cover no-repeat;
+          background: #000000;
         }
 
         .paradigm-copy {
           max-width: 920px;
-          margin: 0 auto;
-          color: #060b16;
-          text-align: center;
+          margin: 0;
+          color: rgba(255, 255, 255, 0.76);
+          text-align: left;
           font-size: clamp(22px, 2.15vw, 34px);
           line-height: 1.42;
           letter-spacing: -0.03em;
           font-weight: 400;
         }
 
+        .paradigm-copy + .paradigm-copy {
+          margin-top: 20px;
+        }
+
         .how-it-works-section {
           padding: 0 24px 120px;
+          background: linear-gradient(180deg, #000000 0%, #071736 100%);
         }
 
         .how-it-works-inner {
@@ -757,7 +1202,7 @@ const SolarisSlider = () => {
           border: 0;
           border-radius: 0;
           background: transparent;
-          color: #060b16;
+          color: #ffffff;
           font-size: clamp(24px, 2.6vw, 40px);
           line-height: 1.05;
           letter-spacing: -0.03em;
@@ -770,14 +1215,14 @@ const SolarisSlider = () => {
           gap: 0;
           align-items: stretch;
           padding: 0;
-          border-top: 1px solid rgba(6, 11, 22, 0.18);
+          border-top: 1px solid rgba(255, 255, 255, 0.14);
         }
 
         .how-it-works-card {
           width: 100%;
           border-radius: 0;
           background: transparent;
-          border-bottom: 1px solid rgba(6, 11, 22, 0.18);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.14);
           box-shadow: none;
         }
 
@@ -791,7 +1236,7 @@ const SolarisSlider = () => {
           border: 0;
           background: transparent;
           text-align: left;
-          color: #060b16;
+          color: #ffffff;
           cursor: pointer;
         }
 
@@ -802,8 +1247,8 @@ const SolarisSlider = () => {
           width: 44px;
           height: 44px;
           border-radius: 999px;
-          background: #f4f6fb;
-          color: #6b7280;
+          background: rgba(255, 255, 255, 0.1);
+          color: #ffffff;
           font-size: 16px;
           line-height: 1;
           font-weight: 400;
@@ -819,7 +1264,7 @@ const SolarisSlider = () => {
 
         .how-it-works-icon {
           display: inline-block;
-          color: #060b16;
+          color: #ffffff;
           font-size: 42px;
           line-height: 0.8;
           font-weight: 300;
@@ -833,7 +1278,7 @@ const SolarisSlider = () => {
 
         .how-it-works-answer {
           padding: 0 0 28px 76px;
-          color: rgba(6, 11, 22, 0.72);
+          color: rgba(255, 255, 255, 0.74);
           font-size: clamp(15px, 1.25vw, 18px);
           line-height: 1.55;
           letter-spacing: -0.01em;
@@ -854,24 +1299,24 @@ const SolarisSlider = () => {
 
         .landing-footer {
           margin-top: 28px;
-          background: #171717;
-          padding: 0 24px;
+          background: #050608;
+          padding: 0 24px 18px;
         }
 
         .landing-footer-inner {
           max-width: 1360px;
           margin: 0 auto;
-          padding: 48px 8px 52px;
+          padding: 56px 6px 54px;
           display: grid;
-          grid-template-columns: minmax(0, 1.2fr) repeat(3, minmax(160px, 1fr));
+          grid-template-columns: minmax(300px, 1.2fr) minmax(160px, 0.68fr) minmax(160px, 0.68fr) minmax(360px, 1.35fr);
           align-items: flex-start;
-          gap: 36px 56px;
+          gap: 32px 64px;
         }
 
         .landing-footer-brand {
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: 18px;
         }
 
         .landing-footer-mark {
@@ -895,7 +1340,7 @@ const SolarisSlider = () => {
         .landing-footer-copy {
           max-width: 360px;
           margin: 0;
-          color: rgba(255, 255, 255, 0.58);
+          color: rgba(255, 255, 255, 0.56);
           font-size: 15px;
           line-height: 1.6;
         }
@@ -913,21 +1358,90 @@ const SolarisSlider = () => {
           justify-content: center;
           width: 42px;
           height: 42px;
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 12px;
-          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.04);
           color: rgba(255, 255, 255, 0.72);
           transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
         }
 
         .landing-footer-social:hover {
-          background: rgba(255, 255, 255, 0.12);
-          border-color: rgba(255, 255, 255, 0.16);
+          background: rgba(59, 130, 246, 0.16);
+          border-color: rgba(59, 130, 246, 0.24);
           color: #ffffff;
         }
 
         .landing-footer-columns {
-          display: contents;
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 32px 36px;
+        }
+
+        .landing-footer-subscribe {
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+          align-items: stretch;
+        }
+
+        .landing-footer-subscribe-copy {
+          margin: 0;
+          color: rgba(255, 255, 255, 0.58);
+          font-size: 18px;
+          line-height: 1.45;
+          letter-spacing: -0.02em;
+          max-width: 640px;
+        }
+
+        .landing-footer-subscribe-form {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 14px;
+          border-radius: 18px;
+          background: rgba(255, 255, 255, 0.045);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 14px 36px rgba(0, 0, 0, 0.24);
+        }
+
+        .landing-footer-subscribe-input {
+          flex: 1;
+          min-width: 0;
+          border: 0;
+          background: transparent;
+          color: #ffffff;
+          font-size: 20px;
+          line-height: 1.2;
+          outline: none;
+        }
+
+        .landing-footer-subscribe-input::placeholder {
+          color: rgba(255, 255, 255, 0.5);
+        }
+
+        .landing-footer-subscribe-button {
+          border: 0;
+          border-radius: 16px;
+          padding: 18px 28px;
+          background: #7aae1f;
+          color: #10131b;
+          font-size: 20px;
+          font-weight: 700;
+          box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+          transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .landing-footer-subscribe-button:hover {
+          transform: translateY(-1px);
+          background: #8bc126;
+        }
+
+        .landing-footer-subscribe-socials {
+          display: flex;
+          justify-content: flex-end;
+          gap: 18px;
+          align-items: center;
+          margin-top: 8px;
         }
 
         .landing-footer-column {
@@ -939,7 +1453,7 @@ const SolarisSlider = () => {
         .landing-footer-column-title {
           margin: 0;
           color: #ffffff;
-          font-size: clamp(22px, 2vw, 28px);
+          font-size: clamp(20px, 1.8vw, 26px);
           line-height: 1.05;
           letter-spacing: -0.03em;
           font-weight: 500;
@@ -948,7 +1462,7 @@ const SolarisSlider = () => {
         .landing-footer-links {
           display: flex;
           flex-direction: column;
-          gap: 18px;
+          gap: 16px;
           align-items: flex-start;
         }
 
@@ -957,7 +1471,7 @@ const SolarisSlider = () => {
           padding: 0;
           background: transparent;
           color: rgba(255, 255, 255, 0.62);
-          font-size: 15px;
+          font-size: 14px;
           line-height: 1.4;
           letter-spacing: -0.01em;
           cursor: pointer;
@@ -1000,7 +1514,7 @@ const SolarisSlider = () => {
 
           .landing-nav {
             padding: 10px 12px 0;
-            background: linear-gradient(180deg, rgba(186, 225, 250, 0.96) 0%, rgba(170, 214, 246, 0.72) 62%, rgba(170, 214, 246, 0) 100%);
+            background: linear-gradient(180deg, rgba(17, 17, 22, 0.98) 0%, rgba(17, 17, 22, 0.62) 72%, rgba(17, 17, 22, 0) 100%);
             transition:
               background 0.24s ease,
               backdrop-filter 0.24s ease,
@@ -1021,15 +1535,15 @@ const SolarisSlider = () => {
           }
 
           .landing-nav.landing-nav-scrolled {
-            background: linear-gradient(180deg, rgba(198, 231, 252, 0.88) 0%, rgba(183, 222, 250, 0.68) 66%, rgba(183, 222, 250, 0.12) 100%);
-            box-shadow: 0 10px 24px rgba(6, 11, 22, 0.08);
+            background: rgba(17, 17, 22, 0.88);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.26);
             backdrop-filter: saturate(180%) blur(18px);
             -webkit-backdrop-filter: saturate(180%) blur(18px);
           }
 
           .landing-nav.landing-nav-past-hero {
-            background: rgba(255, 255, 255, 0.82);
-            box-shadow: 0 10px 24px rgba(6, 11, 22, 0.1);
+            background: rgba(17, 17, 22, 0.9);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.26);
             backdrop-filter: saturate(180%) blur(22px);
             -webkit-backdrop-filter: saturate(180%) blur(22px);
           }
@@ -1037,6 +1551,8 @@ const SolarisSlider = () => {
           .nav-brand {
             font-size: 20px;
             font-weight: 900;
+            min-height: 48px;
+            padding: 0 14px;
           }
 
           .nav-logo {
@@ -1045,62 +1561,136 @@ const SolarisSlider = () => {
           }
 
           .get-started-btn {
-            min-height: 38px;
-            padding: 0 12px;
+            min-height: 48px;
+            padding: 0 14px;
             font-size: 12px;
             gap: 6px;
           }
 
           .landing-hero {
-            margin: 18px 0 22px;
-            min-height: 320px;
-            padding: 38px 12px 104px;
+            min-height: 100svh;
+            padding: 104px 18px 48px;
+          }
+
+          .landing-hero-inner {
+            min-height: calc(100svh - 152px);
+            grid-template-columns: 1fr;
+            align-items: end;
+            gap: 42px;
           }
 
           .landing-hero-title {
-            font-size: clamp(56px, 17vw, 96px);
+            font-size: clamp(54px, 15vw, 82px);
           }
 
-          .landing-hero-ring {
-            width: clamp(180px, 52vw, 300px);
+          .landing-hero-title span {
+            margin-top: 14px;
           }
 
           .landing-hero-actions {
-            bottom: -14px;
-            width: min(90vw, 320px);
-          }
-
-          .landing-hero-tagline {
-            margin: 0 0 22px;
-            font-size: clamp(12px, 3.5vw, 16px);
-            white-space: normal;
+            align-items: flex-start;
+            gap: 24px;
+            padding-bottom: 0;
             width: 100%;
           }
 
+          .landing-hero-tagline {
+            font-size: clamp(22px, 6vw, 30px);
+            white-space: normal;
+            width: 100%;
+            text-align: left;
+          }
+
           .learn-more-btn {
-            min-height: 46px;
-            padding: 0 22px;
-            font-size: 14px;
+            min-height: 54px;
+            padding: 0 20px;
+            font-size: 16px;
+          }
+
+          .landing-hero-pill {
+            margin-top: 28px;
+            padding: 11px 13px;
+            font-size: 12px;
+          }
+
+          .landing-hero-mark {
+            top: 54%;
+            left: 70%;
+            width: 220px;
+            height: 92px;
+            opacity: 0.42;
           }
 
           .landing-section {
-            min-height: clamp(380px, 72vw, 560px);
-            padding: 72px 16px 56px;
-            background-size: contain;
+            grid-template-columns: 1fr;
+            min-height: auto;
+            padding: 64px 20px 72px;
+            gap: 38px;
           }
 
           .landing-section::before {
-            display: none;
+            display: block;
+            background-size: 96px 96px;
           }
 
           .landing-section-title {
-            font-size: clamp(34px, 9vw, 52px);
+            font-size: clamp(48px, 14vw, 76px);
+          }
+
+          .landing-section-kicker {
+            margin-bottom: 26px;
+            font-size: clamp(38px, 11vw, 60px);
+          }
+
+          .landing-section-muted-line {
+            margin-top: 24px;
           }
 
           .landing-section-copy {
-            margin-top: 12px;
-            font-size: clamp(13px, 3.8vw, 16px);
-            line-height: 1.55;
+            margin-top: 34px;
+            font-size: clamp(17px, 5vw, 22px);
+            line-height: 1.42;
+          }
+
+          .landing-section-copy + .landing-section-copy {
+            margin-top: 24px;
+          }
+
+          .landing-section-actions {
+            gap: 12px;
+            margin-top: 32px;
+          }
+
+          .landing-section-action {
+            min-height: 52px;
+            padding: 0 18px;
+            font-size: 15px;
+          }
+
+          .token-visual {
+            min-height: 300px;
+            margin-top: 8px;
+          }
+
+          .token-visual-ring {
+            width: 74vw;
+            border-width: 2px;
+          }
+
+          .token-visual-ring::after {
+            inset: 14px;
+            border-width: 2px;
+          }
+
+          .token-visual-mark {
+            width: 76vw;
+            height: 28vw;
+          }
+
+          .token-visual-mark-outline,
+          .token-visual-mark-outline::before,
+          .token-visual-mark-outline::after {
+            border-width: 2px;
           }
 
           .problem-section {
@@ -1146,14 +1736,71 @@ const SolarisSlider = () => {
           }
 
           .problem-box-frame {
-            width: 118px;
-            height: 118px;
-            bottom: 16px;
-            border-radius: 30px;
+            inset: auto 0 0;
+            width: 100%;
+            height: 146px;
+            border-radius: 0 0 24px 24px;
           }
 
-          .problem-box-image {
-            border-radius: inherit;
+          .problem-diagram-ring--left {
+            width: 250px;
+            height: 250px;
+            left: -62px;
+            bottom: -102px;
+          }
+
+          .problem-diagram-ring--left-inner {
+            width: 220px;
+            height: 220px;
+            left: -47px;
+            bottom: -87px;
+          }
+
+          .problem-diagram-ring--right {
+            width: 270px;
+            height: 270px;
+            right: -125px;
+            bottom: -103px;
+          }
+
+          .problem-diagram-ring--right-inner {
+            width: 232px;
+            height: 232px;
+            right: -106px;
+            bottom: -84px;
+          }
+
+          .problem-diagram-outline {
+            width: 74px;
+            height: 58px;
+            border-width: 2px;
+          }
+
+          .problem-diagram-outline::before,
+          .problem-diagram-outline::after {
+            height: 2px;
+          }
+
+          .problem-diagram-outline--left {
+            left: 27%;
+            bottom: 36px;
+          }
+
+          .problem-diagram-outline--right {
+            left: 45%;
+            bottom: 45px;
+          }
+
+          .problem-diagram-shape {
+            width: 76px;
+            height: 68px;
+            bottom: 40px;
+          }
+
+          .problem-diagram-glow {
+            width: 150px;
+            height: 108px;
+            bottom: 12px;
           }
 
           .lft-section {
@@ -1163,7 +1810,7 @@ const SolarisSlider = () => {
           }
 
           .landing-empty {
-            background: #ffffff;
+            background: #000000;
           }
 
           .lft-image-frame {
@@ -1172,6 +1819,8 @@ const SolarisSlider = () => {
             padding: 18px 12px;
             border-radius: 0;
             gap: 8px;
+            align-items: flex-start;
+            text-align: left;
           }
 
           .lft-intro-title {
@@ -1184,35 +1833,37 @@ const SolarisSlider = () => {
           }
 
           .lft-intro-image-shell {
+            width: calc(100% - 16px);
             margin-top: 18px;
-            border-radius: 0;
+            border-radius: 20px;
+            box-shadow: 0 18px 44px rgba(0, 0, 0, 0.42);
           }
 
           .lft-intro-image-shell::before {
             height: clamp(18px, 6vw, 28px);
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.32) 50%, rgba(255, 255, 255, 0) 100%);
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.32) 50%, rgba(0, 0, 0, 0) 100%);
           }
 
           .lft-intro-image-shell::after {
             height: clamp(28px, 8vw, 44px);
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.36) 56%, rgba(255, 255, 255, 0.94) 100%);
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.36) 56%, rgba(0, 0, 0, 0.94) 100%);
           }
 
           .lft-intro-image {
             width: 100%;
             height: auto;
-            border-radius: 0;
+            border-radius: inherit;
           }
 
           .paradigm-section {
-            padding: 0 12px 32px;
+            padding: 0 16px 32px;
           }
 
           .paradigm-section-inner {
             min-height: 500px;
             padding: 28px 14px;
             border-radius: 24px;
-            background: url("/r3.png") center / cover no-repeat;
+            background: #000000;
             display: flex;
             align-items: center;
           }
@@ -1220,6 +1871,10 @@ const SolarisSlider = () => {
           .paradigm-copy {
             font-size: clamp(17px, 5vw, 22px);
             line-height: 1.5;
+          }
+
+          .paradigm-copy + .paradigm-copy {
+            margin-top: 14px;
           }
 
           .how-it-works-section {
@@ -1279,6 +1934,29 @@ const SolarisSlider = () => {
             grid-template-columns: 1fr;
             gap: 28px;
             padding: 32px 0 34px;
+          }
+
+          .landing-footer-columns {
+            grid-template-columns: 1fr;
+            gap: 22px;
+          }
+
+          .landing-footer-subscribe-form {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
+          .landing-footer-subscribe-input {
+            font-size: 18px;
+          }
+
+          .landing-footer-subscribe-button {
+            width: 100%;
+            font-size: 18px;
+          }
+
+          .landing-footer-subscribe-socials {
+            justify-content: flex-start;
           }
 
           .landing-footer-copy {
@@ -1348,17 +2026,29 @@ const SolarisSlider = () => {
         <div className="landing-top-band">
           <section ref={heroSectionRef} className="landing-hero">
             <div className="landing-hero-inner">
-              <h1 className="landing-hero-title">Solaris</h1>
-              <img className="landing-hero-ring" src="/G5.png" alt="" aria-hidden="true" />
+              <div>
+                <h1 className="landing-hero-title">
+                  Non-extractive Tokens,
+                  <span>Real Liquidity.</span>
+                </h1>
+                <div className="landing-hero-pill">
+                  <span>Built on and backed by</span>
+                  <span className="landing-hero-pill-mark" />
+                  <span>base</span>
+                </div>
+              </div>
+              <div className="landing-hero-mark" aria-hidden="true" />
               <div className="landing-hero-actions">
-                <p className="landing-hero-tagline">The era of Non extractive tokens</p>
+                <p className="landing-hero-tagline">
+                  Trade liquidity-backed assets with guaranteed floors, transparent cycles, and creator-aligned rewards.
+                </p>
                 <button
                   className="learn-more-btn"
                   onClick={() =>
                     document.getElementById("lft-section")?.scrollIntoView({ behavior: "smooth", block: "start" })
                   }
                 >
-                  Learn more
+                  Learn more <span aria-hidden="true">→</span>
                 </button>
               </div>
             </div>
@@ -1377,14 +2067,14 @@ const SolarisSlider = () => {
                 <article className="problem-box problem-box--blue">
                   <p className="problem-box-copy">{PRIMARY_PROBLEM.text}</p>
                   <div className="problem-box-frame">
-                    <img className="problem-box-image" src={PRIMARY_PROBLEM.image} alt={PRIMARY_PROBLEM.alt} />
+                    <ProblemDiagram />
                   </div>
                 </article>
 
                 <article className="problem-box problem-box--yellow">
                   <p className="problem-box-copy">{SECONDARY_PROBLEM.text}</p>
                   <div className="problem-box-frame">
-                    <img className="problem-box-image" src={SECONDARY_PROBLEM.image} alt={SECONDARY_PROBLEM.alt} />
+                    <ProblemDiagram />
                   </div>
                 </article>
               </div>
@@ -1393,14 +2083,14 @@ const SolarisSlider = () => {
                 <article className="problem-box problem-box--green">
                   <p className="problem-box-copy">{TERTIARY_PROBLEM.text}</p>
                   <div className="problem-box-frame">
-                    <img className="problem-box-image" src={TERTIARY_PROBLEM.image} alt={TERTIARY_PROBLEM.alt} />
+                    <ProblemDiagram />
                   </div>
                 </article>
 
-                <article className="problem-box problem-box--purple">
+                <article className="problem-box problem-box--blue">
                   <p className="problem-box-copy">{QUATERNARY_PROBLEM.text}</p>
                   <div className="problem-box-frame">
-                    <img className="problem-box-image" src={QUATERNARY_PROBLEM.image} alt={QUATERNARY_PROBLEM.alt} />
+                    <ProblemDiagram />
                   </div>
                 </article>
               </div>
@@ -1408,12 +2098,36 @@ const SolarisSlider = () => {
           </section>
 
           <section className="landing-section">
-            <h3 className="landing-section-title">Zero to Value.</h3>
-            <p className="landing-section-copy">
-              Digital assets shouldn&apos;t be a gamble. Most tokens today are built on hype and they end in extraction leaving
-              the end users liquidated. We built something different. A token that actually has a guaranteed floor that
-              requires no complex engagement such as trading, farming or drops.
-            </p>
+            <div className="landing-section-content">
+              <span className="landing-section-kicker">$LFT.</span>
+              <h3 className="landing-section-title">
+                Fueling
+                <span className="landing-section-muted-line">Non-extractive</span>
+                <span className="landing-section-muted-line">Digital Value.</span>
+              </h3>
+              <p className="landing-section-copy">
+                Liquidity Funded Tokens (LFTs) introduce a new paradigm in digital assets: LFTs are tokenized income (cash)
+                backed by real liquidity from day one, with redemption value that grows in real time based on gamified
+                engagement, structured in self-contained cycles that compound strength over time. In simple terms, LFTs are
+                tokens with real liquidity where engagement toward the token is not trading based but gamification.
+              </p>
+              <div className="landing-section-actions">
+                <button className="landing-section-action" onClick={() => navigate("/coin-tags")}>
+                  Go to Solaris Foundation
+                </button>
+                <button className="landing-section-action landing-section-action--secondary" onClick={() => navigate("/assets")}>
+                  Go to Token
+                </button>
+              </div>
+            </div>
+            <div className="token-visual" aria-hidden="true">
+              <div className="token-visual-ring token-visual-ring--left" />
+              <div className="token-visual-ring token-visual-ring--right" />
+              <div className="token-visual-mark">
+                <div className="token-visual-mark-outline" />
+                <div className="token-visual-mark-fill" />
+              </div>
+            </div>
           </section>
 
           <section className="lft-section" id="lft-section">
@@ -1424,7 +2138,7 @@ const SolarisSlider = () => {
                   Liquidity Funded Tokens. Value-backed from day one. Guaranteed redemption that never hits zero.
                 </p>
                 <div className="lft-intro-image-shell">
-                  <img className="lft-intro-image" src="/B8.png" alt="LFT preview" />
+                  <img className="lft-intro-image" src="/cora.png" alt="LFT preview" />
                 </div>
               </div>
             </div>
@@ -1433,9 +2147,18 @@ const SolarisSlider = () => {
           <section className="paradigm-section">
             <div className="paradigm-section-inner">
               <p className="paradigm-copy">
-                Liquidity Funded Tokens (LFTs) introduce a new paradigm in digital assets: tokens backed by real liquidity
-                from day one, with redemption value that grows in real-time as the community engages, structured in
-                self-contained cycles that compound strength over time.
+                Solaris is the end of the "Rug Pull." We are building the first Non-Extractive Launchpad. We reject the
+                model where value is based on promises; instead, we enforce value through Liquidity Funded Tokens (LFTs).
+              </p>
+              <p className="paradigm-copy">
+                Inclusive by Design: We don&apos;t just sell tokens; we build economies. Every interaction and CoinTag purchase
+                automatically increases the Liquidity Per Unit (LPU) for the entire community.
+              </p>
+              <p className="paradigm-copy">
+                Protected by Math: We guarantee a redemption floor that rises in real-time. A Solaris asset can never go to zero.
+              </p>
+              <p className="paradigm-copy">
+                * Sustainable for All: Creators earn from engagement and cash flow, not by dumping on their community.
               </p>
             </div>
           </section>
@@ -1504,23 +2227,41 @@ const SolarisSlider = () => {
                 </div>
               </div>
 
-              <div className="landing-footer-columns">
-                {FOOTER_SECTIONS.map((section) => (
-                  <div className="landing-footer-column" key={section.title}>
-                    <h4 className="landing-footer-column-title">{section.title}</h4>
-                    <div className="landing-footer-links">
-                      {section.links.map((link) => (
-                        <button
-                          key={`${section.title}-${link.label}`}
-                          className="landing-footer-link"
-                          onClick={() => navigate(link.to)}
-                        >
-                          {link.label}
-                        </button>
-                      ))}
-                    </div>
+              {FOOTER_SECTIONS.map((section) => (
+                <div className="landing-footer-column" key={section.title}>
+                  <h4 className="landing-footer-column-title">{section.title}</h4>
+                  <div className="landing-footer-links">
+                    {section.links.map((link) => (
+                      <button
+                        key={`${section.title}-${link.label}`}
+                        className="landing-footer-link"
+                        onClick={() => navigate(link.to)}
+                      >
+                        {link.label}
+                      </button>
+                    ))}
                   </div>
-                ))}
+                </div>
+              ))}
+
+              <div className="landing-footer-subscribe">
+                <p className="landing-footer-subscribe-copy">
+                  Subscribe to be the first to learn the latest from Solaris
+                </p>
+                <form className="landing-footer-subscribe-form" onSubmit={(event) => event.preventDefault()}>
+                  <input className="landing-footer-subscribe-input" type="email" placeholder="name@email.com" aria-label="Email address" />
+                  <button className="landing-footer-subscribe-button" type="submit">
+                    Subscribe
+                  </button>
+                </form>
+                <div className="landing-footer-subscribe-socials">
+                  <button className="landing-footer-social" aria-label="Twitter">
+                    <Twitter size={18} />
+                  </button>
+                  <button className="landing-footer-social" aria-label="Discord">
+                    <Send size={18} />
+                  </button>
+                </div>
               </div>
             </div>
           </footer>

@@ -409,7 +409,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
               "relative flex w-full items-center justify-center overflow-hidden bg-cover bg-center px-4 transition-[height,opacity] duration-300",
               isScrolled ? "h-0 opacity-0 md:h-14 md:opacity-100" : "h-12 opacity-100 md:h-14",
             )}
-            style={{ backgroundImage: "url('/ks1.png')" }}
+            style={{ backgroundImage: "url('/ks1.jpeg')" }}
           >
             <div className="absolute inset-0 bg-black/25" />
             <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-b from-transparent via-white/65 to-white dark:via-[#0F0F0F]/70 dark:to-[#0F0F0F]" />

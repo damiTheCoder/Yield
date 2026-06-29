@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { ArrowRight, Code2, FileText, Landmark, LockKeyhole, PackageOpen, Sparkles } from "lucide-react";
 
 type TrackingPayload = Record<string, unknown>;
 
@@ -74,13 +75,14 @@ const ScrollDrop = ({ children, className, id, delay = 0, as = "section" }: Scro
 const Index = () => {
   const navigate = useNavigate();
   const [navDropped, setNavDropped] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode] = useState(true);
   const navLinks = [
-    { label: "Problem", href: "#problem" },
-    { label: "Difference", href: "#difference" },
-    { label: "Solution", href: "#solution" },
-    { label: "Impact", href: "#impact" },
-    { label: "Launch", href: "#cta" },
+    { label: "Foundation", href: "#difference", icon: Landmark },
+    { label: "Token", href: "#solution", icon: PackageOpen },
+    { label: "Airdrop", href: "#impact", icon: Sparkles },
+    { label: "Staking", href: "#cta", icon: LockKeyhole },
+    { label: "Build", href: "/coin-tags", icon: Code2 },
+    { label: "Docs", href: "/blog", icon: FileText },
   ];
   const accentButtonClass = isDarkMode
     ? "bg-neutral-800 text-white hover:bg-neutral-700 border border-neutral-700"
@@ -130,30 +132,10 @@ const Index = () => {
 
   return (
     <div className={cn("relative font-glacial min-h-screen transition-colors duration-300", isDarkMode ? "bg-black text-white" : "bg-white text-black")}>
-      {/* Background image with blur effect */}
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-[550px]"
-        style={{
-          backgroundImage: "url('/d1.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          filter: "blur(8px)",
-          zIndex: 0
-        }}
-      />
-      {/* Overlay for content visibility */}
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-[550px]"
-        style={{
-          background: "rgba(0, 0, 0, 0.4)",
-          zIndex: 1
-        }}
-      />
       <div className="relative z-10">
         <nav
           className={cn(
-            "fixed inset-x-0 top-0 z-50 transition-all duration-300",
+            "fixed inset-x-0 top-0 z-50 px-4 pt-4 transition-all duration-300 sm:px-6",
             navDropped
               ? isDarkMode
                 ? "shadow-[0_12px_40px_rgba(0,0,0,0.5)]"
@@ -166,16 +148,15 @@ const Index = () => {
         >
           <div
             className={cn(
-              "relative z-10 flex items-center justify-between gap-4 py-3 sm:py-3.5",
-              navDropped ? "w-full max-w-none px-4 sm:px-6" : "mx-auto max-w-5xl px-4 sm:px-6",
+              "relative z-10 mx-auto flex max-w-[1320px] items-center justify-between gap-3",
             )}
           >
             <button
               type="button"
               onClick={() => handleCta("nav_logo", "/")}
-              className="flex items-center gap-2 text-left sm:gap-3"
+              className="flex h-14 items-center gap-3 rounded-xl bg-[#17171f] px-4 text-left ring-1 ring-white/[0.03] transition hover:bg-[#1d1d27] sm:h-16 sm:min-w-[184px] sm:px-7"
             >
-              <span className="flex h-9 w-9 overflow-hidden rounded-full sm:h-10 sm:w-10">
+              <span className="flex h-9 w-9 overflow-hidden rounded-lg bg-white sm:h-10 sm:w-10">
                 <img
                   src="/h4.png"
                   alt="Solaris logo"
@@ -183,25 +164,20 @@ const Index = () => {
                 />
               </span>
               <div className="flex flex-col leading-tight">
-                <span className={cn("text-sm font-semibold tracking-wide sm:text-base", isDarkMode ? "text-white" : "text-black")}>Solaris</span>
+                <span className="text-xl font-bold tracking-[-0.04em] text-white sm:text-2xl">Solaris</span>
               </div>
             </button>
 
-            <div className={cn("hidden items-center justify-center gap-6 text-[11px] font-semibold uppercase tracking-[0.22em] md:flex lg:gap-8 lg:text-sm", isDarkMode ? "text-white" : "text-black")}>
+            <div className="hidden h-16 flex-1 items-center justify-between rounded-xl bg-[#17171f] px-7 text-[15px] font-bold text-[#8d8e9c] ring-1 ring-white/[0.03] lg:flex">
               {navLinks.map((link) => (
                 <button
                   key={link.label}
                   type="button"
                   onClick={() => handleNavClick(link.label, link.href)}
-                  className="relative transition hover:text-[#8b5cff]"
+                  className="flex items-center gap-2.5 transition hover:text-white"
                 >
+                  <link.icon className="h-5 w-5" strokeWidth={2.4} />
                   {link.label}
-                  <span
-                    className={cn(
-                      "absolute inset-x-0 -bottom-1 h-0.5 scale-x-0 transition-transform duration-200 ease-out hover:scale-x-100",
-                      accentIconBgClass,
-                    )}
-                  />
                 </button>
               ))}
             </div>
@@ -209,19 +185,16 @@ const Index = () => {
             <div className="hidden md:block">
               <Button
                 size="sm"
-                className={cn(
-                  "rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.26em] transition sm:text-sm",
-                  accentButtonClass,
-                )}
+                className="h-14 rounded-xl border-0 bg-[#17171f] px-7 text-base font-bold text-white ring-1 ring-white/[0.03] transition hover:bg-[#242430] sm:h-16 sm:px-10"
                 onClick={() => handleCta("nav_launch", "/assets")}
               >
-                Launch Console
+                Launch App
               </Button>
             </div>
             <div className="flex flex-1 justify-end md:hidden">
               <Button
                 variant="ghost"
-                className={cn("rounded-full border border-[#dcd4ff] bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] shadow-[0_10px_30px_rgba(139,92,255,0.12)]", isDarkMode ? "text-white" : "text-black")}
+                className="rounded-xl border border-white/10 bg-[#17171f] px-4 py-2 text-xs font-bold text-white"
                 onClick={() => handleCta("nav_launch_mobile", "/assets")}
               >
                 Launch
@@ -229,46 +202,68 @@ const Index = () => {
             </div>
           </div>
         </nav>
-        <main className="flex w-full flex-col gap-28 pb-24 pt-16 sm:gap-32 sm:pb-32 sm:pt-24 lg:gap-36">
-          {/* Section 1 – Problem & Vision */}
-          <ScrollDrop
+        <main className="flex w-full flex-col gap-28 pb-24 sm:gap-32 sm:pb-32 lg:gap-36">
+          <section
             id="problem"
-            className="flex flex-col items-center gap-12 px-6 text-center sm:px-12 lg:px-16"
+            className="relative min-h-[100svh] overflow-hidden border-b border-white/80 bg-[#111116] px-5 pt-28 text-white sm:px-8 sm:pt-32 lg:px-12 lg:pt-36"
+            style={{
+              backgroundImage: "url('/ks1.jpeg')",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+            }}
           >
-            <div className="max-w-3xl space-y-5 sm:space-y-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#8b5cff]">The problem</p>
-              <h1 className={cn("text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl", isDarkMode ? "text-white" : "text-black")}>
-                The digital asset market is broken.
-              </h1>
-              <p className={cn("text-base leading-relaxed sm:text-lg", isDarkMode ? "text-white" : "text-black")}>
-                Crypto today is driven by speculation, not sustainability. The greater-fool cycle has replaced real value
-                creation.
-              </p>
-              <ul className={cn("mx-auto flex max-w-2xl flex-col gap-3 text-left text-sm sm:flex-row sm:items-start sm:justify-center sm:gap-6 sm:text-base", isDarkMode ? "text-white" : "text-black")}>
-                {[
-                  "Meme coins spike on hype, then crater to zero.",
-                  "NFTs promise creativity but strand holders in illiquid markets.",
-                  "Utility tokens inflate endlessly while delivering little real utility.",
-                ].map((item) => (
-                  <li key={item} className="flex flex-1 items-start gap-2">
-                    <span className={cn("mt-1 h-1.5 w-1.5 shrink-0 rounded-full", accentIconBgClass)} />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <p className={cn("text-base leading-relaxed sm:text-lg", isDarkMode ? "text-white" : "text-black")}>
-                Creators earn once and vanish. Holders get burned. The system feeds on exit liquidity. At Solaris, we believe
-                digital assets should hold their ground — not your hope.
-              </p>
-              <Button
-                size="lg"
-                className={cn("mx-auto rounded-xl px-10 py-3 transition", accentButtonClass)}
-                onClick={() => handleCta("cta_problem_future", "/assets")}
-              >
-                Discover the future of value-backed tokens
-              </Button>
+            <div className="pointer-events-none absolute inset-0">
+              <div className="absolute inset-0 bg-[#111116]/36" />
+              <div className="absolute inset-0 bg-gradient-to-b from-[#111116]/12 via-[#111116]/35 to-[#111116]/78" />
+              <div className="absolute inset-x-0 bottom-0 h-[52%] bg-[linear-gradient(90deg,rgba(133,69,255,0.08),rgba(218,145,255,0.12),rgba(133,69,255,0.06))] blur-3xl" />
+              <div className="absolute left-[42%] top-[32%] h-[36rem] w-[36rem] -translate-x-1/2 rounded-full border border-white/[0.07]" />
+              <div className="absolute right-[11%] top-[28%] h-[30rem] w-[30rem] rounded-full border border-white/[0.06]" />
+              <div className="absolute left-[34%] top-[28%] h-[38rem] w-[44rem] border border-white/[0.08]" />
+              <div className="absolute bottom-[13%] left-[33%] h-[11rem] w-[18rem] rounded-tl-[9rem] border border-white/[0.08]" />
+              <div className="absolute bottom-[13%] right-[35%] h-[11rem] w-[18rem] rounded-br-[9rem] border border-white/[0.08]" />
             </div>
-          </ScrollDrop>
+            <div className="relative mx-auto flex min-h-[calc(100svh-9rem)] max-w-[1240px] flex-col">
+              <div className="max-w-[720px] pt-8 sm:pt-14 lg:pt-20">
+                <h1 className="text-[clamp(3.35rem,10vw,7rem)] font-medium leading-[0.98] tracking-[-0.07em] text-white">
+                  Liquidity Markets,
+                  <span className="mt-6 block text-[#d681ff]">Limitless Value.</span>
+                </h1>
+                <div className="mt-10 inline-flex items-center gap-2 rounded-md bg-white/[0.07] px-4 py-3 font-mono text-sm font-bold text-white ring-1 ring-white/[0.04] sm:text-base">
+                  <span>Built on and backed by</span>
+                  <span className="inline-flex h-4 w-4 bg-white" />
+                  <span className="text-xl font-black leading-none tracking-[-0.06em]">base</span>
+                </div>
+              </div>
+
+              <div className="pointer-events-none absolute left-1/2 top-[54%] hidden -translate-x-1/2 -translate-y-1/2 items-center justify-center md:flex">
+                <div className="relative h-36 w-60 opacity-70 lg:h-44 lg:w-72 lg:opacity-100">
+                  <div className="absolute left-7 top-10 h-24 w-24 rounded-br-[4.5rem] rounded-tl-sm bg-[#d681ff] shadow-[0_0_90px_rgba(214,129,255,0.72)]" />
+                  <div className="absolute left-20 top-10 h-24 w-24 rounded-bl-[4.5rem] rounded-tr-sm bg-[#f0c9ff] shadow-[0_0_95px_rgba(240,201,255,0.72)]" />
+                  <div className="absolute right-20 top-10 h-24 w-24 rounded-br-[4.5rem] rounded-tl-sm bg-[#f0c9ff] shadow-[0_0_95px_rgba(240,201,255,0.72)]" />
+                  <div className="absolute right-7 top-10 h-24 w-24 rounded-bl-[4.5rem] rounded-tr-sm bg-[#d681ff] shadow-[0_0_90px_rgba(214,129,255,0.72)]" />
+                </div>
+              </div>
+
+              <div className="mt-auto grid gap-8 pb-12 sm:pb-16 lg:grid-cols-[1fr_0.9fr] lg:items-end">
+                <div className="hidden lg:block" />
+                <div className="space-y-8 lg:justify-self-end lg:text-right">
+                  <p className="max-w-[560px] text-2xl font-bold leading-tight tracking-[-0.04em] text-[#c9c9d1] sm:text-3xl">
+                    Trade liquidity-backed tokens, collectible markets, and digital value cycles straight from your wallet.
+                  </p>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="h-16 rounded-lg border-2 border-[#d9d9e2] bg-transparent px-7 text-lg font-bold text-white transition hover:bg-white hover:text-[#111116]"
+                    onClick={() => handleCta("hero_trade_now", "/assets")}
+                  >
+                    Trade now
+                    <ArrowRight className="ml-4 h-6 w-6" strokeWidth={2.4} />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </section>
 
           {/* Section 2 – Solution */}
           <ScrollDrop
@@ -585,30 +580,6 @@ const Index = () => {
             </div>
           </div>
         </footer>
-        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center pb-6 sm:pb-8">
-          <button
-            type="button"
-            aria-label="Toggle dark mode"
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className="pointer-events-auto relative flex h-24 w-24 items-center justify-center rounded-full transition hover:scale-105 focus:outline-none"
-          >
-            <span
-              aria-hidden="true"
-              className={cn(
-                "absolute inset-0 rounded-full border",
-                isDarkMode ? "border-neutral-700 bg-neutral-900/80" : "border-neutral-200 bg-white/80",
-              )}
-            />
-            <span
-              className={cn(
-                "relative flex h-20 w-20 items-center justify-center rounded-full border text-3xl font-semibold shadow-[0_12px_32px_rgba(0,0,0,0.16)] transition-colors",
-                isDarkMode ? "bg-neutral-900 border-neutral-700 text-white" : "bg-white border-neutral-200 text-black",
-              )}
-            >
-              S
-            </span>
-          </button>
-        </div>
       </div>
     </div>
   );
