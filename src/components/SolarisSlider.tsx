@@ -1445,7 +1445,8 @@ const SolarisSlider = () => {
             margin-bottom: 8px;
             border-radius: 0;
             background: transparent;
-            border: 0;
+            border-top: 1px solid rgba(148, 148, 156, 0.38);
+            border-bottom: 1px solid rgba(148, 148, 156, 0.38);
             box-shadow: none;
             backdrop-filter: none;
             -webkit-backdrop-filter: none;
@@ -1948,7 +1949,7 @@ const SolarisSlider = () => {
                   </div>
                 </article>
 
-                <article className="problem-box problem-box--blue">
+                <article className="problem-box problem-box--purple">
                   <p className="problem-box-copy">{QUATERNARY_PROBLEM.text}</p>
                   <div className="problem-box-frame">
                     <ProblemDiagram variant="purple" />
@@ -1967,10 +1968,10 @@ const SolarisSlider = () => {
                 <span className="landing-section-muted-line">Digital Value.</span>
               </h3>
               <p className="landing-section-copy">
-                Liquidity Funded Tokens (LFTs) introduce a new paradigm in digital assets: LFTs are tokenized income (cash)
-                backed by real liquidity from day one, with redemption value that grows in real time based on gamified
-                engagement, structured in self-contained cycles that compound strength over time. In simple terms, LFTs are
-                tokens with real liquidity where engagement toward the token is not trading based but gamification.
+                Liquidity Funded Tokens (LFTs) introduce a new paradigm in digital assets: LFTs are tokenized income (Cash)
+                backed by real liquidity from day one, with redemption value that grows in real-time based on gamified
+                engagement, structured in self-contained cycles that compound strength over time. In simple terms LFTs are
+                tokens with real liquidity where engagement towards the token is not trading based but gamifications.
               </p>
               <div className="landing-section-actions">
                 <button className="landing-section-action" onClick={() => navigate("/coin-tags")}>

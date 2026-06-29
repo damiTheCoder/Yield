@@ -870,15 +870,15 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
             {/* Control Buttons Row - Unified */}
             {/* Horizontal Network Selector */}
             {viewMode !== "grid" && (
-              <div className="mt-2 mb-2 flex items-center gap-2 overflow-x-auto pb-0 no-scrollbar md:mt-4 md:mb-6">
+              <div className="relative left-1/2 mt-2 mb-2 flex w-screen -translate-x-1/2 items-stretch gap-0 overflow-x-auto border-y border-[#D0D5DD] pb-0 no-scrollbar dark:border-[#2A2A2A] md:left-auto md:mt-4 md:mb-6 md:w-auto md:translate-x-0 md:items-center md:gap-2 md:border-y-0">
                 {NETWORKS.map((network) => (
                   <button
                     key={network.id}
                     type="button"
                     onClick={() => setSelectedNetwork(network.id)}
                     className={cn(
-                      "flex items-center gap-2 px-4 py-2 rounded-2xl transition-all duration-200 whitespace-nowrap whitespace-nowrap shadow-sm",
-                      network.id === "all" ? "border-0" : "border border-transparent",
+                      "flex items-center gap-2 border-r border-[#D0D5DD] px-4 py-3 transition-all duration-200 whitespace-nowrap shadow-none last:border-r-0 dark:border-[#2A2A2A] md:rounded-2xl md:py-2 md:shadow-sm",
+                      network.id === "all" ? "md:border-0" : "md:border md:border-transparent",
                       selectedNetwork === network.id
                         ? cn("font-semibold", network.selectedPillClass)
                         : network.pillClass

@@ -417,18 +417,18 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
               Liquidity Funded Tokens
             </span>
           </div>
-          <div className="relative flex w-full items-center justify-between gap-2 px-3 py-2 md:px-6">
-            <div className="relative z-10 flex items-center gap-3">
+          <div className="relative flex h-14 w-full items-stretch justify-between gap-0 border-y border-[#D0D5DD] px-0 py-0 dark:border-[#3A3A3A] md:h-auto md:items-center md:gap-2 md:border-y-0 md:px-6 md:py-2">
+            <div className="relative z-10 flex items-stretch gap-0 md:items-center md:gap-3">
               <Link
                 to="/"
-                className="hover:opacity-80 transition-smooth flex items-center gap-2"
+                className="hover:opacity-80 transition-smooth flex h-full items-center gap-2 border-x border-[#D0D5DD] px-2 dark:border-[#3A3A3A] md:h-auto md:border-x-0 md:px-0"
               >
                 <img
                   src="/h4.png"
                   alt="Solaris logo"
-                  className="h-7 w-7 rounded-full object-cover"
+                  className="h-6 w-6 rounded-full object-cover md:h-7 md:w-7"
                 />
-                <span className="text-lg font-extrabold text-foreground">Solaris</span>
+                <span className="text-base font-extrabold text-foreground md:text-lg">Solaris</span>
               </Link>
               <Button
                 type="button"
@@ -436,7 +436,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                 size="icon"
                 onClick={() => setSearchOpen(true)}
                 className={cn(
-                  "h-8 w-8 rounded-full md:hidden",
+                  "h-full w-12 rounded-none border-r border-[#D0D5DD] dark:border-[#3A3A3A] md:hidden",
                   isDarkTheme
                     ? "bg-[#1A1A1A] text-[#E6EAF0] hover:bg-[#242424] hover:text-white"
                     : "bg-[#F8FAFC] text-[#344054] hover:bg-[#EEF2F7] hover:text-[#111827]",
@@ -464,7 +464,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
               ))}
             </nav>
 
-            <div className="relative z-10 flex items-center gap-1 md:gap-3">
+            <div className="relative z-10 flex items-stretch gap-0 md:items-center md:gap-3">
               <Button
                 type="button"
                 variant="outline"
@@ -485,7 +485,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                 onClick={toggleTheme}
 	                aria-label={isDarkTheme ? "Switch to light mode" : "Switch to dark mode"}
 	                className={cn(
-	                  "h-8 w-8 rounded-full border-0 transition-colors",
+	                  "h-full w-12 rounded-none border-x border-[#D0D5DD] transition-colors dark:border-[#3A3A3A] md:h-8 md:w-8 md:rounded-full md:border-0",
 	                  isDarkTheme
 	                    ? "bg-[#1A1A1A] text-[#E6EAF0] hover:bg-[#242424] hover:text-white"
 	                    : "bg-[#F8FAFC] text-[#344054] hover:bg-[#EEF2F7] hover:text-[#111827]",
@@ -515,7 +515,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                   <Button
                     variant="neutral"
                     size="sm"
-                    className="md:hidden rounded-full h-8 px-4 text-sm font-semibold border-0 bg-blue-500 text-white hover:bg-blue-600"
+                    className="h-full rounded-none border-r border-[#D0D5DD] bg-blue-500 px-4 text-sm font-semibold text-white hover:bg-blue-600 dark:border-[#3A3A3A] md:hidden"
                   >
                     {connectedWallet ? "Wallet" : "Connect"}
                   </Button>
