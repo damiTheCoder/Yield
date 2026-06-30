@@ -304,6 +304,8 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [showAllListed, setShowAllListed] = useState(false);
   const [selectedNews, setSelectedNews] = useState<Web3NewsItem | null>(null);
+  const [activeNewsIndex, setActiveNewsIndex] = useState(1);
+  const newsCarouselRef = useRef<HTMLDivElement | null>(null);
   const { news: statusNews, loading: statusNewsLoading } = useWeb3News(8);
 
   const toggleFavorite = useCallback((id: string, e: React.MouseEvent) => {
@@ -346,6 +348,27 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     mediaQuery.addEventListener("change", handleResize);
     return () => mediaQuery.removeEventListener("change", handleResize);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || isDesktop || statusNewsLoading) return;
+
+    const itemCount = statusNews?.length ?? 0;
+    if (itemCount <= 1) {
+      setActiveNewsIndex(0);
+      return;
+    }
+
+    const defaultIndex = 1;
+    setActiveNewsIndex(defaultIndex);
+
+    window.requestAnimationFrame(() => {
+      const scroller = newsCarouselRef.current;
+      const card = scroller?.querySelector<HTMLElement>("[data-news-card]");
+      if (!scroller || !card) return;
+
+      scroller.scrollLeft = (card.offsetWidth + 4) * defaultIndex;
+    });
+  }, [isDesktop, statusNews?.length, statusNewsLoading]);
 
   const normalizedSearch = searchTerm.trim().toLowerCase();
 
@@ -511,20 +534,20 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 
   const renderListedList = (items: Asset[]) => (
     <div className={tableShellClasses}>
-      <div className="asset-list-scroll overflow-x-auto no-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        <Table className="asset-list-table text-sm md:min-w-[720px]">
+      <div className="asset-list-scroll overflow-visible md:overflow-x-auto md:no-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <Table className="asset-list-table w-full table-fixed text-sm md:min-w-[720px] md:table-auto">
           <TableHeader>
             <TableRow className="border-b-0 hover:bg-transparent">
               {isDesktop && (
-                <TableHead className={cn("w-10 border-b-0 pl-4", tableStickyColumnClasses)}>
+                <TableHead className={cn("hidden w-10 border-b-0 pl-4 md:table-cell", tableStickyColumnClasses)}>
                   <Star className="h-4 w-4 text-blue-500 fill-blue-500" />
                 </TableHead>
               )}
-              <TableHead className={cn("asset-list-collection-col sticky left-0 z-20 text-left pl-4 sm:pl-6 border-b-0 md:min-w-[200px]", tableStickyColumnClasses)}>Collection</TableHead>
-              <TableHead className="asset-list-metric-col min-w-0 text-right border-b-0 px-2 md:min-w-[140px] md:px-4">Liquidity</TableHead>
-              <TableHead className="asset-list-metric-col min-w-0 text-right border-b-0 px-2 md:min-w-[140px] md:px-8">LPU</TableHead>
-              <TableHead className="asset-list-metric-col min-w-0 text-right border-b-0 px-2 md:min-w-[140px] md:px-4">CoinTag</TableHead>
-              <TableHead className="asset-list-metric-col min-w-0 text-right border-b-0 px-2 md:min-w-[160px] md:pr-6">Backing Reserve</TableHead>
+              <TableHead className={cn("asset-list-collection-col left-0 z-20 text-left pl-3 text-[16px] sm:pl-4 border-b-0 md:sticky md:min-w-[200px] md:pl-4 md:text-sm", tableStickyColumnClasses)}>Collection</TableHead>
+              <TableHead className="w-[104px] text-right border-b-0 pr-2 text-[16px] sm:pr-3 md:w-auto md:min-w-[140px] md:px-4 md:text-sm">Liquidity</TableHead>
+              <TableHead className="hidden asset-list-metric-col min-w-0 text-right border-b-0 px-2 md:table-cell md:min-w-[140px] md:px-8">LPU</TableHead>
+              <TableHead className="hidden asset-list-metric-col min-w-0 text-right border-b-0 px-2 md:table-cell md:min-w-[140px] md:px-4">CoinTag</TableHead>
+              <TableHead className="hidden asset-list-metric-col min-w-0 text-right border-b-0 px-2 md:table-cell md:min-w-[160px] md:pr-6">Backing Reserve</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -538,10 +561,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
               const changeClass = changeColorClass(change);
               const assetLive = isAssetLive(asset);
               const assetNetwork = getAssetNetwork(asset);
-              const isLastVisibleAsset = index === items.length - 1;
-              const mobileDividerClass = isLastVisibleAsset
-                ? "border-b-0"
-                : "border-b border-[#D9DDE6] dark:border-[#2A2A2A]";
+              const mobileDividerClass = "border-b-0";
               return (
                 <TableRow
                   key={asset.id}
@@ -552,7 +572,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                   onClick={() => navigate(`/assets/${asset.id}`)}
                 >
                   {isDesktop && (
-                    <TableCell className={cn("w-10 pl-4", tableStickyColumnClasses)} onClick={(e) => toggleFavorite(asset.id, e)}>
+                    <TableCell className={cn("hidden w-10 pl-4 md:table-cell", tableStickyColumnClasses)} onClick={(e) => toggleFavorite(asset.id, e)}>
                       <Star
                         className={cn(
                           "h-4 w-4 transition-all hover:scale-110",
@@ -563,9 +583,9 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       />
                     </TableCell>
                   )}
-                  <TableCell className={cn("asset-list-collection-col sticky left-0 z-10 pl-4 pr-3 sm:pl-6 md:min-w-[200px] md:border-b-0 md:pr-4", mobileDividerClass, tableStickyColumnClasses)}>
-                    <div className="flex items-center gap-3 text-[15px] md:text-sm">
-                      <div className="relative h-10 w-10 shrink-0 md:h-9 md:w-9">
+                  <TableCell className={cn("asset-list-collection-col left-0 z-10 min-w-0 py-2 pl-3 pr-1.5 sm:pl-4 md:sticky md:min-w-[200px] md:border-b-0 md:py-4 md:pl-4 md:pr-4", mobileDividerClass, tableStickyColumnClasses)}>
+                    <div className="flex min-w-0 items-center gap-2 text-[16px] md:gap-3 md:text-sm">
+                      <div className="relative h-12 w-12 shrink-0 md:h-9 md:w-9">
                         <img src={asset.image} alt={asset.name} className="h-full w-full rounded-full object-cover" />
                         <img
                           src={assetNetwork.image}
@@ -575,20 +595,28 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       </div>
                       <div className="flex flex-col min-w-0">
                         <div className="flex items-center gap-1">
-                          <span className="truncate text-[17px] font-semibold text-foreground md:text-base">{asset.name}</span>
-                          <img src="/checklist.png" alt="verified" className="h-[18px] w-[18px] flex-shrink-0 opacity-80 md:h-4 md:w-4" />
+                          <span className="min-w-0 truncate text-[18px] font-semibold text-foreground md:text-base">{asset.name}</span>
+                          <img src="/checklist.png" alt="verified" className="h-5 w-5 flex-shrink-0 opacity-80 md:h-4 md:w-4" />
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className={`text-sm font-semibold md:text-xs ${changeClass}`}>{changeText}</span>
+                        <div className="hidden items-center gap-1.5 md:flex">
+                          <span className={`text-xs font-semibold ${changeClass}`}>{changeText}</span>
                           {assetLive ? <span className="text-[11px] font-semibold text-emerald-500">Live</span> : null}
                         </div>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className={cn("asset-list-metric-col min-w-0 px-2 text-right text-[15px] font-semibold tabular-nums md:min-w-[140px] md:border-b-0 md:px-4 md:text-sm", mobileDividerClass)}>{formatCurrencyK(safeReserve)}</TableCell>
-                  <TableCell className={cn("asset-list-metric-col min-w-0 px-2 text-right text-[15px] font-semibold tabular-nums md:min-w-[140px] md:border-b-0 md:px-8 md:text-sm", mobileDividerClass)}>{formatUnitCurrency(liveLpu)}</TableCell>
-                  <TableCell className={cn("asset-list-metric-col min-w-0 px-2 text-right text-[15px] font-semibold tabular-nums md:min-w-[140px] md:border-b-0 md:px-4 md:text-sm", mobileDividerClass)}>{formatCurrency(coinTagPrice)}</TableCell>
-                  <TableCell className={cn("asset-list-metric-col min-w-0 px-2 text-right text-[15px] font-semibold tabular-nums md:min-w-[160px] md:border-b-0 md:pl-4 md:pr-6 md:text-sm", mobileDividerClass)}>
+                  <TableCell className={cn("w-[104px] py-2 pr-2 text-right sm:pr-3 md:w-auto md:min-w-[140px] md:border-b-0 md:px-4 md:py-4", mobileDividerClass)}>
+                    <div className="flex flex-col items-end gap-0.5">
+                      <span className="text-[18px] font-semibold tabular-nums text-foreground md:text-sm">{formatCurrencyK(safeReserve)}</span>
+                      <span className="flex items-center justify-end gap-1.5 md:hidden">
+                        <span className={`text-[16px] font-semibold md:text-xs ${changeClass}`}>{changeText}</span>
+                        {assetLive ? <span className="text-[13px] font-semibold text-emerald-500">Live</span> : null}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className={cn("hidden asset-list-metric-col min-w-0 px-2 text-right text-[15px] font-semibold tabular-nums md:table-cell md:min-w-[140px] md:border-b-0 md:px-8 md:text-sm", mobileDividerClass)}>{formatUnitCurrency(liveLpu)}</TableCell>
+                  <TableCell className={cn("hidden asset-list-metric-col min-w-0 px-2 text-right text-[15px] font-semibold tabular-nums md:table-cell md:min-w-[140px] md:border-b-0 md:px-4 md:text-sm", mobileDividerClass)}>{formatCurrency(coinTagPrice)}</TableCell>
+                  <TableCell className={cn("hidden asset-list-metric-col min-w-0 px-2 text-right text-[15px] font-semibold tabular-nums md:table-cell md:min-w-[160px] md:border-b-0 md:pl-4 md:pr-6 md:text-sm", mobileDividerClass)}>
                     {formatCurrencyK(asset.params.initialReserve)}
                   </TableCell>
                 </TableRow>
@@ -655,57 +683,97 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 
     const statusItems = statusNews ?? [];
     const showPlaceholders = statusNewsLoading && statusItems.length === 0;
+    const indicatorCount = Math.min(showPlaceholders ? 5 : statusItems.length, 7);
+    const handleNewsScroll = (event: React.UIEvent<HTMLDivElement>) => {
+      const scroller = event.currentTarget;
+      const card = scroller.querySelector<HTMLElement>("[data-news-card]");
+      if (!card) return;
+
+      const cardStep = card.offsetWidth + 2;
+      if (cardStep <= 0) return;
+
+      const centeredIndex = Math.round(scroller.scrollLeft / cardStep);
+      setActiveNewsIndex(Math.max(0, Math.min(centeredIndex, indicatorCount - 1)));
+    };
 
     if (!showPlaceholders && statusItems.length === 0) return null;
 
     return (
       <section className="mb-5 md:hidden">
-        <div className="mb-3 flex items-end justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-bold leading-tight text-foreground">News status</h2>
-            <p className="text-xs text-muted-foreground">Latest stories from Web3</p>
-          </div>
-          <Link to="/blog" className="shrink-0 text-xs font-semibold text-[#2F66F6]">
-            View all
-          </Link>
-        </div>
-        <div className="relative left-1/2 w-screen -translate-x-1/2 overflow-x-auto pb-1 no-scrollbar">
-          <div className="flex gap-4 px-4">
+        <div
+          ref={newsCarouselRef}
+          className="relative left-1/2 w-screen -translate-x-1/2 snap-x snap-mandatory overflow-x-auto scroll-smooth pb-5 no-scrollbar"
+          onScroll={handleNewsScroll}
+        >
+          <div className="flex items-center gap-0.5 px-[4vw]">
             {showPlaceholders
-              ? Array.from({ length: 5 }, (_, index) => (
-                  <div key={`news-status-placeholder-${index}`} className="w-[76px] shrink-0">
-                    <div className="h-[76px] w-[76px] animate-pulse rounded-full bg-muted" />
-                    <div className="mx-auto mt-2 h-3 w-12 animate-pulse rounded bg-muted" />
-                  </div>
+              ? Array.from({ length: 3 }, (_, index) => (
+                  <div
+                    key={`news-card-placeholder-${index}`}
+                    data-news-card
+                    className="h-[360px] w-[88vw] max-w-[420px] shrink-0 snap-center animate-pulse rounded-[16px] bg-muted"
+                  />
                 ))
-              : statusItems.map((item) => {
+              : statusItems.map((item, index) => {
+                  const isActive = index === activeNewsIndex;
                   return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => setSelectedNews(item)}
-                      className="group w-[76px] shrink-0 text-center"
-                      aria-label={`Open headline: ${item.title}`}
-                    >
-                      <div className="rounded-full bg-gradient-to-tr from-[#2F66F6] via-[#00B2FF] to-[#33FF9C] p-[2px]">
-                        <div className="rounded-full bg-background p-[3px]">
-                          <div className="relative h-[66px] w-[66px] overflow-hidden rounded-full bg-muted">
-                            <img
-                              src={item.imageUrl}
-                              alt={item.title}
-                              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                              loading="lazy"
-                            />
-                          </div>
-                        </div>
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setSelectedNews(item)}
+                    data-news-card
+                    className={cn(
+                      "group w-[88vw] max-w-[420px] shrink-0 snap-center overflow-hidden rounded-[16px] bg-[#F1F1F1] text-left shadow-none outline-none transition-all duration-300 ease-out dark:bg-[#171717]",
+                      isActive ? "scale-100 opacity-100" : "scale-[0.86] opacity-80",
+                    )}
+                    aria-label={`Open headline: ${item.title}`}
+                  >
+                    <div className="relative h-[270px] overflow-hidden rounded-t-[16px] bg-[#111111]">
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/72 via-black/22 to-black/24" />
+                      <div className="absolute left-0 right-0 top-8 px-7 text-center">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/90">
+                          {item.source || "Web3"}
+                        </p>
+                        <h2 className="mt-5 line-clamp-3 text-[34px] font-black leading-[0.94] tracking-[-0.06em] text-white">
+                          {item.title}
+                        </h2>
                       </div>
-                      <p className="mt-2 line-clamp-2 text-[11px] font-semibold leading-tight text-foreground">
+                      <div className="absolute bottom-5 left-5 inline-flex max-w-[72%] items-center gap-2 rounded-2xl bg-black/42 px-3 py-2 text-white backdrop-blur-md">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-white/18 text-xs font-black">
+                          {(item.source || "W").slice(0, 1)}
+                        </span>
+                        <span className="truncate text-lg font-bold">{item.source || "Web3"}</span>
+                      </div>
+                    </div>
+                    <div className="px-6 py-5">
+                      <h3 className="line-clamp-1 text-[24px] font-black leading-tight tracking-[-0.04em] text-[#111111] dark:text-white">
                         {item.source || "Web3"}
+                      </h3>
+                      <p className="mt-1 line-clamp-1 text-[18px] font-medium tracking-[-0.035em] text-[#9A9A9A] dark:text-[#A6A6A6]">
+                        {item.title}
                       </p>
-                    </button>
+                    </div>
+                  </button>
                   );
                 })}
           </div>
+        </div>
+        <div className="mt-1 flex items-center justify-center gap-3">
+          {Array.from({ length: indicatorCount }, (_, index) => (
+            <span
+              key={`news-dot-${index}`}
+              className={cn(
+                "h-3 rounded-full bg-[#A8A8A8] transition-all duration-300",
+                index === activeNewsIndex ? "w-9 bg-[#555555]" : "w-3",
+              )}
+            />
+          ))}
         </div>
       </section>
     );

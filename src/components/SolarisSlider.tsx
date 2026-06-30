@@ -567,14 +567,14 @@ const SolarisSlider = () => {
           width: 100%;
           max-width: none;
           margin: 0 auto;
-          min-height: clamp(560px, 56.25vw, 820px);
-          padding: clamp(72px, 8vw, 120px) clamp(24px, 4.8vw, 96px);
+          min-height: clamp(420px, 44vw, 640px);
+          padding: clamp(44px, 5.5vw, 78px) clamp(20px, 4vw, 76px);
           position: relative;
           z-index: 0;
           display: grid;
           grid-template-columns: minmax(0, 0.95fr) minmax(360px, 1.05fr);
           align-items: center;
-          gap: clamp(48px, 7vw, 112px);
+          gap: clamp(32px, 5vw, 76px);
           text-align: left;
           isolation: isolate;
           overflow: hidden;
@@ -598,17 +598,17 @@ const SolarisSlider = () => {
         .landing-section-title {
           margin: 0;
           color: #ffffff;
-          font-size: clamp(54px, 6.8vw, 92px);
-          line-height: 0.92;
+          font-size: clamp(38px, 5.2vw, 70px);
+          line-height: 0.96;
           letter-spacing: -0.065em;
           font-weight: 400;
         }
 
         .landing-section-kicker {
           display: block;
-          margin-bottom: clamp(30px, 4vw, 56px);
+          margin-bottom: clamp(20px, 2.8vw, 38px);
           color: #ffffff;
-          font-size: clamp(40px, 4.3vw, 72px);
+          font-size: clamp(30px, 3.5vw, 54px);
           line-height: 0.96;
           letter-spacing: -0.055em;
           font-weight: 400;
@@ -616,15 +616,15 @@ const SolarisSlider = () => {
 
         .landing-section-muted-line {
           display: block;
-          margin-top: clamp(28px, 3vw, 48px);
+          margin-top: clamp(18px, 2vw, 30px);
           color: #858692;
         }
 
         .landing-section-copy {
-          margin: clamp(46px, 4.5vw, 72px) 0 0;
-          max-width: 680px;
+          margin: clamp(28px, 3vw, 44px) 0 0;
+          max-width: 560px;
           color: #aaaab4;
-          font-size: clamp(18px, 1.75vw, 29px);
+          font-size: clamp(16px, 1.35vw, 22px);
           line-height: 1.42;
           font-weight: 700;
           letter-spacing: -0.035em;
@@ -638,20 +638,20 @@ const SolarisSlider = () => {
           display: flex;
           flex-wrap: wrap;
           gap: 16px;
-          margin-top: clamp(36px, 4vw, 56px);
+          margin-top: clamp(26px, 3vw, 40px);
         }
 
         .landing-section-action {
-          min-height: 64px;
+          min-height: 54px;
           border: 0;
           border-radius: 8px;
-          padding: 0 28px;
+          padding: 0 22px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
           color: #ffffff;
           background: #3b82f6;
-          font-size: 20px;
+          font-size: 17px;
           font-weight: 800;
           cursor: pointer;
           transition: transform 0.2s ease, background 0.2s ease;
@@ -673,7 +673,7 @@ const SolarisSlider = () => {
 
         .token-visual {
           position: relative;
-          min-height: clamp(420px, 38vw, 620px);
+          min-height: clamp(300px, 30vw, 460px);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -681,7 +681,7 @@ const SolarisSlider = () => {
 
         .token-visual-ring {
           position: absolute;
-          width: min(38vw, 560px);
+          width: min(30vw, 430px);
           aspect-ratio: 1;
           border-radius: 999px;
           border: 3px solid rgba(255, 255, 255, 0.45);
@@ -710,8 +710,8 @@ const SolarisSlider = () => {
 
         .token-visual-mark {
           position: relative;
-          width: min(35vw, 480px);
-          height: min(13vw, 180px);
+          width: min(28vw, 380px);
+          height: min(10.5vw, 142px);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1541,8 +1541,8 @@ const SolarisSlider = () => {
           .landing-section {
             grid-template-columns: 1fr;
             min-height: auto;
-            padding: 64px 20px 72px;
-            gap: 38px;
+            padding: 42px 18px 50px;
+            gap: 24px;
           }
 
           .landing-section::before {
@@ -1551,21 +1551,21 @@ const SolarisSlider = () => {
           }
 
           .landing-section-title {
-            font-size: clamp(48px, 14vw, 76px);
+            font-size: clamp(34px, 10.5vw, 52px);
           }
 
           .landing-section-kicker {
-            margin-bottom: 26px;
-            font-size: clamp(38px, 11vw, 60px);
+            margin-bottom: 18px;
+            font-size: clamp(28px, 8.5vw, 42px);
           }
 
           .landing-section-muted-line {
-            margin-top: 24px;
+            margin-top: 16px;
           }
 
           .landing-section-copy {
-            margin-top: 34px;
-            font-size: clamp(17px, 5vw, 22px);
+            margin-top: 24px;
+            font-size: clamp(15px, 4.3vw, 18px);
             line-height: 1.42;
           }
 
@@ -1575,22 +1575,22 @@ const SolarisSlider = () => {
 
           .landing-section-actions {
             gap: 12px;
-            margin-top: 32px;
+            margin-top: 24px;
           }
 
           .landing-section-action {
-            min-height: 52px;
-            padding: 0 18px;
-            font-size: 15px;
+            min-height: 46px;
+            padding: 0 15px;
+            font-size: 14px;
           }
 
           .token-visual {
-            min-height: 300px;
-            margin-top: 8px;
+            min-height: 220px;
+            margin-top: 0;
           }
 
           .token-visual-ring {
-            width: 74vw;
+            width: 58vw;
             border-width: 2px;
           }
 
@@ -1600,8 +1600,8 @@ const SolarisSlider = () => {
           }
 
           .token-visual-mark {
-            width: 76vw;
-            height: 28vw;
+            width: 60vw;
+            height: 22vw;
           }
 
           .token-visual-mark-outline,
@@ -1722,21 +1722,23 @@ const SolarisSlider = () => {
           }
 
           .paradigm-section-inner {
-            min-height: 500px;
-            padding: 28px 14px;
+            min-height: 0;
+            padding: 28px 18px;
             border-radius: 24px;
             background: #000000;
-            display: flex;
-            align-items: center;
+            display: block;
           }
 
           .paradigm-copy {
+            max-width: none;
+            margin: 0;
             font-size: clamp(14px, 4vw, 18px);
-            line-height: 1.48;
+            line-height: 1.62;
+            letter-spacing: -0.015em;
           }
 
           .paradigm-copy + .paradigm-copy {
-            margin-top: 12px;
+            margin-top: 22px;
           }
 
           .how-it-works-section {

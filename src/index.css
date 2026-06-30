@@ -1045,20 +1045,24 @@
   }
 
   @media (max-width: 767px) {
+    .asset-list-scroll {
+      overflow-x: hidden !important;
+    }
+
     .asset-list-scroll>div {
       -webkit-overflow-scrolling: touch;
     }
 
     .asset-list-table {
-      min-width: 150% !important;
-      width: 150% !important;
+      min-width: 100% !important;
+      width: 100% !important;
       table-layout: fixed;
     }
 
     .asset-list-collection-col {
-      max-width: 33.333333% !important;
-      min-width: 33.333333% !important;
-      width: 33.333333% !important;
+      max-width: calc(100% - 104px) !important;
+      min-width: calc(100% - 104px) !important;
+      width: calc(100% - 104px) !important;
     }
 
     .asset-list-metric-col {
