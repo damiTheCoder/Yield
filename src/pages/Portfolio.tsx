@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import Web3News from "@/components/Web3News";
+import CoinTagWalletSection from "@/components/CoinTagWalletSection";
 
 const PORTFOLIO_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/r1.jpeg"];
 const ICON_STACK_MESSAGE = "we just felt this will make the UX design look good 😂";
@@ -65,6 +66,7 @@ export default function Portfolio() {
   const [assetRedeemCounts, setAssetRedeemCounts] = useState<Record<string, number>>({});
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [holdingsDialogOpen, setHoldingsDialogOpen] = useState(false);
+  const [ownedView, setOwnedView] = useState<"lft" | "cointag">("lft");
 
 
   const accruedRewards = cycle?.accrued?.holderRewards ?? 0;
@@ -202,30 +204,10 @@ export default function Portfolio() {
             <Card className="rounded-3xl border-none bg-transparent p-0 text-white shadow-none">
               <CardContent className="p-0">
                 <div className="flex flex-col items-center gap-3 text-center text-foreground">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        className="flex items-center transition-transform hover:scale-[1.02]"
-                        aria-label="Why these icons are here"
-                      >
-                        {PORTFOLIO_HEADER_ICONS.map((icon, index) => (
-                          <span
-                            key={icon}
-                            className={cn(
-                              "h-8 w-8 overflow-hidden rounded-full bg-white",
-                              index === 0 ? "ml-0" : "-ml-2.5",
-                            )}
-                          >
-                            <img src={icon} alt="" className="h-full w-full object-cover" loading="lazy" />
-                          </span>
-                        ))}
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent align="center" className="w-[240px] rounded-2xl border border-[#D5DCE8] bg-white p-3 text-sm font-medium leading-6 text-[#344054] shadow-xl">
-                      {ICON_STACK_MESSAGE}
-                    </PopoverContent>
-                  </Popover>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-[#F3F4F6] px-3 py-1.5 dark:bg-[#171A22]">
+                    <img src="/usdc.png" alt="USDC" className="h-7 w-7 rounded-full object-cover" />
+                    <span className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">USDC</span>
+                  </div>
                   <div className="flex flex-col items-center gap-1.5">
                     <button
                       type="button"
@@ -276,12 +258,40 @@ export default function Portfolio() {
               </Card>
             </div>
 
+            <div className="flex gap-2 rounded-2xl bg-muted/30 p-1">
+              <Button
+                type="button"
+                onClick={() => setOwnedView("lft")}
+                className={cn(
+                  "h-10 flex-1 rounded-xl border-0 text-xs font-semibold",
+                  ownedView === "lft"
+                    ? "bg-[#2F66F6] text-white hover:bg-[#2558DE]"
+                    : "bg-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                )}
+              >
+                Owned LFT Collection
+              </Button>
+              <Button
+                type="button"
+                onClick={() => setOwnedView("cointag")}
+                className={cn(
+                  "h-10 flex-1 rounded-xl border-0 text-xs font-semibold",
+                  ownedView === "cointag"
+                    ? "bg-[#2F66F6] text-white hover:bg-[#2558DE]"
+                    : "bg-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                )}
+              >
+                Owned CoinTag
+              </Button>
+            </div>
+
+            {ownedView === "lft" ? (
             <Card className="rounded-3xl border-0 bg-transparent p-0 backdrop-blur text-foreground shadow-none sm:bg-surface/60 sm:px-6 sm:py-6 sm:border sm:border-border/60">
               <CardHeader className="px-0 pt-0 sm:px-0 sm:pt-0">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                   <div>
-                    <CardTitle className="text-lg">Owned LFT Collections</CardTitle>
-                    <p className="text-xs text-muted-foreground">
+                    <CardTitle className="text-[28px] font-black leading-tight tracking-[-0.06em] sm:text-3xl">Owned LFT Collections</CardTitle>
+                    <p className="mt-2 max-w-3xl text-sm font-medium leading-relaxed text-muted-foreground sm:text-base">
                       Redeem LFTs for their reserve value and access the ecosystem token once discovery completes.
                     </p>
                   </div>
@@ -334,6 +344,9 @@ export default function Portfolio() {
                 )}
               </CardContent>
             </Card>
+            ) : (
+              <CoinTagWalletSection />
+            )}
             <Dialog open={Boolean(selectedAsset)} onOpenChange={(open) => !open && setSelectedAssetId(null)}>
               {selectedAsset && (
                 <DialogContent

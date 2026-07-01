@@ -366,7 +366,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
       const card = scroller?.querySelector<HTMLElement>("[data-news-card]");
       if (!scroller || !card) return;
 
-      scroller.scrollLeft = (card.offsetWidth + 4) * defaultIndex;
+      scroller.scrollLeft = card.offsetWidth * defaultIndex;
     });
   }, [isDesktop, statusNews?.length, statusNewsLoading]);
 
@@ -451,6 +451,9 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
       { label: "CoinTag", value: formatCurrency(coinTagPrice) },
       { label: "Backing", value: formatCurrencyK(asset.params.initialReserve) },
     ];
+    const projectStory =
+      asset.summary?.trim() ||
+      `Collection: ${asset.name} • By OpenYield Labs. Outline the story behind this artifact and why finders will want to activate your CoinTag campaign.`;
 
     return (
       <div
@@ -465,7 +468,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
           }
         }}
         className={cn(
-          "group flex h-full w-full flex-col rounded-lg border-0 bg-[#F5F7FA] p-3 text-left shadow-none transition-colors duration-200 hover:bg-[#EEF2F6] dark:bg-[#171717] dark:shadow-none dark:hover:bg-[#202020]",
+          "group flex h-full w-full flex-col rounded-2xl border-0 bg-[#F5F7FA] p-3 text-left shadow-none transition-colors duration-200 hover:bg-[#EEF2F6] dark:bg-[#171717] dark:shadow-none dark:hover:bg-[#202020]",
         )}
       >
         <div className="flex min-w-0 items-start gap-3">
@@ -493,20 +496,23 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                 <span className={changeClass}>{formatChange(change)}</span>
               </span>
             </div>
+            <p className="mt-2 line-clamp-2 text-[13px] font-medium leading-5 text-[#667085] dark:text-[#98A2B3]">
+              {projectStory}
+            </p>
           </div>
         </div>
 
-        <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2.5 border-t border-[#EEF2F6] pt-3 dark:border-[#2A2A2A]">
+        <div className="mt-3 grid grid-cols-2 gap-2.5">
           {stats.map((stat, index) => (
             <div
               key={`${asset.id}-${stat.label}`}
               className={cn(
-                "min-w-0",
+                "min-w-0 rounded-xl bg-[#ECEFF3] px-3 py-2.5 dark:bg-[#202020]",
                 index % 2 === 1 && "text-right",
               )}
             >
-              <span className="block text-[10px] uppercase tracking-[0.14em] text-[#98A2B3]">{stat.label}</span>
-              <span className="mt-0.5 block truncate text-[0.88rem] font-semibold tabular-nums text-[#101828] dark:text-[#F2F4F7] sm:text-[0.92rem]">{stat.value}</span>
+              <span className="block text-[11px] uppercase tracking-[0.14em] text-[#98A2B3]">{stat.label}</span>
+              <span className="price-number mt-1 block truncate text-[1.05rem] font-semibold tabular-nums text-[#101828] dark:text-[#F2F4F7] sm:text-[1.08rem]">{stat.value}</span>
             </div>
           ))}
         </div>
@@ -566,7 +572,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                 <TableRow
                   key={asset.id}
                   className={cn(
-                    "cursor-pointer text-sm transition-colors hover:bg-surface/30 md:border-0 group",
+                    "cursor-pointer text-sm transition-colors hover:bg-surface/30 md:border-0 group [&>td]:pb-3 md:[&>td]:pb-4",
                     mobileDividerClass,
                   )}
                   onClick={() => navigate(`/assets/${asset.id}`)}
@@ -583,21 +589,24 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       />
                     </TableCell>
                   )}
-                  <TableCell className={cn("asset-list-collection-col left-0 z-10 min-w-0 py-2 pl-3 pr-1.5 sm:pl-4 md:sticky md:min-w-[200px] md:border-b-0 md:py-4 md:pl-4 md:pr-4", mobileDividerClass, tableStickyColumnClasses)}>
-                    <div className="flex min-w-0 items-center gap-2 text-[16px] md:gap-3 md:text-sm">
-                      <div className="relative h-12 w-12 shrink-0 md:h-9 md:w-9">
+                  <TableCell className={cn("asset-list-collection-col left-0 z-10 min-w-0 py-1.5 pl-3 pr-1.5 sm:pl-4 md:sticky md:min-w-[200px] md:border-b-0 md:py-4 md:pl-4 md:pr-4", mobileDividerClass, tableStickyColumnClasses)}>
+                    <div className="flex min-w-0 items-center gap-2 text-[15px] md:gap-3 md:text-sm">
+                      <div className="relative h-10 w-10 shrink-0 md:h-9 md:w-9">
                         <img src={asset.image} alt={asset.name} className="h-full w-full rounded-full object-cover" />
                         <img
                           src={assetNetwork.image}
                           alt={assetNetwork.name}
-                          className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-2 border-white bg-white object-cover p-[1px] grayscale contrast-125 dark:border-black dark:bg-black md:h-3.5 md:w-3.5"
+                          className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-white object-cover p-[1px] grayscale contrast-125 dark:border-black dark:bg-black md:h-3.5 md:w-3.5"
                         />
                       </div>
                       <div className="flex flex-col min-w-0">
                         <div className="flex items-center gap-1">
-                          <span className="min-w-0 truncate text-[18px] font-semibold text-foreground md:text-base">{asset.name}</span>
-                          <img src="/checklist.png" alt="verified" className="h-5 w-5 flex-shrink-0 opacity-80 md:h-4 md:w-4" />
+                          <span className="min-w-0 truncate text-[16px] font-semibold text-foreground md:text-base">{asset.name}</span>
+                          <img src="/checklist.png" alt="verified" className="h-4 w-4 flex-shrink-0 opacity-80 md:h-4 md:w-4" />
                         </div>
+                        <p className="mt-0.5 max-w-[42vw] truncate text-[12px] font-medium leading-4 text-[#667085] dark:text-[#98A2B3] md:max-w-none md:text-xs">
+                          <span>LPU </span><span className="price-number tabular-nums">{formatUnitCurrency(liveLpu)}</span>
+                        </p>
                         <div className="hidden items-center gap-1.5 md:flex">
                           <span className={`text-xs font-semibold ${changeClass}`}>{changeText}</span>
                           {assetLive ? <span className="text-[11px] font-semibold text-emerald-500">Live</span> : null}
@@ -605,18 +614,18 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className={cn("w-[104px] py-2 pr-2 text-right sm:pr-3 md:w-auto md:min-w-[140px] md:border-b-0 md:px-4 md:py-4", mobileDividerClass)}>
+                  <TableCell className={cn("w-[96px] py-1.5 pr-2 text-right sm:pr-3 md:w-auto md:min-w-[140px] md:border-b-0 md:px-4 md:py-4", mobileDividerClass)}>
                     <div className="flex flex-col items-end gap-0.5">
-                      <span className="text-[18px] font-semibold tabular-nums text-foreground md:text-sm">{formatCurrencyK(safeReserve)}</span>
+                      <span className="price-number text-[16px] font-semibold tabular-nums text-foreground md:text-sm">{formatCurrencyK(safeReserve)}</span>
                       <span className="flex items-center justify-end gap-1.5 md:hidden">
-                        <span className={`text-[16px] font-semibold md:text-xs ${changeClass}`}>{changeText}</span>
-                        {assetLive ? <span className="text-[13px] font-semibold text-emerald-500">Live</span> : null}
+                        <span className={`text-[14px] font-semibold md:text-xs ${changeClass}`}>{changeText}</span>
+                        {assetLive ? <span className="text-[12px] font-semibold text-emerald-500">Live</span> : null}
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className={cn("hidden asset-list-metric-col min-w-0 px-2 text-right text-[15px] font-semibold tabular-nums md:table-cell md:min-w-[140px] md:border-b-0 md:px-8 md:text-sm", mobileDividerClass)}>{formatUnitCurrency(liveLpu)}</TableCell>
-                  <TableCell className={cn("hidden asset-list-metric-col min-w-0 px-2 text-right text-[15px] font-semibold tabular-nums md:table-cell md:min-w-[140px] md:border-b-0 md:px-4 md:text-sm", mobileDividerClass)}>{formatCurrency(coinTagPrice)}</TableCell>
-                  <TableCell className={cn("hidden asset-list-metric-col min-w-0 px-2 text-right text-[15px] font-semibold tabular-nums md:table-cell md:min-w-[160px] md:border-b-0 md:pl-4 md:pr-6 md:text-sm", mobileDividerClass)}>
+                  <TableCell className={cn("price-number hidden asset-list-metric-col min-w-0 px-2 text-right text-[15px] font-semibold tabular-nums md:table-cell md:min-w-[140px] md:border-b-0 md:px-8 md:text-sm", mobileDividerClass)}>{formatUnitCurrency(liveLpu)}</TableCell>
+                  <TableCell className={cn("price-number hidden asset-list-metric-col min-w-0 px-2 text-right text-[15px] font-semibold tabular-nums md:table-cell md:min-w-[140px] md:border-b-0 md:px-4 md:text-sm", mobileDividerClass)}>{formatCurrency(coinTagPrice)}</TableCell>
+                  <TableCell className={cn("price-number hidden asset-list-metric-col min-w-0 px-2 text-right text-[15px] font-semibold tabular-nums md:table-cell md:min-w-[160px] md:border-b-0 md:pl-4 md:pr-6 md:text-sm", mobileDividerClass)}>
                     {formatCurrencyK(asset.params.initialReserve)}
                   </TableCell>
                 </TableRow>
@@ -629,7 +638,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   );
 
   const renderListedGrid = (items: Asset[]) => (
-    <div className="grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-2.5 sm:gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {items.map((asset) => {
         const change = getAssetChange(asset);
         return renderGridCard(asset, change, () => navigate(`/assets/${asset.id}`));
@@ -689,7 +698,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
       const card = scroller.querySelector<HTMLElement>("[data-news-card]");
       if (!card) return;
 
-      const cardStep = card.offsetWidth + 2;
+      const cardStep = card.offsetWidth;
       if (cardStep <= 0) return;
 
       const centeredIndex = Math.round(scroller.scrollLeft / cardStep);
@@ -705,13 +714,13 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
           className="relative left-1/2 w-screen -translate-x-1/2 snap-x snap-mandatory overflow-x-auto scroll-smooth pb-5 no-scrollbar"
           onScroll={handleNewsScroll}
         >
-          <div className="flex items-center gap-0.5 px-[4vw]">
+          <div className="flex items-center gap-0 px-[9vw]">
             {showPlaceholders
               ? Array.from({ length: 3 }, (_, index) => (
                   <div
                     key={`news-card-placeholder-${index}`}
                     data-news-card
-                    className="h-[360px] w-[88vw] max-w-[420px] shrink-0 snap-center animate-pulse rounded-[16px] bg-muted"
+                    className="h-[360px] w-[82vw] max-w-[400px] shrink-0 snap-center animate-pulse rounded-[16px] bg-muted"
                   />
                 ))
               : statusItems.map((item, index) => {
@@ -723,8 +732,8 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
                     onClick={() => setSelectedNews(item)}
                     data-news-card
                     className={cn(
-                      "group w-[88vw] max-w-[420px] shrink-0 snap-center overflow-hidden rounded-[16px] bg-[#F1F1F1] text-left shadow-none outline-none transition-all duration-300 ease-out dark:bg-[#171717]",
-                      isActive ? "scale-100 opacity-100" : "scale-[0.86] opacity-80",
+                      "group w-[82vw] max-w-[400px] shrink-0 snap-center overflow-hidden rounded-[16px] bg-[#F1F1F1] text-left shadow-none outline-none transition-all duration-300 ease-out dark:bg-[#171717]",
+                      isActive ? "scale-100 opacity-100" : "scale-[0.9] opacity-80",
                     )}
                     aria-label={`Open headline: ${item.title}`}
                   >
@@ -784,8 +793,6 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
       <main className="flex-1 pb-2 pt-2 sm:pt-6 md:pb-20">
         <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col pt-0 pb-4">
-
-            {renderMobileNewsStatus()}
 
             {showTrending && (
               <Web3News variant="mobile" className="mb-4 hidden md:block" />
@@ -851,7 +858,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
               </div>
 
               <div className="flex shrink-0 items-center gap-2">
-                {viewMode === "grid" && (
+                {viewMode === "grid" && isDesktop && (
                   <Popover>
                     <PopoverTrigger asChild>
                       <button
@@ -937,8 +944,8 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 
             {/* Control Buttons Row - Unified */}
             {/* Horizontal Network Selector */}
-            {viewMode !== "grid" && (
-              <div className="relative left-1/2 mt-2 mb-2 flex w-screen -translate-x-1/2 items-stretch gap-0 overflow-x-auto border-y border-[#D0D5DD] pb-0 no-scrollbar dark:border-[#2A2A2A] md:left-auto md:mt-4 md:mb-6 md:w-auto md:translate-x-0 md:items-center md:gap-2 md:border-y-0">
+            {(viewMode !== "grid" || !isDesktop) && (
+              <div className="relative left-1/2 mt-2 mb-2 flex w-[calc(100vw-2rem)] -translate-x-1/2 items-stretch gap-0 overflow-x-auto rounded-2xl pb-0 no-scrollbar md:left-auto md:mt-4 md:mb-6 md:w-auto md:translate-x-0 md:items-center md:gap-2 md:rounded-none md:px-0">
                 {NETWORKS.map((network) => (
                   <button
                     key={network.id}

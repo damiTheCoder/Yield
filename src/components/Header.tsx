@@ -289,6 +289,20 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
     }
   };
 
+  const handleSignup = () => {
+    if (connectedWallet) {
+      navigate("/wallet");
+      return;
+    }
+
+    setConnectedWallet("Solaris Wallet");
+    toast({
+      title: "Wallet created",
+      description: "Your Solaris wallet is ready.",
+    });
+    navigate("/wallet");
+  };
+
   const handleNavigate = useCallback(
     (path: string) => {
       navigate(path);
@@ -406,8 +420,8 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
         >
           <div
             className={cn(
-              "relative flex w-full items-center justify-center overflow-hidden bg-cover bg-center px-4 transition-[height,opacity] duration-300",
-              isScrolled ? "h-0 opacity-0 md:h-14 md:opacity-100" : "h-12 opacity-100 md:h-14",
+              "relative hidden w-full items-center justify-center overflow-hidden bg-cover bg-center px-4 transition-[height,opacity] duration-300 md:flex",
+              isScrolled ? "md:h-14 md:opacity-100" : "md:h-14",
             )}
             style={{ backgroundImage: "url('/ks1.jpeg')" }}
           >
@@ -417,7 +431,9 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
               Liquidity Funded Tokens
             </span>
           </div>
-          <div className="relative flex w-full items-center justify-between gap-2 px-3 py-2 md:px-6">
+          <div className="relative flex min-h-[58px] w-full items-center justify-between gap-2 overflow-hidden bg-[url('/ks1.jpeg')] bg-cover bg-center px-5 py-1 md:min-h-0 md:bg-none md:px-6 md:py-2">
+            <div className="absolute inset-0 bg-black/20 md:hidden" />
+            <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-b from-transparent to-white dark:to-[#0F0F0F] md:hidden" />
             <div className="relative z-10 flex items-center gap-3">
               <Link
                 to="/"
@@ -428,7 +444,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                   alt="Solaris logo"
                   className="h-7 w-7 rounded-full object-cover"
                 />
-                <span className="text-lg font-extrabold text-foreground">Solaris</span>
+                <span className="text-lg font-extrabold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.35)] md:text-foreground md:drop-shadow-none">Solaris</span>
               </Link>
               <Button
                 type="button"
@@ -436,10 +452,10 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                 size="icon"
                 onClick={() => setSearchOpen(true)}
                 className={cn(
-                  "h-8 w-8 rounded-full md:hidden",
+                  "h-9 w-9 rounded-full md:hidden",
                   isDarkTheme
-                    ? "bg-[#1A1A1A] text-[#E6EAF0] hover:bg-[#242424] hover:text-white"
-                    : "bg-[#F8FAFC] text-[#344054] hover:bg-[#EEF2F7] hover:text-[#111827]",
+                    ? "bg-black/30 text-white backdrop-blur hover:bg-black/40 hover:text-white"
+                    : "bg-white/80 text-[#344054] backdrop-blur hover:bg-white hover:text-[#111827]",
                 )}
                 aria-label="Search listed assets"
               >
@@ -485,41 +501,39 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                 onClick={toggleTheme}
 	                aria-label={isDarkTheme ? "Switch to light mode" : "Switch to dark mode"}
 	                className={cn(
-	                  "h-8 w-8 rounded-full border-0 transition-colors",
+	                  "h-9 w-9 rounded-full border-0 transition-colors md:h-8 md:w-8",
 	                  isDarkTheme
-	                    ? "bg-[#1A1A1A] text-[#E6EAF0] hover:bg-[#242424] hover:text-white"
-	                    : "bg-[#F8FAFC] text-[#344054] hover:bg-[#EEF2F7] hover:text-[#111827]",
+	                    ? "bg-black/30 text-white backdrop-blur hover:bg-black/40 hover:text-white md:bg-[#1A1A1A] md:text-[#E6EAF0] md:hover:bg-[#242424]"
+	                    : "bg-white/80 text-[#344054] backdrop-blur hover:bg-white hover:text-[#111827] md:bg-[#F8FAFC] md:hover:bg-[#EEF2F7]",
 	                )}
               >
                 {isDarkTheme ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
 
               <Dialog open={walletDialogOpen} onOpenChange={setWalletDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="neutral"
-                    size="sm"
-                    className="hidden md:inline-flex min-w-[120px] justify-center h-8 rounded-full text-sm font-semibold border-0 bg-blue-500 text-white hover:bg-blue-600"
-                  >
-                    {connectedWallet ? (
-                      <span className="flex items-center gap-1">
-                        <Check className="h-4 w-4 text-white" />
-                        <span className="truncate max-w-[80px]">{connectedWallet}</span>
-                      </span>
-                    ) : (
-                      "Connect"
-                    )}
-                  </Button>
-                </DialogTrigger>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="neutral"
-                    size="sm"
-                    className="md:hidden rounded-full h-8 px-4 text-sm font-semibold border-0 bg-blue-500 text-white hover:bg-blue-600"
-                  >
-                    {connectedWallet ? "Wallet" : "Connect"}
-                  </Button>
-                </DialogTrigger>
+                <Button
+                  variant="neutral"
+                  size="sm"
+                  onClick={handleSignup}
+                  className="hidden md:inline-flex min-w-[120px] justify-center h-8 rounded-full text-sm font-semibold border-0 bg-blue-500 text-white hover:bg-blue-600"
+                >
+                  {connectedWallet ? (
+                    <span className="flex items-center gap-1">
+                      <Check className="h-4 w-4 text-white" />
+                      <span className="truncate max-w-[80px]">Wallet</span>
+                    </span>
+                  ) : (
+                    "Signup"
+                  )}
+                </Button>
+                <Button
+                  variant="neutral"
+                  size="sm"
+                  onClick={handleSignup}
+                  className="h-9 rounded-full border-0 bg-blue-500 px-5 text-sm font-semibold text-white hover:bg-blue-600 md:hidden"
+                >
+                  {connectedWallet ? "Wallet" : "Signup"}
+                </Button>
 
                 <DialogContent
                   className={`w-[calc(100%-2rem)] max-w-[420px] border-0 mx-auto rounded-3xl p-0 shadow-xl transition-colors duration-200 sm:max-w-md ${isDarkTheme ? "bg-[#0f0f10] text-neutral-100" : "bg-neutral-100"}`}
