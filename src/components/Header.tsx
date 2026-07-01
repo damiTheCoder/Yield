@@ -431,9 +431,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
               Liquidity Funded Tokens
             </span>
           </div>
-          <div className="relative flex min-h-[58px] w-full items-center justify-between gap-2 overflow-hidden bg-[url('/ks1.jpeg')] bg-cover bg-center px-3 py-1 md:min-h-0 md:bg-none md:px-6 md:py-2">
-            <div className="absolute inset-0 bg-black/20 md:hidden" />
-            <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-b from-transparent to-white dark:to-[#0F0F0F] md:hidden" />
+          <div className="relative flex min-h-[58px] w-full items-center justify-between gap-2 overflow-hidden px-3 py-1 md:min-h-0 md:px-6 md:py-2">
             <div className="relative z-10 flex items-center gap-3">
               <Link
                 to="/"
@@ -444,7 +442,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                   alt="Solaris logo"
                   className="h-7 w-7 rounded-full object-cover"
                 />
-                <span className="text-lg font-extrabold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.35)] md:text-foreground md:drop-shadow-none">Solaris</span>
+                <span className="text-lg font-extrabold text-foreground">Solaris</span>
               </Link>
               <Button
                 type="button"

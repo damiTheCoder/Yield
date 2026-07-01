@@ -646,7 +646,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
     if (viewMode === "grid" && isDesktop) return null;
 
     return (
-      <div className="relative left-1/2 mt-2 mb-2 flex w-[calc(100vw-2rem)] -translate-x-1/2 items-stretch gap-0 overflow-x-auto rounded-2xl pb-0 no-scrollbar md:left-auto md:mt-4 md:mb-6 md:w-auto md:translate-x-0 md:items-center md:gap-2 md:rounded-none md:px-0">
+      <div className="relative left-1/2 mt-2 mb-2 flex w-screen -translate-x-1/2 items-stretch gap-0 overflow-x-auto pb-0 no-scrollbar md:left-auto md:mt-4 md:mb-6 md:w-auto md:translate-x-0 md:items-center md:gap-2 md:px-0">
         {NETWORKS.map((network) => (
           <button
             key={network.id}
@@ -831,7 +831,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
   return (
     <div className={cn("min-h-screen", "bg-background")}>
       <main className="flex-1 pb-2 pt-2 sm:pt-6 md:pb-20">
-        <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1400px] px-2 sm:px-6 lg:px-8">
           <div className="flex flex-col pt-0 pb-4">
 
             {showTrending && (
@@ -859,7 +859,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
             {/* Text Navigation Links - Unified */}
             <div className="mt-0 flex items-center justify-between gap-4 pb-1 md:mt-2 md:pb-2">
               <div className="flex min-w-0 items-center gap-4">
-                <span className="whitespace-nowrap rounded-2xl bg-[#EEF0F3] px-3 py-2 text-[22px] font-semibold text-foreground dark:bg-[#202020] md:hidden">
+                <span className="whitespace-nowrap text-[22px] font-semibold text-foreground md:hidden">
                   Listed LFTs
                 </span>
                 <span className="hidden text-[22px] font-semibold text-foreground whitespace-nowrap md:inline">
