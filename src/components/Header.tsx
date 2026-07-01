@@ -431,7 +431,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
               Liquidity Funded Tokens
             </span>
           </div>
-          <div className="relative flex min-h-[58px] w-full items-center justify-between gap-2 overflow-hidden bg-[url('/ks1.jpeg')] bg-cover bg-center px-5 py-1 md:min-h-0 md:bg-none md:px-6 md:py-2">
+          <div className="relative flex min-h-[58px] w-full items-center justify-between gap-2 overflow-hidden bg-[url('/ks1.jpeg')] bg-cover bg-center px-3 py-1 md:min-h-0 md:bg-none md:px-6 md:py-2">
             <div className="absolute inset-0 bg-black/20 md:hidden" />
             <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-b from-transparent to-white dark:to-[#0F0F0F] md:hidden" />
             <div className="relative z-10 flex items-center gap-3">

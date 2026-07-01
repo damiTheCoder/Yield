@@ -77,7 +77,6 @@ const NETWORKS = [
 type AssetsPageProps = {
   showTrending?: boolean;
   showViewAllButton?: boolean;
-  listedLimit?: number;
   showSearchBar?: boolean;
 };
 
@@ -287,7 +286,7 @@ function getAssetNetwork(asset: Asset) {
   return getNetworkInfo(getAssetNetworkId(asset));
 }
 
-export function AssetsPage({ showTrending = true, showViewAllButton = true, listedLimit, showSearchBar = false }: AssetsPageProps) {
+export function AssetsPage({ showTrending = true, showViewAllButton = true, showSearchBar = false }: AssetsPageProps) {
   const { assets, userAssets, assetAvailable } = useApp();
   const { theme } = useTheme();
   const isDarkTheme = theme === "dark";
@@ -302,7 +301,6 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   });
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  const [showAllListed, setShowAllListed] = useState(false);
   const [selectedNews, setSelectedNews] = useState<Web3NewsItem | null>(null);
   const [activeNewsIndex, setActiveNewsIndex] = useState(1);
   const newsCarouselRef = useRef<HTMLDivElement | null>(null);
@@ -400,9 +398,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
   }, [assets, normalizedSearch, selectedNetwork]);
 
   const listedAssets = filteredAssets;
-  const effectiveListedLimit = showAllListed ? undefined : listedLimit;
-  const displayListedAssets = effectiveListedLimit ? listedAssets.slice(0, effectiveListedLimit) : listedAssets;
-  const showListedViewAll = Boolean(showViewAllButton && effectiveListedLimit && listedAssets.length > displayListedAssets.length);
+  const displayListedAssets = listedAssets;
   const totalVisibleAssets = listedAssets.length;
   const listedHeaderIcons = isDesktop ? ASSET_HEADER_ICONS : MOBILE_ASSET_HEADER_ICONS;
   const cardBorderClass = "";
@@ -646,6 +642,50 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
     </div>
   );
 
+  const renderNetworkSelector = () => {
+    if (viewMode === "grid" && isDesktop) return null;
+
+    return (
+      <div className="relative left-1/2 mt-2 mb-2 flex w-[calc(100vw-2rem)] -translate-x-1/2 items-stretch gap-0 overflow-x-auto rounded-2xl pb-0 no-scrollbar md:left-auto md:mt-4 md:mb-6 md:w-auto md:translate-x-0 md:items-center md:gap-2 md:rounded-none md:px-0">
+        {NETWORKS.map((network) => (
+          <button
+            key={network.id}
+            type="button"
+            onClick={() => setSelectedNetwork(network.id)}
+            className={cn(
+              "flex items-center gap-2 border-r border-[#D0D5DD] px-4 py-3 transition-all duration-200 whitespace-nowrap shadow-none last:border-r-0 dark:border-[#2A2A2A] md:rounded-2xl md:py-2 md:shadow-sm",
+              network.id === "all" ? "md:border-0" : "md:border md:border-transparent",
+              selectedNetwork === network.id
+                ? cn("font-semibold", network.selectedPillClass)
+                : network.pillClass
+            )}
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full overflow-hidden bg-white/20 flex items-center justify-center">
+                {network.image ? (
+                  <img
+                    src={network.image}
+                    alt={network.name}
+                    className={cn(
+                      "w-full h-full object-cover",
+                      network.id === "solana" && "grayscale contrast-150 brightness-75",
+                    )}
+                  />
+                ) : (
+                  <span className="text-[10px]">{network.icon}</span>
+                )}
+              </div>
+              <span className="text-sm">{network.name}</span>
+            </div>
+            {selectedNetwork === network.id && (
+              <Check className="h-3.5 w-3.5 ml-1" />
+            )}
+          </button>
+        ))}
+      </div>
+    );
+  };
+
   const trendingTokens = useMemo(() => {
     if (!showTrending) return [];
     return [...assets]
@@ -814,10 +854,12 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
               </div>
             )}
 
+            {renderNetworkSelector()}
+
             {/* Text Navigation Links - Unified */}
             <div className="mt-0 flex items-center justify-between gap-4 pb-1 md:mt-2 md:pb-2">
               <div className="flex min-w-0 items-center gap-4">
-                <span className="text-[22px] font-semibold text-foreground whitespace-nowrap md:hidden">
+                <span className="whitespace-nowrap rounded-2xl bg-[#EEF0F3] px-3 py-2 text-[22px] font-semibold text-foreground dark:bg-[#202020] md:hidden">
                   Listed LFTs
                 </span>
                 <span className="hidden text-[22px] font-semibold text-foreground whitespace-nowrap md:inline">
@@ -942,48 +984,6 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
               </div>
             </div>
 
-            {/* Control Buttons Row - Unified */}
-            {/* Horizontal Network Selector */}
-            {(viewMode !== "grid" || !isDesktop) && (
-              <div className="relative left-1/2 mt-2 mb-2 flex w-[calc(100vw-2rem)] -translate-x-1/2 items-stretch gap-0 overflow-x-auto rounded-2xl pb-0 no-scrollbar md:left-auto md:mt-4 md:mb-6 md:w-auto md:translate-x-0 md:items-center md:gap-2 md:rounded-none md:px-0">
-                {NETWORKS.map((network) => (
-                  <button
-                    key={network.id}
-                    type="button"
-                    onClick={() => setSelectedNetwork(network.id)}
-                    className={cn(
-                      "flex items-center gap-2 border-r border-[#D0D5DD] px-4 py-3 transition-all duration-200 whitespace-nowrap shadow-none last:border-r-0 dark:border-[#2A2A2A] md:rounded-2xl md:py-2 md:shadow-sm",
-                      network.id === "all" ? "md:border-0" : "md:border md:border-transparent",
-                      selectedNetwork === network.id
-                        ? cn("font-semibold", network.selectedPillClass)
-                        : network.pillClass
-                    )}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded-full overflow-hidden bg-white/20 flex items-center justify-center">
-                        {network.image ? (
-                          <img
-                            src={network.image}
-                            alt={network.name}
-                            className={cn(
-                              "w-full h-full object-cover",
-                              network.id === "solana" && "grayscale contrast-150 brightness-75",
-                            )}
-                          />
-                        ) : (
-                          <span className="text-[10px]">{network.icon}</span>
-                        )}
-                      </div>
-                      <span className="text-sm">{network.name}</span>
-                    </div>
-                    {selectedNetwork === network.id && (
-                      <Check className="h-3.5 w-3.5 ml-1" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-
             {/* Table or Grid View - Unified */}
             {displayListedAssets.length > 0 ? (
               viewMode === "grid" ? (
@@ -993,47 +993,6 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
               )
             ) : (
               renderEmptyState()
-            )}
-
-            {showListedViewAll && (
-              <div className="mt-2 mb-4 flex items-center justify-between gap-4">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button
-                      type="button"
-                      className="flex items-center whitespace-nowrap transition-transform hover:scale-[1.02]"
-                      aria-label="Why these icons are here"
-                    >
-                      {MOBILE_ASSET_HEADER_ICONS.map((icon, index) => (
-                        <span
-                          key={icon}
-                          className={cn(
-                            "h-8 w-8 overflow-hidden rounded-full bg-white",
-                            index === 0 ? "ml-0" : "-ml-2.5",
-                          )}
-                        >
-                          <img src={icon} alt="" className="h-full w-full object-cover" loading="lazy" />
-                        </span>
-                      ))}
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    align="start"
-                    alignOffset={10}
-                    collisionPadding={16}
-                    className="w-[240px] max-w-[calc(100vw-2rem)] rounded-2xl border border-[#D5DCE8] bg-white p-3 text-sm font-medium leading-6 text-[#344054] shadow-xl dark:border-[#2A2A2A] dark:bg-[#171717] dark:text-[#D0D5DD]"
-                  >
-                    {ICON_STACK_MESSAGE}
-                  </PopoverContent>
-                </Popover>
-                <button
-                  type="button"
-                  onClick={() => setShowAllListed(true)}
-                  className="text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  View all
-                </button>
-              </div>
             )}
 
           </div>
@@ -1097,5 +1056,5 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, list
 }
 
 export default function Assets() {
-  return <AssetsPage showTrending showViewAllButton listedLimit={7} />;
+  return <AssetsPage showTrending showViewAllButton />;
 }
