@@ -738,7 +738,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
               Trending LFTs
             </p>
             <h2 className="mt-1 text-lg font-semibold tracking-[-0.03em] text-foreground sm:text-xl">
-              The hottest liquidity-funded tokens right now
+              Trending LFTs right now
             </h2>
           </div>
           <div className="hidden shrink-0 rounded-full border border-border/50 bg-muted/60 px-3 py-1 text-xs font-medium text-muted-foreground sm:block">

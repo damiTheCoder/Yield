@@ -256,7 +256,7 @@ export default function Portfolio() {
                 <CardHeader className="px-0 pt-0 sm:px-0 sm:pt-0">
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
-                      <CardTitle className="text-[28px] font-black leading-tight tracking-[-0.06em] sm:text-3xl">Owned LFT Collections</CardTitle>
+                      <CardTitle className="max-w-full truncate text-[28px] font-black leading-tight tracking-[-0.06em] sm:text-3xl">Owned LFT Collections</CardTitle>
                       <p className="mt-2 max-w-3xl text-sm font-medium leading-relaxed text-muted-foreground sm:text-base">
                         Redeem LFTs for their reserve value and access the ecosystem token once discovery completes.
                       </p>
