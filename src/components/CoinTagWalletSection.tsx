@@ -82,7 +82,7 @@ export default function CoinTagWalletSection({ onSwitchToLfts }: { onSwitchToLft
 
   return (
     <div className="space-y-4">
-      <Card className="rounded-3xl border-0 bg-transparent p-0 backdrop-blur text-foreground shadow-none sm:bg-surface/60 sm:px-6 sm:py-6 sm:border sm:border-border/60">
+      <Card className="rounded-3xl border-0 bg-transparent p-0 backdrop-blur text-foreground shadow-none sm:px-6 sm:py-6">
         <CardHeader className="px-0 pt-0 sm:px-0 sm:pt-0">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
@@ -121,7 +121,7 @@ export default function CoinTagWalletSection({ onSwitchToLfts }: { onSwitchToLft
         </CardHeader>
 
         <CardContent className="space-y-4 px-0 pb-0 sm:px-0 sm:pb-0">
-          <div className="mx-auto flex w-full max-w-2xl items-center gap-2 rounded-2xl border border-border/60 bg-background/60 px-3 py-1 transition-colors duration-200 focus-within:border-ring/70 focus-within:bg-background/80">
+          <div className="mx-auto flex w-full max-w-2xl items-center gap-2 rounded-2xl border-0 bg-transparent px-3 py-1 transition-colors duration-200">
             <Search className="shrink-0 text-muted-foreground" />
             <Input
               value={query}
@@ -132,7 +132,7 @@ export default function CoinTagWalletSection({ onSwitchToLfts }: { onSwitchToLft
           </div>
 
           {walletRows.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border/60 bg-background/40 px-4 py-12 text-center">
+            <div className="rounded-2xl border-0 bg-transparent px-4 py-12 text-center">
               <p className="text-sm text-muted-foreground">
                 No CoinTag codes found yet. Buy CoinTags from an asset page to populate your wallet.
               </p>
@@ -141,12 +141,12 @@ export default function CoinTagWalletSection({ onSwitchToLfts }: { onSwitchToLft
               </Button>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-2xl border-0 bg-[#F3F4F6] dark:bg-[#171717]">
-              <div className="divide-y divide-border/50">
+            <div className="overflow-hidden rounded-2xl border-0 bg-transparent">
+              <div>
                 {walletRows.map(({ asset, codes, ownedCoinTags }) => (
                   <article
                     key={asset.id}
-                    className="px-3 py-3 transition-colors duration-200 hover:bg-muted/30 sm:px-4"
+                    className="px-3 py-3 transition-colors duration-200 sm:px-4"
                   >
                     <div className="flex flex-col gap-3">
                       <div className="flex items-center justify-between gap-3">

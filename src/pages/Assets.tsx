@@ -464,14 +464,14 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
           }
         }}
         className={cn(
-          "group flex h-full w-full flex-col rounded-2xl border-0 bg-[#F5F7FA] p-3 text-left shadow-none transition-colors duration-200 hover:bg-[#EEF2F6] dark:bg-[#171717] dark:shadow-none dark:hover:bg-[#202020]",
+          "group flex h-full w-full flex-col rounded-2xl border-0 bg-transparent p-3 text-left shadow-none transition-colors duration-200 hover:bg-transparent dark:bg-transparent dark:shadow-none dark:hover:bg-transparent",
         )}
       >
         <div className="flex min-w-0 items-start gap-3">
           <img
             src={asset.image}
             alt={asset.name}
-            className="h-11 w-11 shrink-0 rounded-lg border border-[#EEF2F6] object-cover shadow-sm transition duration-300 group-hover:scale-[1.03] sm:h-12 sm:w-12"
+            className="h-11 w-11 shrink-0 rounded-full object-cover transition duration-300 group-hover:scale-[1.03] sm:h-12 sm:w-12"
           />
           <div className="min-w-0 flex-1">
             <div className="flex min-w-0 items-start justify-between gap-2">
@@ -746,7 +746,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
           </div>
         </div>
 
-        <div className="no-scrollbar flex gap-3 overflow-x-auto pr-1">
+        <div className="no-scrollbar flex overflow-x-auto pr-1">
           {trendingTokens.slice(0, 6).map(({ asset, change }) => {
             const isPositive = change >= 0;
             const network = getAssetNetwork(asset);
@@ -755,7 +755,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
                 key={asset.id}
                 type="button"
                 onClick={() => navigate(`/assets/${asset.id}`)}
-                className="group flex min-w-[320px] flex-col justify-between rounded-[18px] bg-[#F1F1F1] px-4 py-2.5 text-left transition hover:-translate-y-0.5 dark:bg-card sm:min-w-[380px]"
+                className="group flex min-w-[320px] flex-col justify-between border-r border-[#D0D5DD] bg-transparent px-4 py-2.5 text-left transition last:border-r-0 dark:border-[#2A2A2A] sm:min-w-[380px]"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-3">

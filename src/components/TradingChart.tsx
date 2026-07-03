@@ -185,14 +185,14 @@ export default function TradingChart({
   const chartMargins = useMemo(
     () => ({
       left: 0,
-      right: isMobile ? 8 : 60,
+      right: isMobile ? 16 : 72,
       top: 20,
       bottom: 20,
     }),
     [isMobile],
   );
 
-  const yAxisWidth = isMobile ? 48 : 60;
+  const yAxisWidth = isMobile ? 64 : 76;
 
   return (
     <Card className="border-0 rounded-none md:rounded-3xl bg-background/50 backdrop-blur-sm mx-0">

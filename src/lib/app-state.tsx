@@ -430,7 +430,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         };
       }
     }
-    return { usd: 1000000, coinTags: 0, lfts: 0, yieldUnits: 0, realizedRewards: 0, withdrawn: 0 };
+    return { usd: 0, coinTags: 0, lfts: 0, yieldUnits: 0, realizedRewards: 0, withdrawn: 0 };
   });
 
   const buildInitialAvailability = (assetList: Asset[]) => {
@@ -635,7 +635,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setCycle(resetCycle);
     setYieldIndex(DEFAULT_INDEX);
     setAvailableToFind(getRemainingDiscoverableTokens(resetCycle));
-    setUser({ usd: 1000000, coinTags: 0, lfts: 0, yieldUnits: 0, realizedRewards: 0, withdrawn: 0 });
+    setUser({ usd: 0, coinTags: 0, lfts: 0, yieldUnits: 0, realizedRewards: 0, withdrawn: 0 });
     setAssets(defaultAssets);
     setAssetAvailable(buildInitialAvailability(defaultAssets));
     const resetBalances = normalizeUserAssetRecord(undefined, defaultAssets);
@@ -748,6 +748,18 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setUser((u) => ({ ...u, usd: u.usd + amount, realizedRewards: u.realizedRewards + amount }));
     return { claimed: amount };
   }, [cycle.accrued.holderRewards]);
+
+  const depositUsd = useCallback((amount: number) => {
+    const deposit = Math.max(0, Number.isFinite(amount) ? amount : 0);
+    if (deposit <= 0) return;
+    setUser((u) => ({ ...u, usd: u.usd + deposit }));
+  }, []);
+
+  const withdrawUsd = useCallback((amount: number) => {
+    const requested = Math.max(0, Number.isFinite(amount) ? amount : 0);
+    if (requested <= 0) return;
+    setUser((u) => ({ ...u, usd: Math.max(0, u.usd - Math.min(requested, u.usd)) }));
+  }, []);
 
   const advanceAssetCycle = useCallback(
     (assetId: string) => {
@@ -1221,6 +1233,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       updateHuntProgress,
       activateAssetHuntCode,
       claimHuntToken,
+      depositUsd,
+      withdrawUsd,
       launchAsset: ({ name, ticker, image, summary, params: launchParams, raise }) => {
         const safeName = name.trim() || "Untitled Asset";
         const baseSlug = slugify(ticker.trim() || safeName);
@@ -1300,6 +1314,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       updateHuntProgress,
       activateAssetHuntCode,
       claimHuntToken,
+      depositUsd,
+      withdrawUsd,
       slugify,
     ],
   );

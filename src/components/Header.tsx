@@ -450,7 +450,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                 size="icon"
                 onClick={() => setSearchOpen(true)}
                 className={cn(
-                  "h-9 w-9 rounded-full md:hidden",
+                  "h-9 w-9 rounded-2xl md:hidden",
                   isDarkTheme
                     ? "bg-black/30 text-white backdrop-blur hover:bg-black/40 hover:text-white"
                     : "bg-white/80 text-[#344054] backdrop-blur hover:bg-white hover:text-[#111827]",
@@ -483,7 +483,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                 type="button"
                 variant="outline"
                 onClick={() => setSearchOpen(true)}
-                className="hidden md:inline-flex items-center gap-2 rounded-full border-border/60 bg-surface/60 px-3 py-1 text-sm font-medium text-foreground md:mr-auto"
+                className="hidden md:inline-flex items-center gap-2 rounded-xl border-border/60 bg-surface/60 px-3 py-1 text-sm font-medium text-foreground md:mr-auto"
               >
                 <Search className="h-4 w-4" />
                 <span>Search</span>
@@ -499,7 +499,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                 onClick={toggleTheme}
 	                aria-label={isDarkTheme ? "Switch to light mode" : "Switch to dark mode"}
 	                className={cn(
-	                  "h-9 w-9 rounded-full border-0 transition-colors md:h-8 md:w-8",
+	                  "h-9 w-9 rounded-2xl border-0 transition-colors md:h-8 md:w-8 md:rounded-xl",
 	                  isDarkTheme
 	                    ? "bg-black/30 text-white backdrop-blur hover:bg-black/40 hover:text-white md:bg-[#1A1A1A] md:text-[#E6EAF0] md:hover:bg-[#242424]"
 	                    : "bg-white/80 text-[#344054] backdrop-blur hover:bg-white hover:text-[#111827] md:bg-[#F8FAFC] md:hover:bg-[#EEF2F7]",
@@ -513,7 +513,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                   variant="neutral"
                   size="sm"
                   onClick={handleSignup}
-                  className="hidden md:inline-flex min-w-[120px] justify-center h-8 rounded-full text-sm font-semibold border-0 bg-blue-500 text-white hover:bg-blue-600"
+                  className="hidden md:inline-flex min-w-[120px] justify-center h-8 rounded-2xl text-sm font-semibold border-0 bg-blue-500 text-white hover:bg-blue-600"
                 >
                   {connectedWallet ? (
                     <span className="flex items-center gap-1">
@@ -528,7 +528,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                   variant="neutral"
                   size="sm"
                   onClick={handleSignup}
-                  className="h-9 rounded-full border-0 bg-blue-500 px-5 text-sm font-semibold text-white hover:bg-blue-600 md:hidden"
+                  className="h-9 rounded-2xl border-0 bg-blue-500 px-5 text-sm font-semibold text-white hover:bg-blue-600 md:hidden"
                 >
                   {connectedWallet ? "Wallet" : "Signup"}
                 </Button>

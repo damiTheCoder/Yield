@@ -11,7 +11,6 @@ import { DEFAULT_LAUNCHPAD_DISTRIBUTION, allocateLaunchPadTokens } from "@/domai
 import { Dot, Image as ImageIcon, LineChart as LineChartIcon, X } from "lucide-react";
 import { Area, Bar, BarChart as RechartsBarChart, Cell, Line, LineChart as RechartsLineChart, XAxis, YAxis } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import Web3News from "@/components/Web3News";
 
 function detectWebView(): boolean {
   if (typeof window === "undefined" || typeof navigator === "undefined") return false;
@@ -595,13 +594,8 @@ export default function AssetDetail() {
 
   return (
     <div className="min-h-screen">
-      <main className="container mx-auto px-4 pt-0 pb-24 sm:pt-4 sm:pb-8">
-        <div className="flex flex-col gap-6 pt-5 lg:grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.35fr)_minmax(0,1fr)] lg:gap-8 lg:pt-0">
-          <div className="hidden lg:block lg:space-y-6 lg:pt-2">
-            <Web3News variant="detail" />
-            <AnalyticsSection />
-          </div>
-
+      <main className="mx-auto w-full max-w-6xl px-4 pb-24 pt-0 sm:px-6 sm:pb-8 sm:pt-4 lg:px-8">
+        <div className="flex flex-col gap-6 pt-5 lg:grid lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.75fr)] lg:gap-8 lg:pt-0">
           <div className="space-y-8 md:space-y-10">
             <section className="space-y-2 md:space-y-3">
               {!isImageMode && (
@@ -665,10 +659,10 @@ export default function AssetDetail() {
                         orientation="right"
                         axisLine={false}
                         tickLine={false}
-                        width={44}
+                        width={56}
                         tickFormatter={formatChartPriceTick}
-                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12, dx: 6 }}
-                        tickMargin={6}
+                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12, dx: 8 }}
+                        tickMargin={4}
                         domain={['auto', 'auto']}
                         padding={{ top: 10, bottom: 10 }}
                       />
@@ -920,6 +914,7 @@ export default function AssetDetail() {
                 </div>
               </div>
             </section>
+            <AnalyticsSection className="hidden lg:block" />
             <TransactionHistorySection className="hidden lg:block" />
           </div>
         </div>
