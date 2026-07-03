@@ -103,6 +103,8 @@ type AppActions = {
   updateHuntProgress: (assetId: string, progress: HuntProgress) => void;
   activateAssetHuntCode: (assetId: string, code: string) => { ok: boolean; message: string; code?: string };
   claimHuntToken: (assetId: string, quantity?: number) => boolean;
+  depositUsd: (amount: number) => void;
+  withdrawUsd: (amount: number) => void;
 };
 
 type AssetTokenInfo = {

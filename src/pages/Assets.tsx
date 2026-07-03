@@ -727,6 +727,90 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
     );
   };
 
+  const renderTrendingLftsStrip = () => {
+    if (!showTrending || trendingTokens.length === 0) return null;
+
+    return (
+      <section className="mb-2 px-2 py-2 sm:px-3 md:px-4">
+        <div className="mb-2 flex items-end justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              Trending LFTs
+            </p>
+            <h2 className="mt-1 text-lg font-semibold tracking-[-0.03em] text-foreground sm:text-xl">
+              The hottest liquidity-funded tokens right now
+            </h2>
+          </div>
+          <div className="hidden shrink-0 rounded-full border border-border/50 bg-muted/60 px-3 py-1 text-xs font-medium text-muted-foreground sm:block">
+            Live rankings
+          </div>
+        </div>
+
+        <div className="no-scrollbar flex gap-3 overflow-x-auto pr-1">
+          {trendingTokens.slice(0, 6).map(({ asset, change }) => {
+            const isPositive = change >= 0;
+            const network = getAssetNetwork(asset);
+            return (
+              <button
+                key={asset.id}
+                type="button"
+                onClick={() => navigate(`/assets/${asset.id}`)}
+                className="group flex min-w-[320px] flex-col justify-between rounded-[18px] bg-[#F1F1F1] px-4 py-2.5 text-left transition hover:-translate-y-0.5 dark:bg-card sm:min-w-[380px]"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <img
+                      src={asset.image}
+                      alt={asset.name}
+                      className="h-9 w-9 rounded-full border border-border/50 object-cover"
+                    />
+                    <div className="min-w-0">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span className="min-w-0 flex-1 truncate text-base font-semibold tracking-[-0.03em] text-foreground">
+                          {asset.name}
+                        </span>
+                        <span
+                          className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted ring-1 ring-border/40"
+                          aria-label={network.name}
+                          title={network.name}
+                        >
+                          {network.image ? (
+                            <img src={network.image} alt={network.name} className="h-full w-full object-cover" />
+                          ) : (
+                            <span className="text-[11px] font-semibold text-muted-foreground">{network.icon}</span>
+                          )}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{asset.ticker || "LFT"}</p>
+                    </div>
+                  </div>
+                  <div
+                    className={cn(
+                      "rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                      isPositive ? "bg-emerald-500/10 text-emerald-600" : "bg-rose-500/10 text-rose-600",
+                    )}
+                  >
+                    {formatChange(change)}
+                  </div>
+                </div>
+
+                <div className="mt-2 flex items-end justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Liquidity</p>
+                    <p className="text-base font-semibold text-foreground">{formatCurrencyK(asset.cycle.reserve)}</p>
+                  </div>
+                  <div className="text-right text-xs text-muted-foreground transition group-hover:text-foreground">
+                    {formatChange(change)}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+    );
+  };
+
   const renderMobileNewsStatus = () => {
     if (!showTrending) return null;
 
@@ -757,15 +841,15 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
           <div className="flex items-center gap-0 px-[9vw]">
             {showPlaceholders
               ? Array.from({ length: 3 }, (_, index) => (
-                  <div
-                    key={`news-card-placeholder-${index}`}
-                    data-news-card
-                    className="h-[360px] w-[82vw] max-w-[400px] shrink-0 snap-center animate-pulse rounded-[16px] bg-muted"
-                  />
-                ))
+                <div
+                  key={`news-card-placeholder-${index}`}
+                  data-news-card
+                  className="h-[360px] w-[82vw] max-w-[400px] shrink-0 snap-center animate-pulse rounded-[16px] bg-muted"
+                />
+              ))
               : statusItems.map((item, index) => {
-                  const isActive = index === activeNewsIndex;
-                  return (
+                const isActive = index === activeNewsIndex;
+                return (
                   <button
                     key={item.id}
                     type="button"
@@ -809,8 +893,8 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
                       </p>
                     </div>
                   </button>
-                  );
-                })}
+                );
+              })}
           </div>
         </div>
         <div className="mt-1 flex items-center justify-center gap-3">
@@ -833,6 +917,8 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
       <main className="flex-1 pb-2 pt-2 sm:pt-6 md:pb-20">
         <div className="mx-auto w-full max-w-[1400px] px-2 sm:px-6 lg:px-8">
           <div className="flex flex-col pt-0 pb-4">
+
+            {renderTrendingLftsStrip()}
 
             {showTrending && (
               <Web3News variant="mobile" className="mb-4 hidden md:block" />
