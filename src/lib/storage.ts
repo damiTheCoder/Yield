@@ -28,6 +28,13 @@ export interface StoredState {
     realizedRewards: number;
     withdrawn: number;
   };
+  authUser: {
+    id: string;
+    name: string;
+    email: string;
+    avatar: string;
+    provider: "google";
+  } | null;
   assets: Array<{
     id: string;
     name: string;
@@ -51,7 +58,8 @@ export function saveState(state: Partial<StoredState>): void {
     const dataToStore: StoredState = {
       version: STORAGE_VERSION,
       timestamp: Date.now(),
-      user: state.user || { usd: 1000, coinTags: 0, lfts: 0, yieldUnits: 0, realizedRewards: 0, withdrawn: 0 },
+      user: state.user || { usd: 0, coinTags: 0, lfts: 0, yieldUnits: 0, realizedRewards: 0, withdrawn: 0 },
+      authUser: state.authUser ?? null,
       assets: state.assets || [],
       assetAvailable: state.assetAvailable || {},
       userAssets: state.userAssets || {},

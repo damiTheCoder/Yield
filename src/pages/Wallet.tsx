@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
   Copy,
@@ -109,9 +109,9 @@ function PixelAvatar({ variant, className }: { variant: number; className?: stri
 
 export default function Wallet() {
   const { toast } = useToast();
-  const { assets, user, userAssets, depositUsd, withdrawUsd } = useApp();
+  const { assets, user, authUser, userAssets, depositUsd, withdrawUsd, updateAuthProfile } = useApp();
   const walletAddress = "0xc1...677d";
-  const [profileName, setProfileName] = useState("grimfit86454");
+  const [profileName, setProfileName] = useState(authUser?.name ?? "grimfit86454");
   const [draftName, setDraftName] = useState(profileName);
   const [avatarVariant, setAvatarVariant] = useState(0);
   const [draftAvatarVariant, setDraftAvatarVariant] = useState(avatarVariant);
@@ -131,6 +131,12 @@ export default function Wallet() {
     .filter((holding) => holding.lfts > 0)
     .sort((a, b) => b.value - a.value);
   const totalLftValue = ownedLftHoldings.reduce((sum, holding) => sum + holding.value, 0);
+
+  useEffect(() => {
+    if (!authUser) return;
+    setProfileName(authUser.name);
+    setDraftName(authUser.name);
+  }, [authUser]);
 
   const copyAddress = async () => {
     try {
@@ -158,6 +164,7 @@ export default function Wallet() {
     const nextName = draftName.trim() || profileName;
     setProfileName(nextName);
     setAvatarVariant(draftAvatarVariant);
+    updateAuthProfile({ name: nextName });
     setIsEditingProfile(false);
     toast({
       title: "Profile updated",
@@ -173,7 +180,11 @@ export default function Wallet() {
             <div className="flex flex-col gap-6 p-5 sm:p-6">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex min-w-0 items-center gap-4">
-                  <PixelAvatar variant={avatarVariant} className="h-16 w-16 sm:h-24 sm:w-24" />
+                  {authUser ? (
+                    <img src={authUser.avatar} alt={authUser.name} className="h-16 w-16 shrink-0 rounded-full object-cover sm:h-24 sm:w-24" />
+                  ) : (
+                    <PixelAvatar variant={avatarVariant} className="h-16 w-16 sm:h-24 sm:w-24" />
+                  )}
                   <div className="min-w-0">
                     <p className="max-w-[8rem] truncate text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground sm:max-w-[11rem]">
                       Solaris Wallet

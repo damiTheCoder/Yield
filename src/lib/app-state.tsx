@@ -15,11 +15,14 @@ import {
   recordLftDiscovery,
 } from "@/domain/tokenomics";
 import { saveState, loadState, clearState, hasStoredState, HuntProgress } from "@/lib/storage";
+import { signInWithGooglePopup } from "@/lib/google-auth";
 
 export const HUNT_TOKEN_SUPPLY = 1_000;
 export const HUNT_TOKEN_BUNDLE = 20;
 const MIN_LISTED_ASSET_RESERVE = 1_000;
 const MAX_REDEMPTION_CYCLES = 5;
+export const DEFAULT_PROFILE_AVATAR =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='24' fill='%23A99BF5'/%3E%3Cpath d='M22 56c0-18 14-32 32-32h8c8 0 14 6 14 14v19c0 9-7 15-15 15H35c-8 0-13-6-13-13v-3z' fill='%23FFFFFF'/%3E%3Crect x='53' y='32' width='8' height='8' rx='4' fill='%23806FE0'/%3E%3Crect x='65' y='32' width='8' height='8' rx='4' fill='%23806FE0'/%3E%3Cpath d='M31 58c8-20 20-29 37-25-4 18-17 30-37 25z' fill='%23A99BF5' opacity='.95'/%3E%3C/svg%3E";
 type User = {
   usd: number;
   coinTags: number;
@@ -27,6 +30,14 @@ type User = {
   yieldUnits: number; // units in the consolidated index
   realizedRewards: number; // total claimed rewards
   withdrawn: number; // total USD received from LFT redemptions
+};
+
+export type AuthUser = {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string;
+  provider: "google";
 };
 
 export type Asset = {
@@ -62,6 +73,7 @@ type AppState = {
   yieldIndex: YieldIndex;
   availableToFind: number; // remaining LFTs discoverable this cycle
   user: User;
+  authUser: AuthUser | null;
   assets: Asset[];
   assetAvailable: Record<string, number>; // per-asset findable units
   userAssets: Record<string, { coinTags: number; lfts: number }>;
@@ -105,6 +117,9 @@ type AppActions = {
   claimHuntToken: (assetId: string, quantity?: number) => boolean;
   depositUsd: (amount: number) => void;
   withdrawUsd: (amount: number) => void;
+  signInWithGoogle: () => Promise<AuthUser>;
+  signOut: () => void;
+  updateAuthProfile: (profile: Partial<Pick<AuthUser, "name" | "avatar">>) => void;
 };
 
 type AssetTokenInfo = {
@@ -432,6 +447,17 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     }
     return { usd: 0, coinTags: 0, lfts: 0, yieldUnits: 0, realizedRewards: 0, withdrawn: 0 };
   });
+  const [authUser, setAuthUser] = useState<AuthUser | null>(() => {
+    if (typeof window !== "undefined" && hasStoredState()) {
+      const stored = loadState();
+      if (!stored?.authUser) return null;
+      return {
+        ...stored.authUser,
+        avatar: stored.authUser.avatar === "/h4.png" ? DEFAULT_PROFILE_AVATAR : stored.authUser.avatar,
+      };
+    }
+    return null;
+  });
 
   const buildInitialAvailability = (assetList: Asset[]) => {
     if (!assetList || !Array.isArray(assetList)) return {};
@@ -589,13 +615,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
     saveState({
       user,
+      authUser,
       assets,
       assetAvailable,
       userAssets,
       assetCoinTagCodes,
       huntProgress,
     });
-  }, [user, assets, assetAvailable, userAssets, assetCoinTagCodes, huntProgress, initialized]);
+  }, [user, authUser, assets, assetAvailable, userAssets, assetCoinTagCodes, huntProgress, initialized]);
 
   const slugify = useCallback((value: string) => {
     return value
@@ -636,6 +663,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setYieldIndex(DEFAULT_INDEX);
     setAvailableToFind(getRemainingDiscoverableTokens(resetCycle));
     setUser({ usd: 0, coinTags: 0, lfts: 0, yieldUnits: 0, realizedRewards: 0, withdrawn: 0 });
+    setAuthUser(null);
     setAssets(defaultAssets);
     setAssetAvailable(buildInitialAvailability(defaultAssets));
     const resetBalances = normalizeUserAssetRecord(undefined, defaultAssets);
@@ -759,6 +787,34 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     const requested = Math.max(0, Number.isFinite(amount) ? amount : 0);
     if (requested <= 0) return;
     setUser((u) => ({ ...u, usd: Math.max(0, u.usd - Math.min(requested, u.usd)) }));
+  }, []);
+
+  const signInWithGoogle = useCallback(async (): Promise<AuthUser> => {
+    const account = await signInWithGooglePopup();
+    const normalizedAccount = {
+      ...account,
+      avatar: account.avatar || DEFAULT_PROFILE_AVATAR,
+    };
+
+    if (!authUser?.id || authUser.id !== normalizedAccount.id) {
+      const resetBalances = normalizeUserAssetRecord(undefined, assets);
+      setUser({ usd: 0, coinTags: 0, lfts: 0, yieldUnits: 0, realizedRewards: 0, withdrawn: 0 });
+      setUserAssets(resetBalances);
+      setAssetCoinTagCodes(normalizeAssetCoinTagCodes(undefined, resetBalances, assets));
+      setHuntProgress({});
+    }
+
+    setAuthUser(normalizedAccount);
+
+    return normalizedAccount;
+  }, [assets, authUser]);
+
+  const signOut = useCallback(() => {
+    setAuthUser(null);
+  }, []);
+
+  const updateAuthProfile = useCallback((profile: Partial<Pick<AuthUser, "name" | "avatar">>) => {
+    setAuthUser((current) => (current ? { ...current, ...profile } : current));
   }, []);
 
   const advanceAssetCycle = useCallback(
@@ -1208,6 +1264,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       yieldIndex,
       availableToFind,
       user,
+      authUser,
       assets,
       assetAvailable,
       userAssets,
@@ -1235,6 +1292,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       claimHuntToken,
       depositUsd,
       withdrawUsd,
+      signInWithGoogle,
+      signOut,
+      updateAuthProfile,
       launchAsset: ({ name, ticker, image, summary, params: launchParams, raise }) => {
         const safeName = name.trim() || "Untitled Asset";
         const baseSlug = slugify(ticker.trim() || safeName);
@@ -1289,6 +1349,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       yieldIndex,
       availableToFind,
       user,
+      authUser,
       assets,
       assetAvailable,
       userAssets,
@@ -1316,6 +1377,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       claimHuntToken,
       depositUsd,
       withdrawUsd,
+      signInWithGoogle,
+      signOut,
+      updateAuthProfile,
       slugify,
     ],
   );

@@ -24,6 +24,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem, CommandSeparator } from "@/components/ui/command";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useApp } from "@/lib/app-state";
+import { preloadGoogleAuth } from "@/lib/google-auth";
 import type { Asset } from "@/lib/app-state";
 import { useTheme } from "@/hooks/useTheme";
 import { useToast } from "@/hooks/use-toast";
@@ -93,7 +94,7 @@ type HeaderProps = {
 };
 
 const Header = ({ mobileNavItems = [] }: HeaderProps) => {
-  const { assets } = useApp();
+  const { assets, authUser, signInWithGoogle } = useApp();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const isDarkTheme = theme === "dark";
@@ -106,6 +107,10 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+
+  useEffect(() => {
+    preloadGoogleAuth();
+  }, []);
 
   const bottomNavItems = useMemo(
     () =>
@@ -289,18 +294,27 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
     }
   };
 
-  const handleSignup = () => {
-    if (connectedWallet) {
+  const handleSignup = async () => {
+    if (authUser || connectedWallet) {
       navigate("/wallet");
       return;
     }
 
-    setConnectedWallet("Solaris Wallet");
-    toast({
-      title: "Wallet created",
-      description: "Your Solaris wallet is ready.",
-    });
-    navigate("/wallet");
+    try {
+      await signInWithGoogle();
+      setConnectedWallet("Google");
+      toast({
+        title: "Signed in with Google",
+        description: "Your Solaris wallet is ready for this account.",
+      });
+      navigate("/wallet");
+    } catch (error) {
+      toast({
+        title: "Google sign-in failed",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleNavigate = useCallback(
@@ -513,24 +527,37 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                   variant="neutral"
                   size="sm"
                   onClick={handleSignup}
-                  className="hidden md:inline-flex min-w-[120px] justify-center h-8 rounded-2xl text-sm font-semibold border-0 bg-blue-500 text-white hover:bg-blue-600"
+                  className={cn(
+                    "hidden md:inline-flex h-8 justify-center border-0 text-sm font-semibold text-white hover:bg-blue-600",
+                    authUser ? "min-w-0 rounded-full bg-transparent p-0 hover:bg-transparent" : "min-w-[120px] rounded-2xl bg-blue-500",
+                  )}
                 >
-                  {connectedWallet ? (
+                  {authUser ? (
+                    <img src={authUser.avatar} alt={authUser.name} className="h-8 w-8 rounded-full object-cover" />
+                  ) : connectedWallet ? (
                     <span className="flex items-center gap-1">
                       <Check className="h-4 w-4 text-white" />
-                      <span className="truncate max-w-[80px]">Wallet</span>
+                      <span className="max-w-[80px] truncate">Wallet</span>
                     </span>
                   ) : (
-                    "Signup"
+                    <span className="flex items-center gap-2">
+                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-black text-blue-500">G</span>
+                      Signup
+                    </span>
                   )}
                 </Button>
                 <Button
                   variant="neutral"
                   size="sm"
                   onClick={handleSignup}
-                  className="h-9 rounded-2xl border-0 bg-blue-500 px-5 text-sm font-semibold text-white hover:bg-blue-600 md:hidden"
+                  className={cn(
+                    "h-9 border-0 text-sm font-semibold text-white hover:bg-blue-600 md:hidden",
+                    authUser ? "rounded-full bg-transparent px-0 hover:bg-transparent" : "rounded-2xl bg-blue-500 px-5",
+                  )}
                 >
-                  {connectedWallet ? "Wallet" : "Signup"}
+                  {authUser ? (
+                    <img src={authUser.avatar} alt={authUser.name} className="h-9 w-9 rounded-full object-cover" />
+                  ) : connectedWallet ? "Wallet" : "Signup"}
                 </Button>
 
                 <DialogContent
