@@ -74,9 +74,12 @@ const formatCompactUsd = (value: number) => {
     });
   }
 
-  const scaled = value / unit.value;
-  const formatted = scaled >= 100 ? scaled.toFixed(0) : scaled >= 10 ? scaled.toFixed(1) : scaled.toFixed(2);
-  return `${formatted.replace(/\.0+$/, "").replace(/(\.\d*[1-9])0+$/, "$1")}${unit.suffix}`;
+  const scaled = abs / unit.value;
+  const formatted = scaled >= 100 ? scaled.toFixed(1) : scaled >= 10 ? scaled.toFixed(2) : scaled.toFixed(3);
+  const rounded = Number(formatted);
+  const isExactUnit = Math.abs(abs % unit.value) < 0.000001;
+  const compact = rounded % 1 === 0 && !isExactUnit ? formatted : formatted.replace(/\.0+$/, "").replace(/(\.\d*[1-9])0+$/, "$1");
+  return `${value < 0 ? "-" : ""}${compact}${unit.suffix}`;
 };
 
 const getAssetUnitPrice = (asset: {
@@ -192,19 +195,19 @@ export default function Wallet() {
       <main className="mx-auto w-full max-w-6xl px-4 pb-12 pt-4 sm:px-6 lg:px-8">
         <div>
           <section className="overflow-hidden rounded-2xl bg-transparent">
-            <div className="flex flex-col gap-6 p-5 sm:p-6">
+            <div className="flex flex-col gap-5 p-5 sm:p-6">
               <div className="flex items-start justify-between gap-4">
-                <div className="flex min-w-0 items-center gap-4">
+                <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                   {authUser ? (
-                    <img src={authUser.avatar} alt={authUser.name} className="h-16 w-16 shrink-0 rounded-full object-cover sm:h-24 sm:w-24" />
+                    <img src={authUser.avatar} alt={authUser.name} className="h-14 w-14 shrink-0 rounded-full object-cover sm:h-20 sm:w-20" />
                   ) : (
-                    <PixelAvatar variant={avatarVariant} className="h-16 w-16 sm:h-24 sm:w-24" />
+                    <PixelAvatar variant={avatarVariant} className="h-14 w-14 sm:h-20 sm:w-20" />
                   )}
                   <div className="min-w-0">
-                    <p className="max-w-[8rem] truncate text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground sm:max-w-[11rem]">
+                    <p className="max-w-[8rem] truncate text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground sm:max-w-[11rem] sm:text-xs">
                       Solaris Wallet
                     </p>
-                    <h1 className="mt-1 truncate text-3xl font-black tracking-[-0.05em] text-foreground sm:text-4xl">
+                    <h1 className="mt-1 truncate text-2xl font-black tracking-[-0.05em] text-foreground sm:text-3xl">
                       {profileName}
                     </h1>
                     <button
@@ -221,7 +224,7 @@ export default function Wallet() {
                 <Button
                   type="button"
                   onClick={openProfileEditor}
-                  className="h-10 shrink-0 rounded-xl bg-emerald-500/10 px-3 text-sm font-semibold text-emerald-600 hover:bg-emerald-500/15 dark:text-emerald-400"
+                  className="h-9 shrink-0 rounded-xl bg-emerald-500/10 px-3 text-xs font-semibold text-emerald-600 hover:bg-emerald-500/15 sm:text-sm dark:text-emerald-400"
                 >
                   <Pencil className="mr-2 h-4 w-4" />
                   Edit Profile
@@ -286,12 +289,10 @@ export default function Wallet() {
                       className="mt-2 block max-w-full text-left font-mono text-4xl font-black tracking-[-0.05em] text-foreground transition hover:text-blue-500 sm:text-5xl"
                       aria-label="Show exact trading balance"
                     >
-                      <span className="inline-flex min-w-0 items-center gap-2">
+                      <span className="inline-flex min-w-0 items-center gap-1.5">
+                        <img src="/usdc.png" alt="" className="h-7 w-7 rounded-full object-cover sm:h-8 sm:w-8" />
                         <span>{formatCompactUsd(user.usd)}</span>
-                        <span className="inline-flex items-center gap-1.5">
-                          <img src="/usdc.png" alt="" className="h-7 w-7 rounded-full object-cover sm:h-8 sm:w-8" />
-                          <span>USDC</span>
-                        </span>
+                        <span>USDC</span>
                       </span>
                     </button>
                     <p className="mt-2 text-sm font-medium text-muted-foreground">
@@ -391,8 +392,8 @@ export default function Wallet() {
           </DialogHeader>
           <p className="font-mono text-2xl font-semibold text-foreground">
             <span className="inline-flex items-center justify-center gap-2">
-              <span>{formatCurrency(user.usd).replace("$", "")}</span>
               <img src="/usdc.png" alt="" className="h-6 w-6 rounded-full object-cover" />
+              <span>{formatCurrency(user.usd).replace("$", "")}</span>
               <span>USDC</span>
             </span>
           </p>

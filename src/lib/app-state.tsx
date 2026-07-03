@@ -15,7 +15,6 @@ import {
   recordLftDiscovery,
 } from "@/domain/tokenomics";
 import { saveState, loadState, clearState, hasStoredState, HuntProgress } from "@/lib/storage";
-import { signInWithGooglePopup } from "@/lib/google-auth";
 
 export const HUNT_TOKEN_SUPPLY = 1_000;
 export const HUNT_TOKEN_BUNDLE = 20;
@@ -790,10 +789,12 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signInWithGoogle = useCallback(async (): Promise<AuthUser> => {
-    const account = await signInWithGooglePopup();
-    const normalizedAccount = {
-      ...account,
-      avatar: account.avatar || DEFAULT_PROFILE_AVATAR,
+    const normalizedAccount: AuthUser = {
+      id: "local-solaris-user",
+      name: authUser?.name || "Solaris User",
+      email: "",
+      avatar: authUser?.avatar || DEFAULT_PROFILE_AVATAR,
+      provider: "google",
     };
 
     if (!authUser?.id || authUser.id !== normalizedAccount.id) {

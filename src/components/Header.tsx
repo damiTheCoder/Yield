@@ -24,7 +24,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem, CommandSeparator } from "@/components/ui/command";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useApp } from "@/lib/app-state";
-import { preloadGoogleAuth } from "@/lib/google-auth";
 import type { Asset } from "@/lib/app-state";
 import { useTheme } from "@/hooks/useTheme";
 import { useToast } from "@/hooks/use-toast";
@@ -107,10 +106,6 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
-
-  useEffect(() => {
-    preloadGoogleAuth();
-  }, []);
 
   const bottomNavItems = useMemo(
     () =>
@@ -302,15 +297,15 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
 
     try {
       await signInWithGoogle();
-      setConnectedWallet("Google");
+      setConnectedWallet("Solaris");
       toast({
-        title: "Signed in with Google",
-        description: "Your Solaris wallet is ready for this account.",
+        title: "Signed in",
+        description: "Your Solaris wallet is ready.",
       });
       navigate("/wallet");
     } catch (error) {
       toast({
-        title: "Google sign-in failed",
+        title: "Sign-in failed",
         description: error instanceof Error ? error.message : "Please try again.",
         variant: "destructive",
       });
@@ -541,7 +536,6 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                     </span>
                   ) : (
                     <span className="flex items-center gap-2">
-                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-black text-blue-500">G</span>
                       Signup
                     </span>
                   )}

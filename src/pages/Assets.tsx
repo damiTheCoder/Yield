@@ -914,9 +914,9 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
 
   return (
     <div className={cn("min-h-screen", "bg-background")}>
-      <main className="flex-1 pb-2 pt-2 sm:pt-6 md:pb-20">
-        <div className="mx-auto w-full max-w-[1400px] px-2 sm:px-6 lg:px-8">
-          <div className="flex flex-col pt-0 pb-4">
+      <main className="flex-1 pb-2 pt-4 md:pb-20">
+        <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col p-5 pb-4 pt-0 sm:p-6 sm:pt-0">
 
             {renderTrendingLftsStrip()}
 
