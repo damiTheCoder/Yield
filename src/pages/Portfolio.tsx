@@ -195,7 +195,7 @@ export default function Portfolio() {
   return (
     <div className="min-h-screen">
       <main className="mx-auto w-full max-w-6xl px-4 pb-12 pt-4 sm:px-6 lg:px-8">
-        <div className="space-y-6 text-sm [&_svg]:h-3.5 [&_svg]:w-3.5">
+        <div className="space-y-6 p-5 text-sm sm:p-6 [&_svg]:h-3.5 [&_svg]:w-3.5">
           <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(360px,0.7fr)] lg:items-start">
             <Card className="rounded-3xl border-none bg-transparent p-0 text-white shadow-none">
               <CardContent className="p-0">

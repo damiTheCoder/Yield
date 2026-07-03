@@ -39,6 +39,17 @@ const avatarStyles = [
   },
 ];
 
+const avatarImages = [
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='48' fill='%23A99BF5'/%3E%3Crect x='22' y='25' width='32' height='16' rx='8' fill='%23FFFFFF'/%3E%3Crect x='60' y='25' width='14' height='16' rx='7' fill='%23FFFFFF' opacity='.9'/%3E%3Crect x='22' y='47' width='15' height='15' rx='5' fill='%237F70D8'/%3E%3Crect x='43' y='47' width='32' height='15' rx='7.5' fill='%23FFFFFF'/%3E%3Crect x='22' y='68' width='15' height='15' rx='5' fill='%23D8D2FF'/%3E%3Crect x='43' y='68' width='15' height='15' rx='5' fill='%23FFFFFF'/%3E%3Ccircle cx='76' cy='27' r='4' fill='%23FFFFFF'/%3E%3C/svg%3E",
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='48' fill='%238FC7FF'/%3E%3Crect x='22' y='25' width='32' height='16' rx='8' fill='%23FFFFFF'/%3E%3Crect x='60' y='25' width='14' height='16' rx='7' fill='%232F66F6'/%3E%3Crect x='22' y='47' width='15' height='15' rx='5' fill='%23FFFFFF' opacity='.85'/%3E%3Crect x='43' y='47' width='32' height='15' rx='7.5' fill='%23FFFFFF'/%3E%3Crect x='22' y='68' width='15' height='15' rx='5' fill='%231E4FCC'/%3E%3Crect x='43' y='68' width='15' height='15' rx='5' fill='%23FFFFFF'/%3E%3Ccircle cx='76' cy='27' r='4' fill='%23FFFFFF'/%3E%3C/svg%3E",
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='48' fill='%2389E6C2'/%3E%3Crect x='22' y='25' width='32' height='16' rx='8' fill='%23FFFFFF'/%3E%3Crect x='60' y='25' width='14' height='16' rx='7' fill='%230EA371'/%3E%3Crect x='22' y='47' width='15' height='15' rx='5' fill='%23FFFFFF'/%3E%3Crect x='43' y='47' width='32' height='15' rx='7.5' fill='%23FFFFFF' opacity='.85'/%3E%3Crect x='22' y='68' width='15' height='15' rx='5' fill='%23067653'/%3E%3Crect x='43' y='68' width='15' height='15' rx='5' fill='%23FFFFFF'/%3E%3Ccircle cx='76' cy='27' r='4' fill='%23FFFFFF'/%3E%3C/svg%3E",
+];
+
+const getAvatarVariantFromImage = (avatar?: string) => {
+  const index = avatarImages.findIndex((image) => image === avatar);
+  return index >= 0 ? index : 0;
+};
+
 const toNumeric = (value: unknown) => {
   const parsed = typeof value === "number" ? value : Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
@@ -136,6 +147,9 @@ export default function Wallet() {
     if (!authUser) return;
     setProfileName(authUser.name);
     setDraftName(authUser.name);
+    const savedVariant = getAvatarVariantFromImage(authUser.avatar);
+    setAvatarVariant(savedVariant);
+    setDraftAvatarVariant(savedVariant);
   }, [authUser]);
 
   const copyAddress = async () => {
@@ -162,9 +176,10 @@ export default function Wallet() {
 
   const saveProfile = () => {
     const nextName = draftName.trim() || profileName;
+    const nextAvatar = avatarImages[draftAvatarVariant] ?? avatarImages[0];
     setProfileName(nextName);
     setAvatarVariant(draftAvatarVariant);
-    updateAuthProfile({ name: nextName });
+    updateAuthProfile({ name: nextName, avatar: nextAvatar });
     setIsEditingProfile(false);
     toast({
       title: "Profile updated",
