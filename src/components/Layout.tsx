@@ -49,7 +49,9 @@ const Layout = ({ children }: LayoutProps) => {
           hideShell ? "pb-16" : "pb-0 md:pb-8"
         )}
       >
-        {children}
+        <div key={pathname} className="page-content-enter">
+          {children}
+        </div>
       </main>
       {!hideShell && !isHuntPage && <SiteFooter className="pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:hidden" />}
     </div>

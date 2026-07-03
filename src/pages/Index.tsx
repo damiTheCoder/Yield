@@ -15,7 +15,7 @@ export default function Index() {
       <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/80" aria-hidden="true" />
       <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black via-black/55 to-transparent" aria-hidden="true" />
 
-      <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-md flex-col px-7 pb-9 pt-8 sm:max-w-lg sm:px-8">
+      <section className="page-content-enter relative z-10 mx-auto flex min-h-screen w-full max-w-md flex-col px-7 pb-9 pt-8 sm:max-w-lg sm:px-8">
         <div className="flex items-center justify-between">
           <button
             type="button"

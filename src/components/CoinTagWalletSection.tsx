@@ -100,7 +100,7 @@ export default function CoinTagWalletSection({ onSwitchToLfts }: { onSwitchToLft
                     setSelectedKeyAssetId(firstAsset.id);
                   }
                 }}
-                className="group flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-background/60 text-foreground shadow-sm transition hover:border-ring hover:bg-muted/50 disabled:cursor-not-allowed disabled:opacity-50"
+                className="group flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border/60 bg-background/60 text-foreground shadow-none transition hover:border-ring hover:bg-muted/50 disabled:cursor-not-allowed disabled:opacity-50"
                 aria-label="Open owned CoinTag keys"
                 title="Open owned CoinTag keys"
                 disabled={keyedAssetIcons.length === 0}
@@ -110,7 +110,7 @@ export default function CoinTagWalletSection({ onSwitchToLfts }: { onSwitchToLft
               <button
                 type="button"
                 onClick={onSwitchToLfts}
-                className="group flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-background/60 text-foreground shadow-sm transition hover:border-ring hover:bg-muted/50"
+                className="group flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border/60 bg-background/60 text-foreground shadow-none transition hover:border-ring hover:bg-muted/50"
                 aria-label="Switch to owned LFT collections"
                 title="Switch to owned LFT collections"
               >
@@ -151,7 +151,7 @@ export default function CoinTagWalletSection({ onSwitchToLfts }: { onSwitchToLft
                     <div className="flex flex-col gap-3">
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
-                          <img src={asset.image} alt={asset.name} className="h-9 w-9 rounded-xl object-cover" />
+                          <img src={asset.image} alt={asset.name} className="h-9 w-9 rounded-full object-cover" />
                           <div className="min-w-0">
                             <h3 className="truncate text-sm font-medium text-foreground">{asset.name}</h3>
                             <p className="truncate text-[10px] text-muted-foreground">

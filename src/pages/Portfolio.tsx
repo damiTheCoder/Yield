@@ -224,7 +224,7 @@ export default function Portfolio() {
                 <p className="text-xs text-muted-foreground">Exact current value</p>
               </DialogContent>
             </Dialog>
-            <Card className="rounded-3xl border-0 bg-transparent p-0 backdrop-blur text-foreground sm:px-6 sm:py-6">
+            <Card className="rounded-3xl border-0 bg-transparent p-0 text-foreground shadow-none sm:px-6 sm:py-6">
               <CardHeader className="px-0 pt-0 sm:px-0 sm:pt-0">
                 <CardTitle className="text-lg">Wallet & Rewards</CardTitle>
               </CardHeader>
@@ -240,7 +240,7 @@ export default function Portfolio() {
                   </div>
                 </div>
                 <Button
-                  className="h-9 w-auto self-start border-0 bg-[#2F66F6] px-5 text-xs font-semibold text-white shadow-none hover:bg-[#2558DE]"
+                  className="h-9 w-auto self-start border-0 bg-[#2F66F6] px-5 text-xs font-semibold text-white shadow-none drop-shadow-none ring-0 hover:bg-[#2558DE] disabled:shadow-none"
                   onClick={() => claimRewards()}
                   disabled={accruedRewards <= 0}
                 >
@@ -264,7 +264,7 @@ export default function Portfolio() {
                     <button
                       type="button"
                       onClick={() => setOwnedView("cointag")}
-                      className="group flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-background/60 text-foreground shadow-sm transition hover:border-ring hover:bg-muted/50"
+                      className="group flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border/60 bg-background/60 text-foreground shadow-none transition hover:border-ring hover:bg-muted/50"
                       aria-label="Switch to owned CoinTags"
                       title="Switch to owned CoinTags"
                     >
@@ -296,7 +296,7 @@ export default function Portfolio() {
                               className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition sm:px-4"
                             >
                               <div className="flex items-center gap-3">
-                                <img src={asset.image} alt={asset.name} className="h-9 w-9 rounded-xl object-cover" />
+                                <img src={asset.image} alt={asset.name} className="h-9 w-9 rounded-full object-cover" />
                                 <div className="flex flex-col">
                                   <span className="text-sm font-medium text-foreground">{asset.name}</span>
                                   <span className="text-[10px] text-muted-foreground">Cycle {asset.cycle.cycle}</span>

@@ -922,11 +922,11 @@ export default function AssetDetail() {
 
       <div className={cn(isWebview ? "" : "sm:hidden")}>
         {!mobileBuyOpen && (
-          <div className="fixed inset-x-0 bottom-12 z-40 px-4 pb-5 flex justify-center">
+          <div className="fixed inset-x-0 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-[60] flex justify-center px-4">
             <Button
               onClick={() => setMobileBuyOpen(true)}
               className={cn(
-                "w-full max-w-xs rounded-2xl py-3 text-base font-semibold shadow-lg transition-colors",
+                "h-12 w-full max-w-xs rounded-2xl py-3 text-base font-semibold shadow-none transition-colors",
                 "bg-blue-500 text-white hover:bg-blue-600",
               )}
               disabled={isMarketOnlyPhase}
@@ -938,11 +938,12 @@ export default function AssetDetail() {
       </div>
 
       {mobileBuyOpen && (
-        <div className="fixed inset-0 z-50">
+        <div className="fixed inset-0 z-[80]">
           <div className="absolute inset-0 bg-black/55 backdrop-blur-[2px]" onClick={() => setMobileBuyOpen(false)} />
-          <div className="absolute left-1/2 top-1/2 w-[min(90vw,20.5rem)] -translate-x-1/2 -translate-y-1/2 transition-all duration-300">
-            <div className="rounded-xl border border-slate-200/90 bg-background px-2.5 pb-3 pt-2.5 text-foreground shadow-2xl dark:border-slate-700/70">
-              <div className="mb-3 flex items-center justify-between gap-3 pb-2.5">
+          <div className="absolute inset-0 grid place-items-center p-4">
+            <div className="w-full max-w-md">
+            <div className="max-h-[min(82svh,36rem)] overflow-hidden rounded-3xl border border-border/60 bg-background p-4 text-foreground shadow-none sm:max-h-[82vh]">
+              <div className="mb-3 flex items-center justify-between gap-3 border-b border-border/40 pb-3">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-foreground">Buy CoinTag</p>
                 </div>
@@ -954,9 +955,10 @@ export default function AssetDetail() {
                   <X className="h-4 w-4" />
                 </Button>
               </div>
-              <div className="max-h-[58vh] overflow-y-auto no-scrollbar">
+              <div className="max-h-[calc(min(82svh,36rem)-4.75rem)] overflow-y-auto no-scrollbar sm:max-h-[calc(82vh-4.75rem)]">
                 <BuyTagSectionContent compact className="rounded-none border-0 bg-transparent p-0 shadow-none" />
               </div>
+            </div>
             </div>
           </div>
         </div>

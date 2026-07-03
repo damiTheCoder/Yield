@@ -175,7 +175,7 @@ export default function Wallet() {
                 <div className="flex min-w-0 items-center gap-4">
                   <PixelAvatar variant={avatarVariant} className="h-16 w-16 sm:h-24 sm:w-24" />
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    <p className="max-w-[8rem] truncate text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground sm:max-w-[11rem]">
                       Solaris Wallet
                     </p>
                     <h1 className="mt-1 truncate text-3xl font-black tracking-[-0.05em] text-foreground sm:text-4xl">
@@ -260,7 +260,13 @@ export default function Wallet() {
                       className="mt-2 block max-w-full text-left font-mono text-4xl font-black tracking-[-0.05em] text-foreground transition hover:text-blue-500 sm:text-5xl"
                       aria-label="Show exact trading balance"
                     >
-                      {formatCompactUsd(user.usd)} USDC
+                      <span className="inline-flex min-w-0 items-center gap-2">
+                        <span>{formatCompactUsd(user.usd)}</span>
+                        <span className="inline-flex items-center gap-1.5">
+                          <img src="/usdc.png" alt="" className="h-7 w-7 rounded-full object-cover sm:h-8 sm:w-8" />
+                          <span>USDC</span>
+                        </span>
+                      </span>
                     </button>
                     <p className="mt-2 text-sm font-medium text-muted-foreground">
                       Ready for CoinTag hunts, redemptions, and liquidity-funded token trades.
@@ -280,7 +286,7 @@ export default function Wallet() {
                       variant="outline"
                       onClick={() => withdrawUsd(100)}
                       disabled={user.usd <= 0}
-                      className="h-11 rounded-xl border-0 bg-transparent px-4"
+                      className="h-11 rounded-xl border-0 bg-transparent px-4 text-foreground hover:bg-transparent hover:text-foreground disabled:text-muted-foreground"
                     >
                       <Minus className="mr-2 h-4 w-4" />
                       Withdraw
@@ -358,7 +364,11 @@ export default function Wallet() {
             <DialogTitle className="text-base font-semibold text-foreground">Trading Balance</DialogTitle>
           </DialogHeader>
           <p className="font-mono text-2xl font-semibold text-foreground">
-            {formatCurrency(user.usd).replace("$", "")} USDC
+            <span className="inline-flex items-center justify-center gap-2">
+              <span>{formatCurrency(user.usd).replace("$", "")}</span>
+              <img src="/usdc.png" alt="" className="h-6 w-6 rounded-full object-cover" />
+              <span>USDC</span>
+            </span>
           </p>
         </DialogContent>
       </Dialog>

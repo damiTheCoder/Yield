@@ -1128,7 +1128,7 @@
 
     to {
       opacity: 1;
-      transform: translateY(0);
+      transform: none;
     }
   }
 
@@ -1153,6 +1153,46 @@
 
   .animate-fade-in {
     animation: fade-in 0.9s ease-out forwards;
+  }
+
+  @keyframes page-dropdown-enter {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .page-dropdown-enter {
+    animation: page-dropdown-enter 0.58s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+
+  .page-content-enter {
+    opacity: 1;
+  }
+
+  .page-content-enter > * {
+    animation: page-dropdown-enter 0.58s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+
+  .page-content-enter > *:nth-child(1) {
+    animation-delay: 0ms;
+  }
+
+  .page-content-enter > *:nth-child(2) {
+    animation-delay: 70ms;
+  }
+
+  .page-content-enter > *:nth-child(3) {
+    animation-delay: 140ms;
+  }
+
+  .page-content-enter > *:nth-child(n+4) {
+    animation-delay: 210ms;
   }
 
   .scroll-drop {
