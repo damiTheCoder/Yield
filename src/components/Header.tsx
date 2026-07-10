@@ -106,6 +106,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+  const showMobileLftBanner = location.pathname === "/assets";
 
   const bottomNavItems = useMemo(
     () =>
@@ -429,7 +430,8 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
         >
           <div
             className={cn(
-              "relative hidden w-full items-center justify-center overflow-hidden bg-cover bg-center px-4 transition-[height,opacity] duration-300 md:flex",
+              "relative w-full items-center justify-center overflow-hidden bg-cover bg-center px-4 transition-[height,opacity] duration-300 md:flex",
+              showMobileLftBanner ? "flex h-12" : "hidden",
               isScrolled ? "md:h-14 md:opacity-100" : "md:h-14",
             )}
             style={{ backgroundImage: "url('/ks1.jpeg')" }}

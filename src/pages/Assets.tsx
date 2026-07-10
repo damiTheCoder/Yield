@@ -531,7 +531,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
     </div>
   );
 
-  const tableShellClasses = "-mx-4 overflow-hidden rounded-2xl bg-transparent md:mx-0 md:bg-white dark:bg-transparent dark:md:bg-[#151515] mb-6 sm:-mx-6";
+  const tableShellClasses = "-mx-2 overflow-hidden rounded-2xl bg-transparent md:mx-0 md:bg-white dark:bg-transparent dark:md:bg-[#151515] mb-6 sm:-mx-5";
   const tableStickyColumnClasses = "bg-white dark:bg-[#0F0F0F] dark:md:bg-[#151515]";
 
   const renderListedList = (items: Asset[]) => (
@@ -545,8 +545,8 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
                   <Star className="h-4 w-4 text-blue-500 fill-blue-500" />
                 </TableHead>
               )}
-              <TableHead className={cn("asset-list-collection-col left-0 z-20 text-left pl-3 text-[16px] sm:pl-4 border-b-0 md:sticky md:min-w-[200px] md:pl-4 md:text-sm", tableStickyColumnClasses)}>Collection</TableHead>
-              <TableHead className="w-[104px] text-right border-b-0 pr-2 text-[16px] sm:pr-3 md:w-auto md:min-w-[140px] md:px-4 md:text-sm">Liquidity</TableHead>
+              <TableHead className={cn("asset-list-collection-col left-0 z-20 text-left pl-2 text-[16px] sm:pl-3 border-b-0 md:sticky md:min-w-[200px] md:pl-4 md:text-sm", tableStickyColumnClasses)}>Collection</TableHead>
+              <TableHead className="w-[96px] text-right border-b-0 pr-1.5 text-[16px] sm:pr-2 md:w-auto md:min-w-[140px] md:px-4 md:text-sm">Liquidity</TableHead>
               <TableHead className="hidden asset-list-metric-col min-w-0 text-right border-b-0 px-2 md:table-cell md:min-w-[140px] md:px-8">LPU</TableHead>
               <TableHead className="hidden asset-list-metric-col min-w-0 text-right border-b-0 px-2 md:table-cell md:min-w-[140px] md:px-4">CoinTag</TableHead>
               <TableHead className="hidden asset-list-metric-col min-w-0 text-right border-b-0 px-2 md:table-cell md:min-w-[160px] md:pr-6">Backing Reserve</TableHead>
@@ -585,7 +585,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
                       />
                     </TableCell>
                   )}
-                  <TableCell className={cn("asset-list-collection-col left-0 z-10 min-w-0 py-1.5 pl-3 pr-1.5 sm:pl-4 md:sticky md:min-w-[200px] md:border-b-0 md:py-4 md:pl-4 md:pr-4", mobileDividerClass, tableStickyColumnClasses)}>
+                  <TableCell className={cn("asset-list-collection-col left-0 z-10 min-w-0 py-1.5 pl-2 pr-1 sm:pl-3 md:sticky md:min-w-[200px] md:border-b-0 md:py-4 md:pl-4 md:pr-4", mobileDividerClass, tableStickyColumnClasses)}>
                     <div className="flex min-w-0 items-center gap-2 text-[15px] md:gap-3 md:text-sm">
                       <div className="relative h-10 w-10 shrink-0 md:h-9 md:w-9">
                         <img src={asset.image} alt={asset.name} className="h-full w-full rounded-full object-cover" />
@@ -610,7 +610,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className={cn("w-[96px] py-1.5 pr-2 text-right sm:pr-3 md:w-auto md:min-w-[140px] md:border-b-0 md:px-4 md:py-4", mobileDividerClass)}>
+                  <TableCell className={cn("w-[92px] py-1.5 pr-1.5 text-right sm:pr-2 md:w-auto md:min-w-[140px] md:border-b-0 md:px-4 md:py-4", mobileDividerClass)}>
                     <div className="flex flex-col items-end gap-0.5">
                       <span className="price-number text-[16px] font-semibold tabular-nums text-foreground md:text-sm">{formatCurrencyK(safeReserve)}</span>
                       <span className="flex items-center justify-end gap-1.5 md:hidden">
@@ -731,7 +731,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
     if (!showTrending || trendingTokens.length === 0) return null;
 
     return (
-      <section className="mb-2 px-2 py-2 sm:px-3 md:px-4">
+      <section className="mb-2 px-0 py-2 md:px-4">
         <div className="mb-2 flex items-end justify-between gap-4">
           <div className="min-w-0">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
@@ -915,13 +915,13 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
   return (
     <div className={cn("min-h-screen", "bg-background")}>
       <main className="flex-1 pb-2 pt-4 md:pb-20">
-        <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col p-5 pb-4 pt-0 sm:p-6 sm:pt-0">
+        <div className="mx-auto w-full max-w-[1400px] px-1 sm:px-3 md:px-6 lg:px-8">
+          <div className="flex flex-col px-1 pb-4 pt-0 sm:px-2 md:p-6 md:pt-0">
 
             {renderTrendingLftsStrip()}
 
             {showTrending && (
-              <Web3News variant="mobile" className="mb-4 hidden md:block" />
+              <Web3News variant="mobile" className="mb-4 hidden md:block" hideHeaderIcons />
             )}
 
             <MarketTickerTape className="mb-4 hidden md:block" />

@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 interface Web3NewsProps {
   variant?: "sidebar" | "mobile" | "webview" | "detail";
   className?: string;
+  hideHeaderIcons?: boolean;
 }
 
 const shimmerItems = Array.from({ length: 3 }, (_, index) => index);
@@ -32,7 +33,7 @@ function formatRelativeTime(date?: Date) {
   return `${days}d ago`;
 }
 
-export default function Web3News({ variant = "sidebar", className }: Web3NewsProps) {
+export default function Web3News({ variant = "sidebar", className, hideHeaderIcons = false }: Web3NewsProps) {
   const { news, loading } = useWeb3News();
   const { theme } = useTheme();
 
@@ -157,7 +158,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
       <section className={cn("flex flex-col gap-5", className)}>
         <div className="flex items-center justify-between">
           <div className={cn("font-bold text-foreground", headingSize)}>Web3 Headlines</div>
-          {renderHeaderIcons()}
+          {!hideHeaderIcons && renderHeaderIcons()}
         </div>
         <div className="grid gap-5 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
           <div
@@ -245,7 +246,7 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
       <section className={cn("flex flex-col gap-4", className)}>
         <div className="flex items-center justify-between gap-3">
           <div className={cn("font-bold text-foreground", headingSize)}>Web3 Headlines</div>
-          {renderHeaderIcons()}
+          {!hideHeaderIcons && renderHeaderIcons()}
         </div>
         <div className="space-y-3">
           {showNewsPlaceholders || displayedItems.length === 0
@@ -373,10 +374,10 @@ export default function Web3News({ variant = "sidebar", className }: Web3NewsPro
 
         <div className="hidden flex-col gap-3 md:flex">
           <div className="flex items-center justify-between gap-3">
-            {renderHeaderIcons()}
-            <div className={cn("text-right text-foreground font-extrabold", headingSize)}>
+            <div className={cn("text-foreground font-extrabold", hideHeaderIcons ? "text-left" : "text-right", headingSize)}>
               Web3 Headlines
             </div>
+            {!hideHeaderIcons && renderHeaderIcons()}
           </div>
           <div className={listWrapperClass}>
             {showNewsPlaceholders || displayedItems.length === 0
