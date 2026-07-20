@@ -1,0 +1,85 @@
+firm,region,category,contact_method,contact,email_or_url,source_url,status,notes
+Paradigm,US,Web3 VC,email,General inquiries,info@paradigm.xyz,https://www.paradigm.xyz/contact,sent,Sent with pitch deck attached
+Multicoin Capital,US,Web3 VC,email,Project/company pitches,hello@multicoin.capital,https://multicoin.capital/contact/,sent,Sent with pitch deck attached
+Framework Ventures,US,Web3 VC,email,Founder submissions,Hello@framework.ventures,https://framework.ventures/contact,sent,Sent with pitch deck attached
+Chapter One,US,Web3/crypto VC,email,Founder submissions,HI@CHAPTERONE.COM,https://www.chapterone.com/contact,sent,Sent with pitch deck attached
+Variant,US,Web3 VC,email,Founder submissions,info@variant.fund,https://variant.fund/contact/,sent,Sent with pitch deck attached
+Maven 11,Europe/Global,Web3 VC,form,Investment in blockchain venture,https://maven11.com/contact,https://maven11.com/contact,pending_form,Official contact form has category for investment in blockchain venture
+IOSG Ventures,Global,Web3 VC,email protected,Pitch investment,[email protected],https://iosg.vc/,pending_verify,Official page asks founders to email pitch deck/white paper but address is Cloudflare-protected in extracted page
+a16z crypto,US,Web3 VC,form,Founder/startup submission,https://a16zcrypto.com/contact/,https://a16zcrypto.com/contact/,pending_form,Official contact form needs manual/browser submission
+Dragonfly,US/Global,Web3 VC,form/contact page,Contact page,https://www.dragonfly.xyz/contact,https://www.dragonfly.xyz/contact,pending_form,No verified pitch email found yet
+Coinbase Ventures,US,Web3 VC,contact page,Website/contact route,https://www.coinbase.com/ventures,https://www.coinbase.com/ventures,pending_verify,Need verified pitch route before sending
+Pantera Capital,US,Digital asset fund,email,Pitch submissions,pitch@panteracapital.com,https://panteracapital.com/contact/,sent,Sent without attachment; demo link included
+Blockchain Capital,US,Web3 VC,contact page,Website/contact route,https://blockchain.capital,https://blockchain.capital,pending_verify,Need verified public email or pitch form
+Electric Capital,US,Web3 VC,email,Builder contact,info@electriccapital.com,https://www.electriccapital.com,sent,Sent with pitch deck attached
+Polychain Capital,US,Web3 investment firm,contact page,Website/contact route,https://polychain.capital,https://polychain.capital,pending_verify,Need verified public email or pitch form
+Digital Currency Group,US,Digital asset investor,contact page,Website/contact route,https://dcg.co,https://dcg.co,pending_verify,Need verified public email or pitch form
+Microtraction,Nigeria/Africa,African early-stage investor,email/form,email and application route,team@microtraction.com / https://microtraction.typeform.com/to/XxhWNJ,https://www.microtraction.com,sent,Sent without attachment; official funding form still recommended as follow-up
+Nubia Capital,Nigeria/Africa,African VC,email,General support contact,support@nubiacapital.vc,https://nubiacapital.vc,sent,Sent without attachment; demo link included
+CcHUB / Growth Capital,Nigeria/Africa,African accelerator/investor,email,General contact,info@cchub.africa,https://cchub.africa,sent,Sent without attachment; demo link included
+Future Africa,Nigeria/Africa,African early-stage investor,email,General contact,hello@future.africa,https://www.future.africa,sent,Sent without attachment; demo link included
+Launch Africa Ventures,Africa,African early-stage investor,email,General contact,info@launchafrica.vc,https://www.launchafrica.vc,sent,Sent without attachment; demo link included
+Robot Ventures,US,Web3 VC,contact page,Website/contact route,https://robotventures.com,https://robotventures.com,pending_verify,Candidate Web3 fund; verify public pitch route before sending
+Hack VC,US,Web3 VC,email,General contact,contact@hack.vc,https://www.hack.vc,sent,Sent without attachment after attachment upload failure; demo link included
+Union Square Ventures,US,Crypto-active VC,email,General contact,info@usv.com,https://www.usv.com,sent,Sent with pitch deck attached
+Alliance DAO,Global,Web3 accelerator/investor,application,Application route,https://alliance.xyz,https://alliance.xyz,pending_form,Candidate accelerator; likely application workflow
+Outlier Ventures,Global,Web3 accelerator/investor,application,Accelerator application,https://outlierventures.io,https://outlierventures.io,pending_form,Candidate accelerator; likely application workflow
+CoinFund,US,Web3 VC,email,General contact,hello@coinfund.io,https://www.coinfund.io,sent,Sent with pitch deck attached
+6th Man Ventures,US,Web3 VC,email,General contact,info@6thman.ventures,https://6thman.ventures,sent,Sent without attachment after attachment upload failure; demo link included
+Delphi Ventures,Global,Web3 VC,email,General support contact,support@delphidigital.io,https://www.delphidigital.io,sent,Sent without attachment; demo link included
+SevenX Ventures,Asia/Global,Web3 VC,contact page,Website/contact route,https://sevenx.ventures,https://sevenx.ventures,pending_verify,Candidate Web3 fund; verify public pitch route before sending
+Shima Capital,US/Global,Web3 VC,contact page,Website/contact route,https://shima.capital,https://shima.capital,pending_verify,Candidate Web3 fund; verify public pitch route before sending
+Superscrypt,Asia/Global,Web3 VC,contact page,Website/contact route,https://www.superscrypt.xyz,https://www.superscrypt.xyz,pending_verify,Candidate Web3 fund; verify public pitch route before sending
+Foresight Ventures,Asia/Global,Web3 VC,contact page,Website/contact route,https://www.foresightventures.com,https://www.foresightventures.com,pending_verify,Candidate Web3 fund; verify public pitch route before sending
+Spartan Group,Asia/Global,Web3 advisory/investor,contact page,Website/contact route,https://www.spartangroup.io,https://www.spartangroup.io,pending_verify,Candidate Web3 investor/advisor; verify public pitch route before sending
+Animoca Brands,Asia/Global,Web3/gaming investor,email,General contact,info@animocabrands.com,https://www.animocabrands.com,sent,Sent without attachment; demo link included
+Animoca Ventures,Asia/Global,Web3 VC,contact page,Website/contact route,https://www.animocaventures.com,https://www.animocaventures.com,pending_verify,Candidate Web3 fund; verify public pitch route before sending
+Big Brain Holdings,US/Global,Web3 VC,email,General contact,hello@bigbrain.holdings,https://www.bigbrain.holdings,sent,Sent without attachment; demo link included
+M31 Capital,US/Global,Web3 investment firm,email,General contact,contact@m31.capital,https://www.m31.capital,sent,Sent without attachment; demo link included
+Mechanism Capital,US/Global,Web3 investment firm,contact page,Website/contact route,https://www.mechanism.capital,https://www.mechanism.capital,pending_verify,Candidate Web3 fund; verify public pitch route before sending
+Arrington Capital,US/Global,Web3 investment firm,email,General contact,contact@arringtoncapital.com,https://www.arringtoncapital.com,sent,Sent without attachment; demo link included
+Fabric Ventures,Europe,Web3 VC,contact page,Website/contact route,https://fabric.vc,https://fabric.vc,pending_verify,Candidate Web3 fund; verify public pitch route before sending
+Greenfield Capital,Europe,Web3 VC,contact page,Website/contact route,https://greenfield.xyz,https://greenfield.xyz,pending_verify,Candidate Web3 fund; verify public pitch route before sending
+Cherry Crypto,Europe,Web3 VC,contact page,Website/contact route,https://www.cherry.vc/crypto,https://www.cherry.vc/crypto,pending_verify,Candidate Web3 investor; verify public pitch route before sending
+Semantic Ventures,Europe/Global,Web3 VC,email,General contact,contact@semantic.vc,https://semantic.vc,sent,Sent without attachment; demo link included
+KR1,Europe,Web3 investment company,contact page,Website/contact route,https://www.kr1.io,https://www.kr1.io,pending_verify,Candidate Web3 investor; verify public pitch route before sending
+Signature Ventures,Europe,Web3 VC,email,Pitch/contact route,contact@signatureventures.com,https://www.signatureventures.com/pitchdeck/,sent,Sent without attachment; demo link included
+RockawayX,Europe,Web3 VC,contact page,Website/contact route,https://rockawayx.com,https://rockawayx.com,pending_verify,Candidate Web3 fund; verify public pitch route before sending
+Lemniscap,Global,Web3 VC,contact page,Website/contact route,https://lemniscap.com,https://lemniscap.com,pending_verify,Candidate Web3 fund; verify public pitch route before sending
+Borderless Capital,US/Global,Web3 VC,email,Contact page,ir@borderless.com,https://www.borderlesscapital.io/contact,sent,Sent without attachment; demo link included
+Placeholder VC,US,Web3 VC,contact page,Website/contact route,https://www.placeholder.vc,https://www.placeholder.vc,pending_verify,Candidate Web3 fund; verify public pitch route before sending
+1kx,Europe/Global,Web3 VC,contact page,Website/contact route,https://1kx.network,https://1kx.network,pending_verify,Candidate Web3 fund; verify public pitch route before sending
+CoinShares Ventures,Europe/Global,Digital asset investor,contact page,Website/contact route,https://coinshares.com,https://coinshares.com,pending_verify,Candidate crypto investor; verify public pitch route before sending
+Galaxy Ventures,US/Global,Digital asset investor,contact page,Website/contact route,https://www.galaxy.com,https://www.galaxy.com,pending_verify,Candidate digital asset investor; verify public pitch route before sending
+HashKey Capital,Asia/Global,Web3 VC,contact page,Website/contact route,https://www.hashkey.com,https://www.hashkey.com,pending_verify,Candidate Web3 fund; verify public pitch route before sending
+SNZ Holding,Asia/Global,Web3 VC,contact page,Website/contact route,https://snzholding.com,https://snzholding.com,pending_verify,Candidate Web3 fund; verify public pitch route before sending
+Fenbushi Capital,Asia/Global,Web3 VC,email,Project submissions,projects@fenbushi.vc,https://fenbushi.vc,sent,Sent with pitch deck attached
+LongHash Ventures,Asia/Global,Web3 VC,contact page,Website/contact route,https://www.longhash.vc,https://www.longhash.vc,pending_verify,Candidate Web3 fund; verify public pitch route before sending
+Hashed,Asia/Global,Web3 VC,email,General contact,contact@hashed.com,https://www.hashed.com,sent,Sent with pitch deck attached
+DeFiance Capital,Asia/Global,Web3 VC,contact page,Website/contact route,https://defiance.capital,https://defiance.capital,pending_verify,Candidate Web3 fund; verify public pitch route before sending
+Cypher Capital,Middle East/Global,Web3 VC,email,Investment inquiries,investments@cyphercapital.com,https://www.cyphercapital.com/en/contact,sent,Sent with pitch deck attached
+Woodstock Fund,India/Global,Web3 VC,contact page,Website/contact route,https://www.woodstockfund.com,https://www.woodstockfund.com,pending_verify,Candidate Web3 fund; verify public pitch route before sending
+NGC Ventures,Asia/Global,Web3 VC,contact page,Website/contact route,https://ngc.fund,https://ngc.fund,pending_verify,Candidate Web3 fund; verify public pitch route before sending
+Signum Capital,Asia/Global,Web3 VC,email,Management contact,management@signum.capital,https://www.signum.capital/,sent,Sent with pitch deck attached
+Moonrock Capital,Europe/Global,Web3 VC,email,General contact,contact@moonrockcapital.io,https://moonrockcapital.io,sent,Sent without attachment; demo link included
+Morningstar Ventures,Middle East/Global,Web3 VC,contact page,Website/contact route,https://morningstar.ventures,https://morningstar.ventures,pending_verify,Candidate Web3 fund; verify public pitch route before sending
+Ascensive Assets,US/Global,Web3 VC,contact page,Website/contact route,https://ascensiveassets.com,https://ascensiveassets.com,pending_verify,Candidate Web3 fund; verify public pitch route before sending
+OP Crypto,US/Global,Web3 VC,contact page,Website/contact route,https://www.opcrypto.vc,https://www.opcrypto.vc,pending_verify,Candidate Web3 fund; verify public pitch route before sending
+TRGC,US/Global,Web3 investment firm,contact page,Website/contact route,https://trgcapi.com,https://trgcapi.com,pending_verify,Candidate Web3 investor; verify public pitch route before sending
+Draper Dragon,US/Asia,Web3/tech VC,email,Funding inquiries,Pitch@DraperDragon.com,https://www.draperdragon.com,sent,Sent with pitch deck attached
+Boost VC,US,Deep tech/crypto accelerator,application,Application route,https://www.boost.vc,https://www.boost.vc,pending_form,Candidate accelerator; likely application workflow
+gumi Cryptos Capital,US/Japan,Web3 VC,email,General inquiry,info@gumi-cryptos.com,https://www.gumi-cryptos.com,sent,Sent without attachment; official site obfuscates email as info+gumi-cryptos.com
+Alpha Sigma Capital,US/Global,Digital asset fund,contact page,Website/contact route,https://alphasigma.fund,https://alphasigma.fund,pending_verify,Candidate digital asset fund; no public email found in static page
+Maelstrom,Global,Digital asset fund,contact page,Website/contact route,https://www.maelstrom.fund,https://www.maelstrom.fund,pending_verify,Candidate digital asset fund; no public email found in static page
+Lattice,US/Global,Web3 VC,email,General contact,hi@lattice.fund,https://www.lattice.fund,sent,Sent without attachment; demo link included
+Nascent,US/Global,Crypto/Web3 investor,email,General contact,hello@nascent.xyz,https://www.nascent.xyz,sent,Sent without attachment; demo link included
+Figment Capital,US/Global,Crypto/Web3 VC,email,General contact,Hello@figmentcapital.io,https://figmentcapital.io,sent,Sent without attachment; demo link included
+MetaWeb Ventures,US/Global,Web3 VC,email,Business development,bd@metaweb.vc,https://metaweb.vc,sent,Sent with pitch deck attached using updated LFT message
+MH Ventures,Global,Web3 VC,email,General contact,info@mhventures.io,https://www.mhventures.io,sent,Sent with pitch deck attached using updated LFT message
+Oddiyana Ventures,Global,Web3 VC,email,General contact,contact@oddiyanaventures.com,https://www.oddiyana.ventures,sent,Sent with pitch deck attached using updated LFT message
+ExNetwork Capital,Global,Web3 VC,email,General contact,hello@exnetworkcapital.com,https://www.exnetworkcapital.com,sent,Sent with pitch deck attached using updated LFT message
+Cadenza,US/Global,Crypto/Web3 investor,email,General contact,info@cadenza.vc,https://cadenza.vc,sent,Sent with pitch deck attached using updated LFT message
+DFG,Global,Web3/digital asset investor,email,General contact,contact@dfg.group,https://dfg.group,sent,Sent with pitch deck attached using updated LFT message
+ArkStream Capital,Asia/Global,Digital asset investment fund,email,Contact page,chandler@arkstream.capital,https://www.arkstream.capital/contact,sent,Sent with pitch deck attached using updated LFT message
+Unanimous Capital,US/Global,VC with crypto/Web3 exposure,email,General contact,hello@unanimous.vc,https://www.unanimous.vc,sent,Sent with pitch deck attached using updated LFT message
+Numeus,Global,Web3/digital asset investor,email,General contact,hello@numeus.xyz,https://numeus.xyz,sent,Sent with pitch deck attached using updated LFT message

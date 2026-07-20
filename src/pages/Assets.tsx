@@ -747,15 +747,18 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
         </div>
 
         <div className="no-scrollbar flex overflow-x-auto pr-1">
-          {trendingTokens.slice(0, 6).map(({ asset, change }) => {
+          {trendingTokens.slice(0, 6).map(({ asset, change }, index) => {
             const isPositive = change >= 0;
             const network = getAssetNetwork(asset);
+            const reserve = asset.cycle.reserve || 0;
+            const barColor = index % 3 === 0 ? "bg-[#3b82f6]" : index % 3 === 1 ? "bg-[#6b7280]" : "bg-[#7d8c3e]";
+            const heights = ["h-3", "h-4", "h-5", "h-6", "h-8", "h-10", "h-12", "h-14"];
             return (
               <button
                 key={asset.id}
                 type="button"
                 onClick={() => navigate(`/assets/${asset.id}`)}
-                className="group flex min-w-[320px] flex-col justify-between border-r border-[#D0D5DD] bg-transparent px-4 py-2.5 text-left transition last:border-r-0 dark:border-[#2A2A2A] sm:min-w-[380px]"
+                className="group flex min-w-[280px] flex-col justify-between border-r border-[#D0D5DD] bg-transparent px-5 py-3 text-left transition last:border-r-0 dark:border-[#2A2A2A] sm:min-w-[340px]"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-3">
@@ -794,13 +797,23 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
                   </div>
                 </div>
 
-                <div className="mt-2 flex items-end justify-between gap-3">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Liquidity</p>
-                    <p className="text-base font-semibold text-foreground">{formatCurrencyK(asset.cycle.reserve)}</p>
+                <div className="mt-3 flex items-end justify-between gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-end gap-[3px] h-16">
+                      {Array.from({ length: 12 }).map((_, i) => {
+                        const barColor = i % 3 === 0 ? "bg-[#3b82f6]" : i % 3 === 1 ? "bg-[#6b7280]" : "bg-[#7d8c3e]";
+                        const heights = ["h-3", "h-4", "h-5", "h-6", "h-8", "h-10", "h-12", "h-14", "h-12", "h-10", "h-8", "h-6"];
+                        const height = heights[(index + i) % heights.length];
+                        return <div key={i} className={`w-2 rounded-t-sm ${barColor} ${height}`} />;
+                      })}
+                    </div>
                   </div>
-                  <div className="text-right text-xs text-muted-foreground transition group-hover:text-foreground">
-                    {formatChange(change)}
+                  <div className="text-right">
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Liquidity</p>
+                    <p className="text-base font-semibold text-foreground">{formatCurrencyK(reserve)}</p>
+                    <p className="text-right text-xs text-muted-foreground transition group-hover:text-foreground">
+                      {formatChange(change)}
+                    </p>
                   </div>
                 </div>
               </button>

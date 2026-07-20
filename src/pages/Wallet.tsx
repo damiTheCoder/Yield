@@ -199,9 +199,9 @@ export default function Wallet() {
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
                   {authUser ? (
-                    <img src={authUser.avatar} alt={authUser.name} className="h-12 w-12 shrink-0 rounded-full object-cover sm:h-16 sm:w-16" />
+                    <img src={authUser.avatar} alt={authUser.name} className="h-8 w-8 shrink-0 rounded-full object-cover sm:h-10 sm:w-10" />
                   ) : (
-                    <PixelAvatar variant={avatarVariant} className="h-12 w-12 sm:h-16 sm:w-16" />
+                    <PixelAvatar variant={avatarVariant} className="h-8 w-8 sm:h-10 sm:w-10" />
                   )}
                   <div className="min-w-0">
                     <p className="max-w-[8rem] truncate text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground sm:max-w-[11rem] sm:text-[11px]">

@@ -15,6 +15,7 @@ import {
   Search,
   Sun,
   Tag,
+  User,
   Wallet,
   type LucideIcon,
 } from "lucide-react";
@@ -65,7 +66,7 @@ const NAV_LINKS = [
   { label: "Revenue", href: "/revenue" },
 ];
 
-const MOBILE_BOTTOM_HREFS = new Set(["/assets", "/portfolio", "/wallet"]);
+const MOBILE_BOTTOM_HREFS = new Set(["/assets", "/portfolio", "/wallet", "/notifications", "/coin-tags", "/revenue", "/blog"]);
 
 const MOBILE_NAV_ICONS: Record<string, LucideIcon> = {
   "/assets": Grid3X3,
@@ -106,7 +107,6 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
-  const showMobileLftBanner = location.pathname === "/assets";
 
   const bottomNavItems = useMemo(
     () =>
@@ -430,9 +430,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
         >
           <div
             className={cn(
-              "relative w-full items-center justify-center overflow-hidden bg-cover bg-center px-4 transition-[height,opacity] duration-300 md:flex",
-              showMobileLftBanner ? "flex h-12" : "hidden",
-              isScrolled ? "md:h-14 md:opacity-100" : "md:h-14",
+              "relative flex h-12 w-full items-center justify-center overflow-hidden bg-cover bg-center px-4 transition-[height,opacity] duration-300 md:h-14",
             )}
             style={{ backgroundImage: "url('/ks1.jpeg')" }}
           >
@@ -530,7 +528,9 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                   )}
                 >
                   {authUser ? (
-                    <img src={authUser.avatar} alt={authUser.name} className="h-8 w-8 rounded-full object-cover" />
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+                      <User className="h-4 w-4" strokeWidth={2.2} />
+                    </span>
                   ) : connectedWallet ? (
                     <span className="flex items-center gap-1">
                       <Check className="h-4 w-4 text-white" />
@@ -552,7 +552,9 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                   )}
                 >
                   {authUser ? (
-                    <img src={authUser.avatar} alt={authUser.name} className="h-9 w-9 rounded-full object-cover" />
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+                      <User className="h-4 w-4" strokeWidth={2.2} />
+                    </span>
                   ) : connectedWallet ? "Wallet" : "Signup"}
                 </Button>
 
@@ -623,6 +625,35 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
           </div>
         </div>
       </header>
+
+      {bottomNavItems.filter((item) => ["/coin-tags", "/revenue", "/blog"].includes(item.href)).length > 0 ? (
+        <nav
+          aria-label="Secondary mobile navigation"
+          className="md:hidden bg-white/95 px-3 pb-2 backdrop-blur dark:bg-[#0F0F0F]"
+        >
+          <div className="mx-auto flex max-w-md flex-wrap items-center justify-start gap-6">
+            {bottomNavItems.map((item) => {
+              if (!["/coin-tags", "/revenue", "/blog"].includes(item.href)) return null;
+              const isActive = isNavHrefActive(location.pathname, item.href);
+
+              return (
+                <Link
+                  key={`top-${item.href}`}
+                  to={item.href}
+                  className={cn(
+                    "text-sm font-semibold transition-colors",
+                    isActive
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+      ) : null}
 
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent
@@ -728,45 +759,32 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
           aria-label="Primary mobile navigation"
           className="fixed inset-x-0 bottom-0 z-40 bg-white/95 px-3 pb-[calc(0.375rem+env(safe-area-inset-bottom))] pt-1.5 backdrop-blur dark:bg-[#0F0F0F]/95 md:hidden"
         >
-          <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
-            {bottomNavItems.map((item) => {
-              const Icon = getMobileNavIcon(item);
-              const isActive = isNavHrefActive(location.pathname, item.href);
+          <div className="mx-auto flex max-w-md flex-col items-center gap-2">
+            <div className="grid w-full grid-cols-4 gap-1">
+              {bottomNavItems.map((item) => {
+                if (!["/assets", "/portfolio", "/wallet", "/notifications"].includes(item.href)) return null;
+                const Icon = getMobileNavIcon(item);
+                const isActive = isNavHrefActive(location.pathname, item.href);
 
-              return (
-                <Link
-                  key={`bottom-${item.href}`}
-                  to={item.href}
-                  className={cn(
+                return (
+                  <Link
+                    key={`bottom-${item.href}`}
+                    to={item.href}
+                    className={cn(
                     "flex h-12 flex-col items-center justify-center gap-1 rounded-lg text-[11px] font-semibold transition-colors",
                     isActive
                       ? "text-[#2F66F6]"
                       : isDarkTheme
                         ? "text-[#8F9BAD] hover:text-white"
                         : "text-slate-500 hover:text-slate-950",
-                  )}
-                >
-                  <Icon className="h-5 w-5" strokeWidth={2} />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-            <button
-              type="button"
-              onClick={() => setSheetOpen(true)}
-              aria-expanded={sheetOpen}
-              className={cn(
-                "flex h-12 flex-col items-center justify-center gap-1 rounded-lg text-[11px] font-semibold transition-colors",
-                sheetOpen || !hasActiveBottomNavItem
-                  ? "text-[#2F66F6]"
-                  : isDarkTheme
-                    ? "text-[#8F9BAD] hover:text-white"
-                    : "text-slate-500 hover:text-slate-950",
-              )}
-            >
-              <MoreHorizontal className="h-5 w-5" strokeWidth={2.2} />
-              <span>More</span>
-            </button>
+                    )}
+                  >
+                    <Icon className="h-5 w-5" strokeWidth={2} />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </nav>
       ) : null}

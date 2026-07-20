@@ -8,8 +8,8 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { useApp } from "@/lib/app-state";
 import { cn, formatCurrency, formatCurrencyK, formatUnitCurrency } from "@/lib/utils";
 import { DEFAULT_LAUNCHPAD_DISTRIBUTION, allocateLaunchPadTokens } from "@/domain/tokenomics";
-import { Dot, Image as ImageIcon, LineChart as LineChartIcon, X } from "lucide-react";
-import { Area, Bar, BarChart as RechartsBarChart, Cell, Line, LineChart as RechartsLineChart, XAxis, YAxis } from "recharts";
+import { X } from "lucide-react";
+import { Bar, BarChart as RechartsBarChart, Cell, XAxis, YAxis } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 function detectWebView(): boolean {
@@ -220,6 +220,7 @@ export default function AssetDetail() {
   };
 
   const chartConfig = { value: { label: "Liquidity", color: "hsl(var(--accent-yellow))" } } as const;
+  const BAR_COLORS = ["#3b82f6", "#6b7280", "#7d8c3e", "#3b82f6", "#6b7280", "#7d8c3e", "#3b82f6", "#6b7280", "#7d8c3e"];
 
   useEffect(() => {
     if (huntUnlocked) {
@@ -641,17 +642,19 @@ export default function AssetDetail() {
                   className={`absolute inset-0 transition-opacity duration-500 ${isImageMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
                 >
                   <ChartContainer config={chartConfig} className="h-full w-full">
-                    <RechartsLineChart data={chartData} margin={{ left: 0, right: 0, top: 8, bottom: 20 }}>
+                    <RechartsBarChart data={chartData} margin={{ left: 0, right: 0, top: 8, bottom: 0 }}>
                       <defs>
-                        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#4ade80" stopOpacity={0.22} />
-                          <stop offset="65%" stopColor="#22c55e" stopOpacity={0.1} />
-                          <stop offset="100%" stopColor="#16a34a" stopOpacity={0} />
+                        <linearGradient id="chartBarGradientBlue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#60a5fa" stopOpacity={0.9} />
+                          <stop offset="100%" stopColor="#2563eb" stopOpacity={0.7} />
                         </linearGradient>
-                        <linearGradient id="chartLineStroke" x1="0" y1="0" x2="1" y2="0">
-                          <stop offset="0%" stopColor="#84cc16" />
-                          <stop offset="55%" stopColor="#22c55e" />
-                          <stop offset="100%" stopColor="#16a34a" />
+                        <linearGradient id="chartBarGradientGrey" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#9ca3af" stopOpacity={0.9} />
+                          <stop offset="100%" stopColor="#6b7280" stopOpacity={0.7} />
+                        </linearGradient>
+                        <linearGradient id="chartBarGradientOlive" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#a3b86c" stopOpacity={0.9} />
+                          <stop offset="100%" stopColor="#7d8c3e" stopOpacity={0.7} />
                         </linearGradient>
                       </defs>
                       <XAxis dataKey="label" hide />
@@ -667,37 +670,19 @@ export default function AssetDetail() {
                         padding={{ top: 10, bottom: 10 }}
                       />
                       <ChartTooltip
-                        cursor={{ stroke: "rgba(34, 197, 94, 0.22)", strokeWidth: 1.25, strokeDasharray: "4 4" }}
+                        cursor={{ fill: "hsl(var(--muted)/20)" }}
                         content={<ChartTooltipContent hideLabel />}
                       />
-                      <Area
-                        type="monotone"
-                        dataKey="value"
-                        stroke="none"
-                        fill="url(#colorValue)"
-                        fillOpacity={1}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="value"
-                        stroke="rgba(34, 197, 94, 0.12)"
-                        strokeWidth={4}
-                        dot={false}
-                        activeDot={false}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="value"
-                        stroke="url(#chartLineStroke)"
-                        strokeWidth={2.1}
-                        dot={false}
-                        activeDot={{ r: 3.5, fill: "#ffffff", stroke: "#16a34a", strokeWidth: 1.75 }}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </RechartsLineChart>
+                      <Bar dataKey="value" radius={[8, 8, 4, 4]} maxBarSize={32}>
+                        {chartData.map((entry, index) => (
+                          <Cell
+                            key={entry.label}
+                            cursor="pointer"
+                            fill={`url(#chartBarGradient${index % 3 === 0 ? 'Blue' : index % 3 === 1 ? 'Grey' : 'Olive'})`}
+                          />
+                        ))}
+                      </Bar>
+                    </RechartsBarChart>
                   </ChartContainer>
                 </div>
                 <div
@@ -715,15 +700,6 @@ export default function AssetDetail() {
                   />
                 </div>
               </div>
-
-              {!isImageMode && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Dot className="h-3.5 w-3.5 text-emerald-400" />
-                  Live Data
-                  <span>•</span>
-                  Updates every 3s
-                </div>
-              )}
             </section>
 
             <section className="space-y-4 md:space-y-6">
