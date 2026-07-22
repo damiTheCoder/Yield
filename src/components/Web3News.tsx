@@ -84,7 +84,7 @@ export default function Web3News({ variant = "sidebar", className, hideHeaderIco
       : variant === "detail"
         ? "text-[17px] tracking-[-0.02em]"
       : variant === "mobile"
-        ? "text-[18px] tracking-[-0.02em]"
+        ? "text-[16px] tracking-[-0.01em]"
         : "text-xl";
   const listWrapperClass =
     variant === "webview" || variant === "detail"
@@ -322,7 +322,7 @@ export default function Web3News({ variant = "sidebar", className, hideHeaderIco
           {showMobileNewsPlaceholders ? (
             <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
               {shimmerItems.map((index) => (
-                <div key={index} className={cn("h-[220px] w-[78vw] shrink-0 animate-pulse rounded-xl", shimmerBackgroundClasses)} />
+                <div key={index} className={cn("h-[160px] w-[68vw] shrink-0 animate-pulse rounded-xl", shimmerBackgroundClasses)} />
               ))}
             </div>
           ) : (
@@ -334,14 +334,14 @@ export default function Web3News({ variant = "sidebar", className, hideHeaderIco
                     <div
                       key={item.id}
                       className={cn(
-                        "group relative block h-[220px] w-[78vw] shrink-0 overflow-hidden rounded-xl transition-transform",
+                        "group relative block h-[160px] w-[68vw] shrink-0 overflow-hidden rounded-xl transition-transform",
                         cardBackgroundClasses,
                       )}
                     >
                         <div className="h-full w-full bg-gradient-to-b from-black/6 to-transparent" />
-                        <div className="absolute inset-x-4 bottom-4 space-y-2">
-                          <div className="h-4 w-3/4 rounded bg-white/70" />
-                          <div className="h-3 w-1/2 rounded bg-white/50" />
+                        <div className="absolute inset-x-3 bottom-3 space-y-2">
+                          <div className="h-3 w-3/4 rounded bg-white/70" />
+                          <div className="h-2.5 w-1/2 rounded bg-white/50" />
                         </div>
                     </div>
                   ) : (
@@ -350,7 +350,7 @@ export default function Web3News({ variant = "sidebar", className, hideHeaderIco
                       href={item.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="group block h-[220px] w-[78vw] shrink-0 overflow-hidden rounded-xl transition-transform"
+                      className="group block h-[160px] w-[68vw] shrink-0 overflow-hidden rounded-xl transition-transform"
                     >
                       <div className="relative h-full overflow-hidden rounded-xl bg-black">
                         <img
@@ -360,7 +360,7 @@ export default function Web3News({ variant = "sidebar", className, hideHeaderIco
                           loading="lazy"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
-                        <h4 className="absolute bottom-0 left-0 max-w-[90%] px-4 pb-5 text-left text-xl font-bold leading-tight text-white line-clamp-4">
+                        <h4 className="absolute bottom-0 left-0 max-w-[90%] px-3 pb-3 text-left text-lg font-bold leading-tight text-white line-clamp-3">
                           {item.title}
                         </h4>
                       </div>

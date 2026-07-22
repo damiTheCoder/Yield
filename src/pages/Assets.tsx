@@ -10,12 +10,10 @@ import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import Web3News from "@/components/Web3News";
-import MarketTickerTape from "@/components/MarketTickerTape";
-import type { TouchEvent } from "react";
-import { getDiscoverableSupply } from "@/domain/tokenomics";
 import { useWeb3News } from "@/hooks/useWeb3News";
 import type { Web3NewsItem } from "@/hooks/useWeb3News";
+import MarketTickerTape from "@/components/MarketTickerTape";
+import { getDiscoverableSupply } from "@/domain/tokenomics";
 
 const MAX_TRENDING = 10;
 const ASSET_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/r1.jpeg"];
@@ -832,10 +830,6 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
       <main className="flex-1 pb-2 pt-4 md:pb-20">
         <div className="mx-auto w-full max-w-[1400px] px-1 sm:px-3 md:px-6 lg:px-8">
           <div className="flex flex-col px-1 pb-4 pt-0 sm:px-2 md:p-0 md:pt-0">
-
-            {showTrending && (
-              <Web3News variant="mobile" className="mb-4 md:block" hideHeaderIcons />
-            )}
 
             {renderTrendingLftsStrip()}
 
