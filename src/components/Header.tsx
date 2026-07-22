@@ -759,8 +759,8 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
           aria-label="Primary mobile navigation"
           className="fixed inset-x-0 bottom-0 z-40 bg-white/95 px-3 pb-[calc(0.375rem+env(safe-area-inset-bottom))] pt-1.5 backdrop-blur dark:bg-[#0F0F0F]/95 md:hidden"
         >
-          <div className="mx-auto flex max-w-md flex-col items-center gap-2">
-            <div className="grid w-full grid-cols-4 gap-1">
+          <div className="mx-auto flex max-w-md flex-col items-center gap-3">
+            <div className="grid w-full grid-cols-4 gap-2">
               {bottomNavItems.map((item) => {
                 if (!["/assets", "/portfolio", "/wallet", "/notifications"].includes(item.href)) return null;
                 const Icon = getMobileNavIcon(item);

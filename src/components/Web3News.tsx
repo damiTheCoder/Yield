@@ -326,9 +326,9 @@ export default function Web3News({ variant = "sidebar", className, hideHeaderIco
               ))}
             </div>
           ) : (
-            <div className="relative left-1/2 w-screen -translate-x-1/2 overflow-x-auto pb-1 no-scrollbar">
-              <div className="flex gap-3 px-4">
-                {mobileNewsItems.map((item) => {
+            <>
+              <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
+              {mobileNewsItems.map((item) => {
                   const isPlaceholder = !item.title;
                   return isPlaceholder ? (
                     <div
@@ -368,7 +368,7 @@ export default function Web3News({ variant = "sidebar", className, hideHeaderIco
                   );
                 })}
               </div>
-            </div>
+            </>
           )}
         </div>
 
@@ -436,7 +436,7 @@ export default function Web3News({ variant = "sidebar", className, hideHeaderIco
   }
 
   return (
-    <section className={cn("flex flex-col gap-3", className)}>
+    <section className={cn(className, variant !== "mobile" && "flex flex-col gap-3")}>
       <div className="flex items-center justify-between gap-3">
         {variant === "mobile" ? (
           <>

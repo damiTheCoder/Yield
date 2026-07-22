@@ -531,8 +531,8 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
     </div>
   );
 
-  const tableShellClasses = "-mx-2 overflow-hidden rounded-2xl bg-transparent md:mx-0 md:bg-white dark:bg-transparent dark:md:bg-[#151515] mb-6 sm:-mx-5";
-  const tableStickyColumnClasses = "bg-white dark:bg-[#0F0F0F] dark:md:bg-[#151515]";
+  const tableShellClasses = "-mx-2 overflow-hidden rounded-2xl bg-transparent md:mx-0 md:bg-white dark:bg-transparent dark:md:bg-transparent mb-6 sm:-mx-5";
+  const tableStickyColumnClasses = "bg-white dark:bg-[#0F0F0F] dark:md:bg-transparent";
 
   const renderListedList = (items: Asset[]) => (
     <div className={tableShellClasses}>
@@ -731,7 +731,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
     if (!showTrending || trendingTokens.length === 0) return null;
 
     return (
-      <section className="mb-2 px-0 py-2 md:px-4">
+      <section className="mb-2 px-0 py-2">
         <div className="mb-2 flex items-end justify-between gap-4">
           <div className="min-w-0">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
@@ -758,7 +758,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
                 key={asset.id}
                 type="button"
                 onClick={() => navigate(`/assets/${asset.id}`)}
-                className="group flex min-w-[280px] flex-col justify-between border-r border-[#D0D5DD] bg-transparent px-5 py-3 text-left transition last:border-r-0 dark:border-[#2A2A2A] sm:min-w-[340px]"
+                className="group flex min-w-[280px] flex-col justify-between border-r border-[#D0D5DD] bg-transparent px-5 py-3 text-left transition last:border-r-0 dark:border-[#2A2A2A] sm:min-w-[360px]"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-3">
@@ -800,12 +800,15 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
                 <div className="mt-3 flex items-end justify-between gap-3">
                   <div className="flex-1">
                     <div className="flex items-end gap-[3px] h-16">
-                      {Array.from({ length: 12 }).map((_, i) => {
-                        const barColor = i % 3 === 0 ? "bg-[#3b82f6]" : i % 3 === 1 ? "bg-[#6b7280]" : "bg-[#7d8c3e]";
-                        const heights = ["h-3", "h-4", "h-5", "h-6", "h-8", "h-10", "h-12", "h-14", "h-12", "h-10", "h-8", "h-6"];
-                        const height = heights[(index + i) % heights.length];
-                        return <div key={i} className={`w-2 rounded-t-sm ${barColor} ${height}`} />;
-                      })}
+                      {(() => {
+                        const seed = asset.id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                        const heights = ["h-3", "h-4", "h-5", "h-6", "h-8", "h-10", "h-12", "h-14"];
+                        return Array.from({ length: 12 }).map((_, i) => {
+                          const barColor = i % 3 === 0 ? "bg-[#3b82f6]" : i % 3 === 1 ? "bg-[#6b7280]" : "bg-[#7d8c3e]";
+                          const height = heights[(seed + i) % heights.length];
+                          return <div key={i} className={`w-2 rounded-t-sm ${barColor} ${height}`} />;
+                        });
+                      })()}
                     </div>
                   </div>
                   <div className="text-right">
@@ -824,118 +827,17 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
     );
   };
 
-  const renderMobileNewsStatus = () => {
-    if (!showTrending) return null;
-
-    const statusItems = statusNews ?? [];
-    const showPlaceholders = statusNewsLoading && statusItems.length === 0;
-    const indicatorCount = Math.min(showPlaceholders ? 5 : statusItems.length, 7);
-    const handleNewsScroll = (event: React.UIEvent<HTMLDivElement>) => {
-      const scroller = event.currentTarget;
-      const card = scroller.querySelector<HTMLElement>("[data-news-card]");
-      if (!card) return;
-
-      const cardStep = card.offsetWidth;
-      if (cardStep <= 0) return;
-
-      const centeredIndex = Math.round(scroller.scrollLeft / cardStep);
-      setActiveNewsIndex(Math.max(0, Math.min(centeredIndex, indicatorCount - 1)));
-    };
-
-    if (!showPlaceholders && statusItems.length === 0) return null;
-
-    return (
-      <section className="mb-5 md:hidden">
-        <div
-          ref={newsCarouselRef}
-          className="relative left-1/2 w-screen -translate-x-1/2 snap-x snap-mandatory overflow-x-auto scroll-smooth pb-5 no-scrollbar"
-          onScroll={handleNewsScroll}
-        >
-          <div className="flex items-center gap-0 px-[9vw]">
-            {showPlaceholders
-              ? Array.from({ length: 3 }, (_, index) => (
-                <div
-                  key={`news-card-placeholder-${index}`}
-                  data-news-card
-                  className="h-[360px] w-[82vw] max-w-[400px] shrink-0 snap-center animate-pulse rounded-[16px] bg-muted"
-                />
-              ))
-              : statusItems.map((item, index) => {
-                const isActive = index === activeNewsIndex;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setSelectedNews(item)}
-                    data-news-card
-                    className={cn(
-                      "group w-[82vw] max-w-[400px] shrink-0 snap-center overflow-hidden rounded-[16px] bg-[#F1F1F1] text-left shadow-none outline-none transition-all duration-300 ease-out dark:bg-[#171717]",
-                      isActive ? "scale-100 opacity-100" : "scale-[0.9] opacity-80",
-                    )}
-                    aria-label={`Open headline: ${item.title}`}
-                  >
-                    <div className="relative h-[270px] overflow-hidden rounded-t-[16px] bg-[#111111]">
-                      <img
-                        src={item.imageUrl}
-                        alt={item.title}
-                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-b from-black/72 via-black/22 to-black/24" />
-                      <div className="absolute left-0 right-0 top-8 px-7 text-center">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/90">
-                          {item.source || "Web3"}
-                        </p>
-                        <h2 className="mt-5 line-clamp-3 text-[34px] font-black leading-[0.94] tracking-[-0.06em] text-white">
-                          {item.title}
-                        </h2>
-                      </div>
-                      <div className="absolute bottom-5 left-5 inline-flex max-w-[72%] items-center gap-2 rounded-2xl bg-black/42 px-3 py-2 text-white backdrop-blur-md">
-                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-white/18 text-xs font-black">
-                          {(item.source || "W").slice(0, 1)}
-                        </span>
-                        <span className="truncate text-lg font-bold">{item.source || "Web3"}</span>
-                      </div>
-                    </div>
-                    <div className="px-6 py-5">
-                      <h3 className="line-clamp-1 text-[24px] font-black leading-tight tracking-[-0.04em] text-[#111111] dark:text-white">
-                        {item.source || "Web3"}
-                      </h3>
-                      <p className="mt-1 line-clamp-1 text-[18px] font-medium tracking-[-0.035em] text-[#9A9A9A] dark:text-[#A6A6A6]">
-                        {item.title}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
-          </div>
-        </div>
-        <div className="mt-1 flex items-center justify-center gap-3">
-          {Array.from({ length: indicatorCount }, (_, index) => (
-            <span
-              key={`news-dot-${index}`}
-              className={cn(
-                "h-3 rounded-full bg-[#A8A8A8] transition-all duration-300",
-                index === activeNewsIndex ? "w-9 bg-[#555555]" : "w-3",
-              )}
-            />
-          ))}
-        </div>
-      </section>
-    );
-  };
-
   return (
-    <div className={cn("min-h-screen", "bg-background")}>
+    <>
       <main className="flex-1 pb-2 pt-4 md:pb-20">
         <div className="mx-auto w-full max-w-[1400px] px-1 sm:px-3 md:px-6 lg:px-8">
-          <div className="flex flex-col px-1 pb-4 pt-0 sm:px-2 md:p-6 md:pt-0">
-
-            {renderTrendingLftsStrip()}
+          <div className="flex flex-col px-1 pb-4 pt-0 sm:px-2 md:p-0 md:pt-0">
 
             {showTrending && (
-              <Web3News variant="mobile" className="mb-4 hidden md:block" hideHeaderIcons />
+              <Web3News variant="mobile" className="mb-4 md:block" hideHeaderIcons />
             )}
+
+            {renderTrendingLftsStrip()}
 
             <MarketTickerTape className="mb-4 hidden md:block" />
 
@@ -1150,7 +1052,7 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
           ) : null}
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }
 
