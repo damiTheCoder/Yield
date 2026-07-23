@@ -290,9 +290,8 @@ export default function Wallet() {
                       aria-label="Show exact trading balance"
                     >
                       <span className="inline-flex min-w-0 items-center gap-1.5">
-                        <img src="/usdc.png" alt="" className="h-7 w-7 rounded-full object-cover sm:h-8 sm:w-8" />
+                        <img src="/usdc.png" alt="" className="h-10 w-10 rounded-full object-cover" />
                         <span>{formatCompactUsd(user.usd)}</span>
-                        <span>USDC</span>
                       </span>
                     </button>
                     <p className="mt-2 text-sm font-medium text-muted-foreground">
@@ -392,9 +391,8 @@ export default function Wallet() {
           </DialogHeader>
           <p className="font-mono text-2xl font-semibold text-foreground">
             <span className="inline-flex items-center justify-center gap-2">
-              <img src="/usdc.png" alt="" className="h-6 w-6 rounded-full object-cover" />
+              <img src="/usdc.png" alt="" className="h-8 w-8 rounded-full object-cover" />
               <span>{formatCurrency(user.usd).replace("$", "")}</span>
-              <span>USDC</span>
             </span>
           </p>
         </DialogContent>

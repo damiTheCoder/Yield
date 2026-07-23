@@ -704,8 +704,20 @@ export default function AssetDetail() {
 
             <section className="space-y-4 md:space-y-6">
               <div className="space-y-3">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
-                  <h2 className="text-3xl font-semibold leading-tight">{asset.name}</h2>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center justify-between gap-2">
+                    <h2 className="text-3xl font-semibold leading-tight">{asset.name}</h2>
+                    {!isWebview && (
+                      <Button
+                        onClick={() => setMobileBuyOpen(true)}
+                        className="h-8 rounded-lg bg-blue-500 pl-2.5 pr-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-600 sm:hidden"
+                        disabled={isMarketOnlyPhase}
+                      >
+                        Buy
+                        <img src="/usdc.png" alt="" className="ml-1 h-4 w-4 rounded-full object-cover" />
+                      </Button>
+                    )}
+                  </div>
                   <div className="text-sm text-muted-foreground sm:text-right">Collection: {asset.name} • By OpenYield Labs</div>
                 </div>
                 <p className="text-sm md:text-base text-muted-foreground/80 max-w-2xl leading-relaxed line-clamp-3">
@@ -721,7 +733,8 @@ export default function AssetDetail() {
                   className="h-12 w-full rounded-2xl bg-blue-500 text-base font-semibold text-white shadow-sm hover:bg-blue-600"
                   disabled={isMarketOnlyPhase}
                 >
-                  Tap to pay
+                  Buy
+              <img src="/usdc.png" alt="" className="ml-1.5 h-5 w-5 rounded-full object-cover" />
                 </Button>
               </section>
             )}
@@ -895,23 +908,6 @@ export default function AssetDetail() {
           </div>
         </div>
       </main>
-
-      <div className={cn(isWebview ? "" : "sm:hidden")}>
-        {!mobileBuyOpen && (
-          <div className="fixed inset-x-0 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-[60] flex justify-center px-4">
-            <Button
-              onClick={() => setMobileBuyOpen(true)}
-              className={cn(
-                "h-12 w-full max-w-xs rounded-2xl py-3 text-base font-semibold shadow-none transition-colors",
-                "bg-blue-500 text-white hover:bg-blue-600",
-              )}
-              disabled={isMarketOnlyPhase}
-            >
-              Tap to pay
-            </Button>
-          </div>
-        )}
-      </div>
 
       {mobileBuyOpen && (
         <div className="fixed inset-0 z-[80]">

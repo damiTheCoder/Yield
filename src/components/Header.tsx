@@ -1,22 +1,24 @@
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
-  ArrowLeftRight,
   ArrowUpRight,
   BarChart3,
   Bell,
   Check,
-  Grid3X3,
+  DollarSign,
+  LayoutGrid,
   Loader2,
+  Menu,
   MoreHorizontal,
   Moon,
-  Newspaper,
   PieChart,
+  QrCode,
+  Rocket,
   Search,
   Sun,
-  Tag,
   User,
   Wallet,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem, CommandSeparator } from "@/components/ui/command";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useApp } from "@/lib/app-state";
 import type { Asset } from "@/lib/app-state";
 import { useTheme } from "@/hooks/useTheme";
@@ -58,32 +61,33 @@ type MobileMenuSection = {
 };
 
 const NAV_LINKS = [
-  { label: "Assets", href: "/assets" },
-  { label: "Portfolio", href: "/portfolio" },
-  { label: "Wallet", href: "/wallet" },
-  { label: "Notifications", href: "/notifications" },
-  { label: "LaunchPad", href: "/coin-tags" },
-  { label: "Revenue", href: "/revenue" },
+  { label: "Assets", href: "/assets", icon: LayoutGrid },
+  { label: "Portfolio", href: "/portfolio", icon: PieChart },
+  { label: "Wallet", href: "/wallet", icon: Wallet },
+  { label: "Notifications", href: "/notifications", icon: Bell },
+  { label: "LaunchPad", href: "/coin-tags", icon: Zap },
+  { label: "Revenue", href: "/revenue", icon: DollarSign },
 ];
+
+const BOTTOM_NAV_LINKS = NAV_LINKS.filter((item) => ["/assets", "/portfolio", "/wallet", "/notifications"].includes(item.href));
+const QR_NAV_LINKS = NAV_LINKS.filter((item) => ["/coin-tags", "/revenue", "/blog"].includes(item.href));
 
 const MOBILE_BOTTOM_HREFS = new Set(["/assets", "/portfolio", "/wallet", "/notifications", "/coin-tags", "/revenue", "/blog"]);
 
-const MOBILE_NAV_ICONS: Record<string, LucideIcon> = {
-  "/assets": Grid3X3,
-  "/portfolio": PieChart,
-  "/wallet": Wallet,
-  "/notifications": Bell,
-  "/coin-tags": Tag,
-  "/revenue": BarChart3,
-  "/blog": Newspaper,
+const MOBILE_NAV_ICONS: Record<string, string> = {
+  "/assets": "/t1.png",
+  "/portfolio": "/t2.png",
+  "/wallet": "/t3.png",
+  "/notifications": "/t4.png",
+  "/coin-tags": "/t5.png",
 };
 
-const getMobileNavIcon = (item: MobileNavItem): LucideIcon => {
+const getMobileNavIcon = (item: MobileNavItem): string => {
   if (item.type === "action") {
-    return ArrowLeftRight;
+    return "/t1.png";
   }
 
-  return MOBILE_NAV_ICONS[item.href] ?? Grid3X3;
+  return MOBILE_NAV_ICONS[item.href] ?? "/t1.png";
 };
 
 const isNavHrefActive = (pathname: string, href: string) =>
@@ -105,6 +109,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
   const [connectingWallet, setConnectingWallet] = useState<string | null>(null);
   const [connectedWallet, setConnectedWallet] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [qrNavOpen, setQrNavOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
 
@@ -116,8 +121,6 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
       ),
     [mobileNavItems],
   );
-
-  const hasActiveBottomNavItem = bottomNavItems.some((item) => isNavHrefActive(location.pathname, item.href));
 
   const mobileMenuSections = useMemo<MobileMenuSection[]>(() => {
     const primaryItems = mobileNavItems.filter(
@@ -626,35 +629,6 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
         </div>
       </header>
 
-      {bottomNavItems.filter((item) => ["/coin-tags", "/revenue", "/blog"].includes(item.href)).length > 0 ? (
-        <nav
-          aria-label="Secondary mobile navigation"
-          className="md:hidden bg-white/95 px-3 pb-2 backdrop-blur dark:bg-[#0F0F0F]"
-        >
-          <div className="mx-auto flex max-w-md flex-wrap items-center justify-start gap-6">
-            {bottomNavItems.map((item) => {
-              if (!["/coin-tags", "/revenue", "/blog"].includes(item.href)) return null;
-              const isActive = isNavHrefActive(location.pathname, item.href);
-
-              return (
-                <Link
-                  key={`top-${item.href}`}
-                  to={item.href}
-                  className={cn(
-                    "text-sm font-semibold transition-colors",
-                    isActive
-                      ? "text-foreground"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
-      ) : null}
-
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent
           side="top"
@@ -691,7 +665,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                       item.type === "link"
                         ? isNavHrefActive(location.pathname, item.href)
                         : item.active;
-                    const Icon = getMobileNavIcon(item);
+                    const iconPath = getMobileNavIcon(item);
                     const itemClass = cn(
                       "flex min-h-[34px] w-full items-center gap-3 text-left text-[14px] font-medium tracking-[-0.01em] transition-colors",
                       isActive
@@ -703,7 +677,7 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                           : "text-slate-600 hover:text-slate-950",
                     );
                     const iconClass = cn(
-                      "h-[18px] w-[18px] shrink-0",
+                      "h-[18px] w-[18px] shrink-0 rounded-md object-cover",
                       isActive
                         ? isDarkTheme
                           ? "text-white"
@@ -721,7 +695,9 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                           onClick={() => setSheetOpen(false)}
                           className={itemClass}
                         >
-                          <Icon className={iconClass} strokeWidth={1.9} />
+                          {iconPath ? (
+                            <img src={iconPath} alt={item.label} className={iconClass} />
+                          ) : null}
                           <span className="flex-1">{item.label}</span>
                           {section.showArrow ? (
                             <ArrowUpRight className="h-4 w-4 shrink-0 text-slate-400" strokeWidth={2} />
@@ -739,7 +715,9 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                         }}
                         className={itemClass}
                       >
-                        <Icon className={iconClass} strokeWidth={1.9} />
+                        {iconPath ? (
+                          <img src={iconPath} alt={item.label} className={iconClass} />
+                        ) : null}
                         <span className="flex-1">{item.label}</span>
                         {section.showArrow ? (
                           <ArrowUpRight className="h-4 w-4 shrink-0 text-slate-400" strokeWidth={2} />
@@ -754,40 +732,85 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
         </SheetContent>
       </Sheet>
 
-      {bottomNavItems.length > 0 ? (
-        <nav
-          aria-label="Primary mobile navigation"
-          className="fixed inset-x-0 bottom-0 z-40 bg-white/95 px-3 pb-[calc(0.375rem+env(safe-area-inset-bottom))] pt-1.5 backdrop-blur dark:bg-[#0F0F0F]/95 md:hidden"
-        >
-          <div className="mx-auto flex max-w-md flex-col items-center gap-3">
-            <div className="grid w-full grid-cols-4 gap-2">
-              {bottomNavItems.map((item) => {
-                if (!["/assets", "/portfolio", "/wallet", "/notifications"].includes(item.href)) return null;
-                const Icon = getMobileNavIcon(item);
-                const isActive = isNavHrefActive(location.pathname, item.href);
-
-                return (
-                  <Link
-                    key={`bottom-${item.href}`}
-                    to={item.href}
-                    className={cn(
-                    "flex h-12 flex-col items-center justify-center gap-1 rounded-lg text-[11px] font-semibold transition-colors",
+      <nav className="fixed inset-x-0 bottom-0 z-40 md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div className={cn("w-full pb-2 pt-1", isDarkTheme ? "bg-[#0F0F0F]" : "bg-white")}>
+          <div className="flex items-center justify-between gap-1">
+            {BOTTOM_NAV_LINKS.map((item) => {
+              const isActive = isNavHrefActive(location.pathname, item.href);
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  className={cn(
+                    "flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 text-[11px] font-semibold transition-colors",
                     isActive
-                      ? "text-[#2F66F6]"
+                      ? "text-blue-500"
                       : isDarkTheme
-                        ? "text-[#8F9BAD] hover:text-white"
-                        : "text-slate-500 hover:text-slate-950",
-                    )}
-                  >
-                    <Icon className="h-5 w-5" strokeWidth={2} />
-                    <span>{item.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
+                        ? "text-slate-400 hover:text-white"
+                        : "text-slate-500 hover:text-slate-900",
+                  )}
+                >
+                  <Icon className="h-5 w-5" strokeWidth={2} />
+                  <span className="truncate">{item.label}</span>
+                </Link>
+              );
+            })}
           </div>
-        </nav>
-      ) : null}
+        </div>
+        <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-16">
+          <Popover open={qrNavOpen} onOpenChange={setQrNavOpen}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className="flex items-center justify-center"
+              >
+                <div
+                  className={cn(
+                    "flex h-12 w-12 items-center justify-center rounded-xl text-white shadow-lg backdrop-blur-md transition-colors",
+                    isDarkTheme
+                      ? "bg-white/10"
+                      : "bg-gradient-to-br from-sky-400 to-blue-500",
+                  )}
+                >
+                  <QrCode className="h-6 w-6" strokeWidth={2} />
+                </div>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              align="center"
+              side="top"
+              collisionPadding={16}
+              className={cn(
+                "w-64 rounded-2xl p-2 text-sm font-medium shadow-xl backdrop-blur-xl md:hidden mb-2",
+                isDarkTheme
+                  ? "bg-slate-900/90 text-white border border-slate-700/60"
+                  : "bg-gradient-to-br from-sky-200/80 via-slate-200/80 to-white/90 text-slate-800 border border-white/60",
+              )}
+            >
+              <div className="flex flex-col gap-1">
+                {QR_NAV_LINKS.map((link) => {
+                  const isActive = isNavHrefActive(location.pathname, link.href);
+                  return (
+                    <Link
+                      key={link.href}
+                      to={link.href}
+                      onClick={() => setQrNavOpen(false)}
+                      className={cn(
+                        "flex items-center rounded-xl px-3 py-2 text-sm font-medium transition-colors",
+                        isDarkTheme ? "hover:bg-white/10" : "hover:bg-white/50",
+                        isActive ? "font-semibold" : "opacity-80",
+                      )}
+                    >
+                      <span>{link.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+      </nav>
     </>
   );
 };

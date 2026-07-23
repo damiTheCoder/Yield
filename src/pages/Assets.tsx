@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { cn, formatCurrency, formatCurrencyK, formatUnitCurrency } from "@/lib/utils";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, LayoutGrid, Rows3, Star } from "lucide-react";
+import { LayoutGrid, Rows3, Star } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -16,9 +16,6 @@ import MarketTickerTape from "@/components/MarketTickerTape";
 import { getDiscoverableSupply } from "@/domain/tokenomics";
 
 const MAX_TRENDING = 10;
-const ASSET_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/r1.jpeg"];
-const MOBILE_ASSET_HEADER_ICONS = ["/z1.png", "/z2.png", "/z3.png", "/r1.jpeg"];
-const ICON_STACK_MESSAGE = "we just felt this will make the UX design look good 😂";
 type Network = "all" | "polygon" | "ethereum" | "solana" | "base" | "optimism";
 const ASSET_NETWORK_IDS: Exclude<Network, "all">[] = ["polygon", "ethereum", "solana", "base", "optimism"];
 const NETWORKS = [
@@ -74,7 +71,6 @@ const NETWORKS = [
 
 type AssetsPageProps = {
   showTrending?: boolean;
-  showViewAllButton?: boolean;
   showSearchBar?: boolean;
 };
 
@@ -284,7 +280,7 @@ function getAssetNetwork(asset: Asset) {
   return getNetworkInfo(getAssetNetworkId(asset));
 }
 
-export function AssetsPage({ showTrending = true, showViewAllButton = true, showSearchBar = false }: AssetsPageProps) {
+export function AssetsPage({ showTrending = true, showSearchBar = false }: AssetsPageProps) {
   const { assets, userAssets, assetAvailable } = useApp();
   const { theme } = useTheme();
   const isDarkTheme = theme === "dark";
@@ -398,7 +394,6 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
   const listedAssets = filteredAssets;
   const displayListedAssets = listedAssets;
   const totalVisibleAssets = listedAssets.length;
-  const listedHeaderIcons = isDesktop ? ASSET_HEADER_ICONS : MOBILE_ASSET_HEADER_ICONS;
   const cardBorderClass = "";
   const cardMediaBorderClass = isDarkTheme ? "border-b-0" : "border-b border-slate-200/60";
 
@@ -641,45 +636,63 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
   );
 
   const renderNetworkSelector = () => {
-    if (viewMode === "grid" && isDesktop) return null;
-
+    const selected = NETWORKS.find(n => n.id === selectedNetwork) || NETWORKS[0];
     return (
-      <div className="relative left-1/2 mt-2 mb-2 flex w-screen -translate-x-1/2 items-stretch gap-0 overflow-x-auto pb-0 no-scrollbar md:left-auto md:mt-4 md:mb-6 md:w-auto md:translate-x-0 md:items-center md:gap-2 md:px-0">
-        {NETWORKS.map((network) => (
-          <button
-            key={network.id}
-            type="button"
-            onClick={() => setSelectedNetwork(network.id)}
+      <div className="relative">
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className={cn(
+                "flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold backdrop-blur-md transition-colors",
+                isDarkTheme
+                  ? "bg-white/10 text-white hover:bg-white/20"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+              )}
+            >
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/30">
+                {selected.image ? (
+                  <img src={selected.image} alt={selected.name} className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-[11px]">{selected.icon}</span>
+                )}
+              </span>
+              <span className="max-w-[110px] truncate">{selected.name}</span>
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            align="start"
+            collisionPadding={16}
             className={cn(
-              "flex items-center gap-2 border-r border-[#D0D5DD] px-4 py-3 transition-all duration-200 whitespace-nowrap shadow-none last:border-r-0 dark:border-[#2A2A2A] md:rounded-2xl md:py-2 md:shadow-sm",
-              network.id === "all" ? "md:border-0" : "md:border md:border-transparent",
-              selectedNetwork === network.id
-                ? cn("font-semibold", network.selectedPillClass)
-                : network.pillClass
+              "w-52 rounded-xl p-2 text-sm font-medium shadow-xl backdrop-blur-xl",
+              isDarkTheme ? "bg-white/10 text-white" : "bg-white/60 text-gray-600 border border-white/50",
             )}
           >
-            <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-full overflow-hidden bg-white/20 flex items-center justify-center">
-                {network.image ? (
-                  <img
-                    src={network.image}
-                    alt={network.name}
-                    className={cn(
-                      "w-full h-full object-cover",
-                      network.id === "solana" && "grayscale contrast-150 brightness-75",
+            <div className="space-y-1">
+              {NETWORKS.map((network) => (
+                <button
+                  key={network.id}
+                  type="button"
+                  onClick={() => setSelectedNetwork(network.id)}
+                  className={cn(
+                    "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                    isDarkTheme ? "hover:bg-white/20" : "hover:bg-gray-100",
+                    selectedNetwork === network.id ? "font-semibold" : "opacity-80",
+                  )}
+                >
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/30">
+                    {network.image ? (
+                      <img src={network.image} alt={network.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="text-[11px]">{network.icon}</span>
                     )}
-                  />
-                ) : (
-                  <span className="text-[10px]">{network.icon}</span>
-                )}
-              </div>
-              <span className="text-sm">{network.name}</span>
+                  </span>
+                  <span className="truncate">{network.name}</span>
+                </button>
+              ))}
             </div>
-            {selectedNetwork === network.id && (
-              <Check className="h-3.5 w-3.5 ml-1" />
-            )}
-          </button>
-        ))}
+          </PopoverContent>
+        </Popover>
       </div>
     );
   };
@@ -849,121 +862,13 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
               </div>
             )}
 
-            {renderNetworkSelector()}
-
             {/* Text Navigation Links - Unified */}
             <div className="mt-0 flex items-center justify-between gap-4 pb-1 md:mt-2 md:pb-2">
               <div className="flex min-w-0 items-center gap-4">
-                <span className="whitespace-nowrap text-[22px] font-semibold text-foreground md:hidden">
-                  Listed LFTs
-                </span>
-                <span className="hidden text-[22px] font-semibold text-foreground whitespace-nowrap md:inline">
-                  Listed
-                </span>
-                {showViewAllButton && (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        className="hidden items-center whitespace-nowrap transition-transform hover:scale-[1.02] md:flex"
-                        aria-label="Why these icons are here"
-                      >
-                        {listedHeaderIcons.map((icon, index) => (
-                          <span
-                            key={icon}
-                            className={cn(
-                              "overflow-hidden rounded-full bg-white",
-                              "h-8 w-8",
-                              index === 0 ? "ml-0" : "-ml-2.5",
-                            )}
-                          >
-                            <img src={icon} alt="" className="h-full w-full object-cover" loading="lazy" />
-                          </span>
-                        ))}
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent
-                      align={isDesktop ? "end" : "start"}
-                      alignOffset={isDesktop ? 0 : 10}
-                      collisionPadding={16}
-                      className="w-[240px] max-w-[calc(100vw-2rem)] rounded-2xl border border-[#D5DCE8] bg-white p-3 text-sm font-medium leading-6 text-[#344054] shadow-xl dark:border-[#2A2A2A] dark:bg-[#171717] dark:text-[#D0D5DD]"
-                    >
-                      {ICON_STACK_MESSAGE}
-                    </PopoverContent>
-                  </Popover>
-                )}
+                {renderNetworkSelector()}
               </div>
 
               <div className="flex shrink-0 items-center gap-2">
-                {viewMode === "grid" && isDesktop && (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        className={cn(
-                          "inline-flex h-9 items-center gap-2 rounded-xl px-3 text-sm font-semibold shadow-sm transition-colors",
-                          selectedNetworkInfo.selectedPillClass,
-                        )}
-                        aria-label="Choose network"
-                      >
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/20">
-                          {selectedNetworkInfo.image ? (
-                            <img
-                              src={selectedNetworkInfo.image}
-                              alt={selectedNetworkInfo.name}
-                              className={cn(
-                                "h-full w-full object-cover",
-                                selectedNetworkInfo.id === "solana" && "grayscale contrast-150 brightness-75",
-                              )}
-                            />
-                          ) : (
-                            <span className="text-[10px]">{selectedNetworkInfo.icon}</span>
-                          )}
-                        </span>
-                        <span className="max-w-[90px] truncate sm:max-w-none">{selectedNetworkInfo.name}</span>
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent
-                      align="end"
-                      collisionPadding={16}
-                      className="w-52 rounded-2xl border border-border/60 bg-background p-2 shadow-xl"
-                    >
-                      <div className="space-y-1">
-                        {NETWORKS.map((network) => (
-                          <button
-                            key={network.id}
-                            type="button"
-                            onClick={() => setSelectedNetwork(network.id)}
-                            className={cn(
-                              "flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm transition-colors hover:bg-muted",
-                              selectedNetwork === network.id && "bg-muted font-semibold",
-                            )}
-                          >
-                            <span className="flex min-w-0 items-center gap-2">
-                              <span className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
-                                {network.image ? (
-                                  <img
-                                    src={network.image}
-                                    alt={network.name}
-                                    className={cn(
-                                      "h-full w-full object-cover",
-                                      network.id === "solana" && "grayscale contrast-150 brightness-75",
-                                    )}
-                                  />
-                                ) : (
-                                  <span className="text-[10px]">{network.icon}</span>
-                                )}
-                              </span>
-                              <span className="truncate">{network.name}</span>
-                            </span>
-                            {selectedNetwork === network.id && <Check className="h-3.5 w-3.5 shrink-0" />}
-                          </button>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                )}
-
                 <button
                   type="button"
                   onClick={handleToggleViewMode}
@@ -1051,5 +956,5 @@ export function AssetsPage({ showTrending = true, showViewAllButton = true, show
 }
 
 export default function Assets() {
-  return <AssetsPage showTrending showViewAllButton />;
+  return <AssetsPage showTrending />;
 }
