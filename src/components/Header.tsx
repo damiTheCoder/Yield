@@ -769,8 +769,8 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                   className={cn(
                     "flex h-12 w-12 items-center justify-center rounded-xl text-white shadow-lg backdrop-blur-md transition-colors",
                     isDarkTheme
-                      ? "bg-white/10"
-                      : "bg-gradient-to-br from-sky-400 to-blue-500",
+                      ? "bg-white/10 border border-white/20"
+                      : "bg-white/60 border border-white/60 text-gray-700",
                   )}
                 >
                   <QrCode className="h-6 w-6" strokeWidth={2} />

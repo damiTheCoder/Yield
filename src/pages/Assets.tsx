@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { cn, formatCurrency, formatCurrencyK, formatUnitCurrency } from "@/lib/utils";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, Rows3, Star } from "lucide-react";
+import { LayoutGrid, Minus, Plus, Rows3, Star } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -14,6 +14,33 @@ import { useWeb3News } from "@/hooks/useWeb3News";
 import type { Web3NewsItem } from "@/hooks/useWeb3News";
 import MarketTickerTape from "@/components/MarketTickerTape";
 import { getDiscoverableSupply } from "@/domain/tokenomics";
+
+const formatCompactUsd = (value: number) => {
+  if (!Number.isFinite(value)) return "0";
+
+  const abs = Math.abs(value);
+  const units = [
+    { value: 1_000_000_000_000, suffix: "t" },
+    { value: 1_000_000_000, suffix: "b" },
+    { value: 1_000_000, suffix: "m" },
+    { value: 1_000, suffix: "k" },
+  ];
+  const unit = units.find((entry) => abs >= entry.value);
+
+  if (!unit) {
+    return value.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }
+
+  const scaled = abs / unit.value;
+  const formatted = scaled >= 100 ? scaled.toFixed(1) : scaled >= 10 ? scaled.toFixed(2) : scaled.toFixed(3);
+  const rounded = Number(formatted);
+  const isExactUnit = Math.abs(abs % unit.value) < 0.000001;
+  const compact = rounded % 1 === 0 && !isExactUnit ? formatted : formatted.replace(/\.0+$/, "").replace(/(\.\d*[1-9])0+$/, "$1");
+  return `${value < 0 ? "-" : ""}${compact}${unit.suffix}`;
+};
 
 const MAX_TRENDING = 10;
 type Network = "all" | "polygon" | "ethereum" | "solana" | "base" | "optimism";
@@ -281,7 +308,7 @@ function getAssetNetwork(asset: Asset) {
 }
 
 export function AssetsPage({ showTrending = true, showSearchBar = false }: AssetsPageProps) {
-  const { assets, userAssets, assetAvailable } = useApp();
+  const { assets, user, userAssets, assetAvailable } = useApp();
   const { theme } = useTheme();
   const isDarkTheme = theme === "dark";
   const navigate = useNavigate();
@@ -297,6 +324,7 @@ export function AssetsPage({ showTrending = true, showSearchBar = false }: Asset
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [selectedNews, setSelectedNews] = useState<Web3NewsItem | null>(null);
   const [activeNewsIndex, setActiveNewsIndex] = useState(1);
+  const [balanceView, setBalanceView] = useState<"trading" | "lft">("trading");
   const newsCarouselRef = useRef<HTMLDivElement | null>(null);
   const { news: statusNews, loading: statusNewsLoading } = useWeb3News(8);
 
@@ -524,7 +552,7 @@ export function AssetsPage({ showTrending = true, showSearchBar = false }: Asset
     </div>
   );
 
-  const tableShellClasses = "-mx-2 overflow-hidden rounded-2xl bg-transparent md:mx-0 md:bg-white dark:bg-transparent dark:md:bg-transparent mb-6 sm:-mx-5";
+  const tableShellClasses = "overflow-hidden rounded-2xl bg-transparent md:mx-0 md:bg-white dark:bg-transparent dark:md:bg-transparent mb-6";
   const tableStickyColumnClasses = "bg-white dark:bg-[#0F0F0F] dark:md:bg-transparent";
 
   const renderListedList = (items: Asset[]) => (
@@ -841,24 +869,131 @@ export function AssetsPage({ showTrending = true, showSearchBar = false }: Asset
   return (
     <>
       <main className="flex-1 pb-2 pt-4 md:pb-20">
-        <div className="mx-auto w-full max-w-[1400px] px-1 sm:px-3 md:px-6 lg:px-8">
-          <div className="flex flex-col px-1 pb-4 pt-0 sm:px-2 md:p-0 md:pt-0">
+        <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-5 md:px-6 lg:px-8">
+          <div className="flex flex-col pb-4 pt-0 md:p-0 md:pt-0">
 
-            {renderTrendingLftsStrip()}
+            {/* Trading balance section */}
+            <div className="mb-4 rounded-2xl bg-transparent">
+              <div className="flex flex-col gap-2 py-4">
+                <p className="text-sm font-semibold text-muted-foreground">Trading Balance</p>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    className="flex-1 text-left font-mono text-3xl font-black tracking-[-0.05em] text-foreground transition hover:text-blue-500"
+                  >
+                    <span className="inline-flex min-w-0 items-center gap-1.5">
+                      <img src="/usdc.png" alt="" className="h-8 w-8 rounded-full object-cover" />
+                      <span>
+                        {balanceView === "trading"
+                          ? formatCompactUsd(user.usd ?? 0)
+                          : formatCompactUsd(
+                              Object.values(userAssets).reduce((sum, ua) => {
+                                const asset = assets.find((a) => a.id === ua.assetId);
+                                const supply = asset?.cycle?.supply ?? 0;
+                                const reserve = asset?.cycle?.reserve ?? 0;
+                                const lpu = supply > 0 ? reserve / supply : 0;
+                                return sum + (ua.lfts || 0) * lpu;
+                              }, 0),
+                            )}
+                      </span>
+                    </span>
+                  </button>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className="flex items-center gap-1 rounded-full bg-transparent px-2.5 py-1 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
+                      >
+                        {balanceView === "trading" ? "Trading Balance" : "LFT Holdings"}
+                        <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <path d="M6 9l6 6 6-6" />
+                        </svg>
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      align="end"
+                      collisionPadding={16}
+                      className="w-40 rounded-xl bg-white p-1 text-sm font-medium text-gray-700 shadow-xl dark:bg-gray-900 dark:text-gray-200"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setBalanceView("trading")}
+                        className={cn(
+                          "flex w-full items-center rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-gray-100 dark:hover:bg-gray-800",
+                          balanceView === "trading" && "font-semibold"
+                        )}
+                      >
+                        Trading Balance
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBalanceView("lft")}
+                        className={cn(
+                          "flex w-full items-center rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-gray-100 dark:hover:bg-gray-800",
+                          balanceView === "lft" && "font-semibold"
+                        )}
+                      >
+                        LFT Holdings
+                      </button>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {balanceView === "trading"
+                    ? "Ready for CoinTag hunts, redemptions, and liquidity-funded token trades."
+                    : "Your Liquid Fungible Tokens across collections."}
+                </p>
+              </div>
+            </div>
 
-            <MarketTickerTape className="mb-4 hidden md:block" />
+            {/* Partner brands */}
+            <div className="mb-4">
+              <div className="py-4 md:px-0">
+                <div className="mb-3">
+                  <p className="text-xl font-bold tracking-tight text-foreground">Embedded Decentralised Finance</p>
+                  <p className="text-xs text-muted-foreground">Explore Blockchain Products.</p>
+                </div>
+                <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+                {[
+                  { name: "Uniswap", category: "DEX", rate: "8.00% p.a.", image: "/Uniswap Logo (UNI).jpeg", accent: "text-emerald-500" },
+                  { name: "Robinhood", category: "Brokerage", rate: "6.50% p.a.", image: "/Robinhood.jpeg", accent: "text-emerald-500" },
+                  { name: "Polymarket", category: "Prediction", rate: "12.00% p.a.", image: "/polymarket.png", accent: "text-emerald-500" },
+                  { name: "OpenSea", category: "NFT", rate: "4.00% p.a.", image: "/Opensea.jpeg", accent: "text-emerald-500" },
+                  { name: "Phantom", category: "Wallet", rate: "5.50% p.a.", image: "/phantom.jpeg", accent: "text-emerald-500" },
+                ].map((brand) => (
+                  <div
+                    key={brand.name}
+                    className="flex min-w-[140px] flex-col items-center gap-2 rounded-2xl bg-background/70 p-3"
+                  >
+                    <div className="h-14 w-14 overflow-hidden rounded-full">
+                      <img src={brand.image} alt={brand.name} className="h-full w-full object-cover" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-semibold text-foreground">{brand.name}</p>
+                      <p className="text-[11px] text-muted-foreground">{brand.category}</p>
+                    </div>
+                    <p className={`text-xs font-semibold ${brand.accent}`}>{brand.rate}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            </div>
 
-            <MarketTickerTape className="relative left-1/2 mb-2 w-screen -translate-x-1/2 md:hidden" />
+            <div className="mb-2 md:hidden">
+              <MarketTickerTape className="mb-2" />
+            </div>
 
             {/* SearchBar - toggleable on all platforms */}
             {(showSearchBar || isSearchVisible) && (
-              <div className="px-0 mb-4">
-                <Input
-                  value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                  placeholder="Search assets..."
-                  className="h-11 w-full rounded-2xl border border-border/40 bg-background/80 px-4 text-sm text-foreground focus-visible:ring-0"
-                />
+              <div className="px-0 mb-4 md:px-0">
+                <div className="md:px-0">
+                  <Input
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    placeholder="Search assets..."
+                    className="h-11 w-full rounded-2xl border border-border/40 bg-background/80 px-4 text-sm text-foreground focus-visible:ring-0"
+                  />
+                </div>
               </div>
             )}
 
