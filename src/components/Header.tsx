@@ -765,29 +765,29 @@ const Header = ({ mobileNavItems = [] }: HeaderProps) => {
                 type="button"
                 className="flex items-center justify-center"
               >
-                <div
-                  className={cn(
-                    "flex h-12 w-12 items-center justify-center rounded-xl text-white shadow-lg backdrop-blur-md transition-colors",
-                    isDarkTheme
-                      ? "bg-white/10 border border-white/20"
-                      : "bg-white/60 border border-white/60 text-gray-700",
-                  )}
-                >
+              <div
+                className={cn(
+                  "flex h-12 w-12 items-center justify-center rounded-xl text-white shadow-lg backdrop-blur-md transition-colors",
+                  isDarkTheme
+                    ? "bg-white/10 border border-white/10 text-white"
+                    : "bg-white/60 border border-white/60 text-gray-700",
+                )}
+              >
                   <QrCode className="h-6 w-6" strokeWidth={2} />
                 </div>
               </button>
             </PopoverTrigger>
-            <PopoverContent
-              align="center"
-              side="top"
-              collisionPadding={16}
-              className={cn(
-                "w-64 rounded-2xl p-2 text-sm font-medium shadow-xl backdrop-blur-xl md:hidden mb-2",
-                isDarkTheme
-                  ? "bg-slate-900/90 text-white border border-slate-700/60"
-                  : "bg-gradient-to-br from-sky-200/80 via-slate-200/80 to-white/90 text-slate-800 border border-white/60",
-              )}
-            >
+              <PopoverContent
+                align="center"
+                side="top"
+                collisionPadding={16}
+                className={cn(
+                  "w-64 rounded-2xl p-2 text-sm font-medium shadow-xl backdrop-blur-xl md:hidden mb-2",
+                  isDarkTheme
+                    ? "bg-white/10 text-white border border-white/10"
+                    : "bg-gradient-to-br from-sky-200/80 via-slate-200/80 to-white/90 text-slate-800 border border-white/60",
+                )}
+              >
               <div className="flex flex-col gap-1">
                 {QR_NAV_LINKS.map((link) => {
                   const isActive = isNavHrefActive(location.pathname, link.href);

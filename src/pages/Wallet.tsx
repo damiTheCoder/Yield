@@ -102,7 +102,7 @@ function PixelAvatar({ variant, className }: { variant: number; className?: stri
 
   return (
     <div className={cn("relative shrink-0 overflow-hidden rounded-full", style.bg, className)} aria-hidden="true">
-      <div className="absolute inset-[18%] grid grid-cols-3 grid-rows-3 gap-[7%]">
+      <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 gap-[7%]">
         {style.blocks.map((block, index) => (
           <span
             key={`${style.name}-${index}`}

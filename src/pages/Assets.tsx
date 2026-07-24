@@ -876,7 +876,7 @@ export function AssetsPage({ showTrending = true, showSearchBar = false }: Asset
             <div className="mb-4 rounded-2xl bg-transparent">
               <div className="flex flex-col gap-2 py-4">
                 <p className="text-sm font-semibold text-muted-foreground">Trading Balance</p>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1">
                   <button
                     type="button"
                     className="flex-1 text-left font-mono text-3xl font-black tracking-[-0.05em] text-foreground transition hover:text-blue-500"
@@ -902,9 +902,9 @@ export function AssetsPage({ showTrending = true, showSearchBar = false }: Asset
                     <PopoverTrigger asChild>
                       <button
                         type="button"
-                        className="flex items-center gap-1 rounded-full bg-transparent px-2.5 py-1 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
+                        className="flex items-center gap-1 rounded-full bg-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                       >
-                        {balanceView === "trading" ? "Trading Balance" : "LFT Holdings"}
+                        {balanceView === "trading" ? "Balance" : "LFT Holdings"}
                         <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                           <path d="M6 9l6 6 6-6" />
                         </svg>
@@ -913,25 +913,25 @@ export function AssetsPage({ showTrending = true, showSearchBar = false }: Asset
                     <PopoverContent
                       align="end"
                       collisionPadding={16}
-                      className="w-40 rounded-xl bg-white p-1 text-sm font-medium text-gray-700 shadow-xl dark:bg-gray-900 dark:text-gray-200"
+                      className="w-40 rounded-xl bg-white/80 p-1 text-sm font-medium text-gray-700 shadow-xl backdrop-blur-xl dark:bg-white/10 dark:text-white"
                     >
                       <button
                         type="button"
                         onClick={() => setBalanceView("trading")}
-                        className={cn(
-                          "flex w-full items-center rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-gray-100 dark:hover:bg-gray-800",
-                          balanceView === "trading" && "font-semibold"
-                        )}
+                      className={cn(
+                        "flex w-full items-center rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-gray-200 dark:hover:bg-white/10",
+                        balanceView === "trading" && "font-semibold"
+                      )}
                       >
-                        Trading Balance
+                        Balance
                       </button>
                       <button
                         type="button"
                         onClick={() => setBalanceView("lft")}
-                        className={cn(
-                          "flex w-full items-center rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-gray-100 dark:hover:bg-gray-800",
-                          balanceView === "lft" && "font-semibold"
-                        )}
+                      className={cn(
+                        "flex w-full items-center rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-gray-200 dark:hover:bg-white/10",
+                        balanceView === "lft" && "font-semibold"
+                      )}
                       >
                         LFT Holdings
                       </button>
@@ -953,7 +953,7 @@ export function AssetsPage({ showTrending = true, showSearchBar = false }: Asset
                   <p className="text-xl font-bold tracking-tight text-foreground">Embedded Decentralised Finance</p>
                   <p className="text-xs text-muted-foreground">Explore Blockchain Products.</p>
                 </div>
-                <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+                <div className="flex gap-1 overflow-x-auto pb-2 no-scrollbar">
                 {[
                   { name: "Uniswap", category: "DEX", rate: "8.00% p.a.", image: "/Uniswap Logo (UNI).jpeg", accent: "text-emerald-500" },
                   { name: "Robinhood", category: "Brokerage", rate: "6.50% p.a.", image: "/Robinhood.jpeg", accent: "text-emerald-500" },
@@ -963,7 +963,7 @@ export function AssetsPage({ showTrending = true, showSearchBar = false }: Asset
                 ].map((brand) => (
                   <div
                     key={brand.name}
-                    className="flex min-w-[140px] flex-col items-center gap-2 rounded-2xl bg-background/70 p-3"
+                    className="flex min-w-[140px] flex-col items-center gap-2 rounded-2xl bg-background/70 p-2.5"
                   >
                     <div className="h-14 w-14 overflow-hidden rounded-full">
                       <img src={brand.image} alt={brand.name} className="h-full w-full object-cover" />
